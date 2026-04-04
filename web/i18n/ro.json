@@ -1,0 +1,30 @@
+{
+  "app": {
+    "name": "Registru de Cadouri"
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "Anuleaz\u0103",
+    "save": "Salveaz\u0103",
+    "delete": "\u0218terge",
+    "loading": "Se \u00eencarc\u0103\u2026",
+    "error_generic": "Ceva a mers prost. \u00cencearc\u0103 din nou.",
+    "retry": "Re\u00eencearc\u0103",
+    "back": "\u00cenapoi"
+  },
+  "auth": {
+    "sign_in_title": "Autentificare",
+    "sign_up_title": "Creeaz\u0103 Cont",
+    "continue_as_guest": "Continu\u0103 ca Oaspete",
+    "email_label": "Email",
+    "password_label": "Parol\u0103"
+  },
+  "registry": {
+    "create_title": "Registru Nou",
+    "occasion_label": "Ocazie"
+  },
+  "reservation": {
+    "timer_label": "Rezervat pentru {{minutes}} minute",
+    "expired": "Rezervare expirat\u0103"
+  }
+}
