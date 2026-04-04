@@ -74,7 +74,7 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Localization
 
 - [ ] **I18N-01**: App UI supports Romanian and English languages
-- [ ] **I18N-02**: All UI labels stored in separate resource files (strings.xml for Android, i18n files for web)
+- [x] **I18N-02**: All UI labels stored in separate resource files (strings.xml for Android, i18n files for web)
 - [ ] **I18N-03**: Language auto-detected from device/browser locale with manual override
 
 ## v2 Requirements
@@ -161,7 +161,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WEB-03 | Phase 5 | Pending |
 | WEB-04 | Phase 5 | Pending |
 | I18N-01 | Phase 2 | Pending |
-| I18N-02 | Phase 1 | Pending |
+| I18N-02 | Phase 1 | Complete |
 | I18N-03 | Phase 2 | Pending |
 
 **Coverage:**
