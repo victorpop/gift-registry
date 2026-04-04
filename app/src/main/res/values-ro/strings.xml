@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App-level -->
+    <string name="app_name">Registru de Cadouri</string>
+
+    <!-- Common / shared -->
+    <string name="common_ok">OK</string>
+    <string name="common_cancel">Anuleaz\u0103</string>
+    <string name="common_save">Salveaz\u0103</string>
+    <string name="common_delete">\u0218terge</string>
+    <string name="common_loading">Se \u00eencarc\u0103\u2026</string>
+    <string name="common_error_generic">Ceva a mers prost. \u00cencearc\u0103 din nou.</string>
+    <string name="common_retry">Re\u00eencearc\u0103</string>
+    <string name="common_back">\u00cenapoi</string>
+
+    <!-- Auth screen (Phase 2 will expand) -->
+    <string name="auth_sign_in_title">Autentificare</string>
+    <string name="auth_sign_up_title">Creeaz\u0103 Cont</string>
+    <string name="auth_continue_as_guest">Continu\u0103 ca Oaspete</string>
+    <string name="auth_email_label">Email</string>
+    <string name="auth_password_label">Parol\u0103</string>
+
+    <!-- Registry (Phase 3 will expand) -->
+    <string name="registry_create_title">Registru Nou</string>
+    <string name="registry_occasion_label">Ocazie</string>
+
+    <!-- Reservation (Phase 4 will expand) -->
+    <string name="reservation_timer_label">Rezervat pentru %1$d minute</string>
+    <string name="reservation_expired">Rezervare expirat\u0103</string>
+</resources>

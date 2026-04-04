@@ -1,0 +1,30 @@
+{
+  "app": {
+    "name": "Gift Registry"
+  },
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "loading": "Loading\u2026",
+    "error_generic": "Something went wrong. Please try again.",
+    "retry": "Retry",
+    "back": "Back"
+  },
+  "auth": {
+    "sign_in_title": "Sign In",
+    "sign_up_title": "Create Account",
+    "continue_as_guest": "Continue as Guest",
+    "email_label": "Email",
+    "password_label": "Password"
+  },
+  "registry": {
+    "create_title": "New Registry",
+    "occasion_label": "Occasion"
+  },
+  "reservation": {
+    "timer_label": "Reserved for {{minutes}} minutes",
+    "expired": "Reservation expired"
+  }
+}

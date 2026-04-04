@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App-level -->
+    <string name="app_name">Gift Registry</string>
+
+    <!-- Common / shared -->
+    <string name="common_ok">OK</string>
+    <string name="common_cancel">Cancel</string>
+    <string name="common_save">Save</string>
+    <string name="common_delete">Delete</string>
+    <string name="common_loading">Loading\u2026</string>
+    <string name="common_error_generic">Something went wrong. Please try again.</string>
+    <string name="common_retry">Retry</string>
+    <string name="common_back">Back</string>
+
+    <!-- Auth screen (Phase 2 will expand) -->
+    <string name="auth_sign_in_title">Sign In</string>
+    <string name="auth_sign_up_title">Create Account</string>
+    <string name="auth_continue_as_guest">Continue as Guest</string>
+    <string name="auth_email_label">Email</string>
+    <string name="auth_password_label">Password</string>
+
+    <!-- Registry (Phase 3 will expand) -->
+    <string name="registry_create_title">New Registry</string>
+    <string name="registry_occasion_label">Occasion</string>
+
+    <!-- Reservation (Phase 4 will expand) -->
+    <string name="reservation_timer_label">Reserved for %1$d minutes</string>
+    <string name="reservation_expired">Reservation expired</string>
+</resources>
