@@ -1,0 +1,89 @@
+# Gift Registry
+
+## What This Is
+
+A general-purpose gift registry Android application with a web fallback for gift givers. Registry owners create and manage wishlists for any occasion (birthdays, weddings, baby showers, etc.), adding items via URL import or browsing an EMAG-backed product catalog. Gift givers access registries through shareable links, reserve items with a 30-minute purchase window, and click through to buy at the retailer. Monetized through affiliate link commissions.
+
+## Core Value
+
+Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
+
+## Requirements
+
+### Validated
+
+(None yet — ship to validate)
+
+### Active
+
+- [ ] Registry owners can create registries for any occasion
+- [ ] Owners can add items via any URL with automatic affiliate tag injection
+- [ ] Owners can browse and add items from EMAG product catalog via API
+- [ ] Owners can set registry visibility (public link or private invite-only)
+- [ ] Owners can invite specific users to private registries (email + in-app notification for existing users, email-only for non-users)
+- [ ] Owners can opt in/out of purchase notifications
+- [ ] Gift givers can access registries via shareable links
+- [ ] Gift givers can log in, create an account, or continue as guest
+- [ ] Guests provide first name, last name, and email to reserve items
+- [ ] Guest-to-account conversion offered at reservation time
+- [ ] 30-minute reservation timer with auto-release on expiry
+- [ ] Givers are redirected to retailer immediately upon reservation
+- [ ] Expiration email sent to giver when reservation lapses, with option to re-reserve
+- [ ] URL transformer identifies merchant and appends correct affiliate tag
+- [ ] Web fallback for gift givers (view registry, reserve, purchase)
+- [ ] Multilingual support (Romanian and English)
+
+### Out of Scope
+
+- In-app purchasing — users buy at the retailer, not in the app
+- iOS app — Android only for v1
+- Multiple persistence layers — Firebase only, no SQLite
+- Ads or premium tiers — affiliate commissions are the sole revenue model
+- Social features (comments, likes on registries) — not part of core value
+
+## Context
+
+- **Platform:** Android (Java/Kotlin) with web fallback for gift givers
+- **Backend:** Firebase (authentication, database, cloud functions)
+- **Product catalog:** EMAG public API for product recommendations and browsing
+- **Monetization:** Affiliate link commissions via URL transformer that identifies merchants and injects affiliate tags
+- **Target market:** Romanian market (EMAG is a Romanian e-commerce platform)
+- **Localization:** Multilingual support for Romanian and English; all UI element labels stored in separate resource files for translation
+- **Key technical challenge:** Real-time reservation system with 30-minute expiry across concurrent users
+
+## Constraints
+
+- **Tech stack**: Java/Kotlin for Android, Firebase for backend — no other persistence layer
+- **Retailer integration**: EMAG API for catalog; other retailers supported via URL import only
+- **Reservation model**: 30-minute hard timer, no extensions — keeps inventory state simple and predictable
+- **Guest access**: Must work without account creation to reduce friction for gift givers
+- **Localization**: All UI labels externalized in resource files (strings.xml for Android, i18n files for web) — no hardcoded strings
+
+## Key Decisions
+
+| Decision | Rationale | Outcome |
+|----------|-----------|---------|
+| Firebase over SQLite | Registries must be shared between users; Firebase provides real-time sync, auth, and cloud functions out of the box | — Pending |
+| Affiliate-only monetization | Clean user experience, no ads or paywalls; revenue scales with gift purchases | — Pending |
+| 30-minute reservation window | Long enough to complete a purchase, short enough to prevent indefinite holds | — Pending |
+| Web fallback for givers only | Reduces scope while ensuring givers don't need to install an app to participate | — Pending |
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
+---
+*Last updated: 2026-04-04 after initialization*
