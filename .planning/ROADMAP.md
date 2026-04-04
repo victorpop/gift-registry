@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. All UI string resource files (strings.xml for Android, en.json and ro.json for web) have their structure defined with keys in place
 **Plans**: 3 plans
 Plans:
-- [ ] 01-01-PLAN.md -- Firebase project setup and scaffold (checkpoint: human-action for project creation)
+- [x] 01-01-PLAN.md -- Firebase project setup and scaffold (checkpoint: human-action for project creation)
 - [ ] 01-02-PLAN.md -- Firestore security rules + automated tests (TDD)
 - [ ] 01-03-PLAN.md -- String resources (Android + web i18n) and hosting assets (I18N-02)
 
@@ -115,7 +115,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Firebase Foundation | 0/3 | Planning complete | - |
+| 1. Firebase Foundation | 1/3 | In Progress|  |
 | 2. Android Core + Auth | 0/TBD | Not started | - |
 | 3. Registry + Item Management | 0/TBD | Not started | - |
 | 4. Reservation System | 0/TBD | Not started | - |
