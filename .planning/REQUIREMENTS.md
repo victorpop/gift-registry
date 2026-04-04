@@ -117,58 +117,58 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Pending | Pending |
-| AUTH-02 | Pending | Pending |
-| AUTH-03 | Pending | Pending |
-| AUTH-04 | Pending | Pending |
-| AUTH-05 | Pending | Pending |
-| AUTH-06 | Pending | Pending |
-| REG-01 | Pending | Pending |
-| REG-02 | Pending | Pending |
-| REG-03 | Pending | Pending |
-| REG-04 | Pending | Pending |
-| REG-05 | Pending | Pending |
-| REG-06 | Pending | Pending |
-| REG-07 | Pending | Pending |
-| REG-08 | Pending | Pending |
-| REG-09 | Pending | Pending |
-| ITEM-01 | Pending | Pending |
-| ITEM-02 | Pending | Pending |
-| ITEM-03 | Pending | Pending |
-| ITEM-04 | Pending | Pending |
-| ITEM-05 | Pending | Pending |
-| ITEM-06 | Pending | Pending |
-| ITEM-07 | Pending | Pending |
-| AFF-01 | Pending | Pending |
-| AFF-02 | Pending | Pending |
-| AFF-03 | Pending | Pending |
-| AFF-04 | Pending | Pending |
-| RES-01 | Pending | Pending |
-| RES-02 | Pending | Pending |
-| RES-03 | Pending | Pending |
-| RES-04 | Pending | Pending |
-| RES-05 | Pending | Pending |
-| RES-06 | Pending | Pending |
-| RES-07 | Pending | Pending |
-| RES-08 | Pending | Pending |
-| RES-09 | Pending | Pending |
-| REG-10 | Pending | Pending |
-| NOTF-01 | Pending | Pending |
-| NOTF-02 | Pending | Pending |
-| NOTF-03 | Pending | Pending |
-| WEB-01 | Pending | Pending |
-| WEB-02 | Pending | Pending |
-| WEB-03 | Pending | Pending |
-| WEB-04 | Pending | Pending |
-| I18N-01 | Pending | Pending |
-| I18N-02 | Pending | Pending |
-| I18N-03 | Pending | Pending |
+| AUTH-01 | Phase 2 | Pending |
+| AUTH-02 | Phase 2 | Pending |
+| AUTH-03 | Phase 2 | Pending |
+| AUTH-04 | Phase 2 | Pending |
+| AUTH-05 | Phase 2 | Pending |
+| AUTH-06 | Phase 2 | Pending |
+| REG-01 | Phase 3 | Pending |
+| REG-02 | Phase 3 | Pending |
+| REG-03 | Phase 3 | Pending |
+| REG-04 | Phase 3 | Pending |
+| REG-05 | Phase 3 | Pending |
+| REG-06 | Phase 3 | Pending |
+| REG-07 | Phase 3 | Pending |
+| REG-08 | Phase 3 | Pending |
+| REG-09 | Phase 3 | Pending |
+| REG-10 | Phase 3 | Pending |
+| ITEM-01 | Phase 3 | Pending |
+| ITEM-02 | Phase 3 | Pending |
+| ITEM-03 | Phase 7 | Pending |
+| ITEM-04 | Phase 7 | Pending |
+| ITEM-05 | Phase 3 | Pending |
+| ITEM-06 | Phase 3 | Pending |
+| ITEM-07 | Phase 3 | Pending |
+| AFF-01 | Phase 3 | Pending |
+| AFF-02 | Phase 3 | Pending |
+| AFF-03 | Phase 3 | Pending |
+| AFF-04 | Phase 3 | Pending |
+| RES-01 | Phase 4 | Pending |
+| RES-02 | Phase 4 | Pending |
+| RES-03 | Phase 4 | Pending |
+| RES-04 | Phase 4 | Pending |
+| RES-05 | Phase 4 | Pending |
+| RES-06 | Phase 4 | Pending |
+| RES-07 | Phase 4 | Pending |
+| RES-08 | Phase 4 | Pending |
+| RES-09 | Phase 4 | Pending |
+| NOTF-01 | Phase 6 | Pending |
+| NOTF-02 | Phase 6 | Pending |
+| NOTF-03 | Phase 6 | Pending |
+| WEB-01 | Phase 5 | Pending |
+| WEB-02 | Phase 5 | Pending |
+| WEB-03 | Phase 5 | Pending |
+| WEB-04 | Phase 5 | Pending |
+| I18N-01 | Phase 2 | Pending |
+| I18N-02 | Phase 1 | Pending |
+| I18N-03 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 45 total
-- Mapped to phases: 0
-- Unmapped: 45 ⚠️
+- Mapped to phases: 45
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-04*
-*Last updated: 2026-04-04 after initial definition*
+*Last updated: 2026-04-04 after roadmap creation*
