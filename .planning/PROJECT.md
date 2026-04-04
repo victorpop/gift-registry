@@ -12,7 +12,7 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Multilingual support — all UI labels in separate resource files (strings.xml, i18n JSON) — Phase 1
 
 ### Active
 
@@ -86,4 +86,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-04 after initialization*
+*Last updated: 2026-04-04 after Phase 1 completion*
