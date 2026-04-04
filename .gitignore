@@ -1,0 +1,28 @@
+# Firebase
+firebase-debug.log
+firebase-debug.*.log
+ui-debug.log
+.firebase/
+
+# Functions
+functions/lib/
+functions/node_modules/
+
+# Hosting
+hosting/public/node_modules/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# Android (Phase 2+)
+*.apk
+*.aab
+.gradle/
+build/
+local.properties
