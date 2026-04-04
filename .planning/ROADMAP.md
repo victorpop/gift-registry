@@ -48,7 +48,13 @@ Plans:
   3. Gift giver can access a registry as a guest by providing first name, last name, and email — no account required
   4. Guest is offered account creation after completing a reservation action
   5. App UI displays in Romanian and English, auto-detected from device locale with a manual override available
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 02-01-PLAN.md -- Android project scaffold: Gradle, Hilt, Compose, Firebase, Material3 theme (checkpoint: Firebase setup)
+- [ ] 02-02-PLAN.md -- Auth domain + data layers: repository, use cases, Firebase data source, DI bindings, test fake
+- [ ] 02-03-PLAN.md -- Auth UI screen, ViewModel, Navigation3 gating, ViewModel unit tests, string resources
+- [ ] 02-04-PLAN.md -- Settings screen with language picker, locale persistence, guest conversion bottom sheet
+- [ ] 02-05-PLAN.md -- Human verification of complete auth flow and language switching
 **UI hint**: yes
 
 ### Phase 3: Registry + Item Management
@@ -116,7 +122,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Firebase Foundation | 3/3 | Complete   | 2026-04-04 |
-| 2. Android Core + Auth | 0/TBD | Not started | - |
+| 2. Android Core + Auth | 0/5 | Planning complete | - |
 | 3. Registry + Item Management | 0/TBD | Not started | - |
 | 4. Reservation System | 0/TBD | Not started | - |
 | 5. Web Fallback | 0/TBD | Not started | - |
