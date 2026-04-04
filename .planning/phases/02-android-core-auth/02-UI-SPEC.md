@@ -117,6 +117,8 @@ Navigation graph structure (per ARCH-02 decision):
 
 ### Auth Screen Layout
 
+Primary focal point: app logo/wordmark at top center — largest element in the visual hierarchy (`headlineLarge` 32sp), draws the eye before the tab row and form fields.
+
 Top-to-bottom vertical structure:
 
 1. App logo / wordmark — centered, `headlineLarge`, top padding `3xl` (64dp)
@@ -168,7 +170,7 @@ Source: AUTH-UX-04 decision from CONTEXT.md
 1. `TopAppBar` with back navigation — title "Settings" (`auth_settings_title` key)
 2. `ListItem` for language selection — leading icon: language icon, headline: "Language", supporting text: current language name
 3. Language picker: `AlertDialog` with `RadioButton` list — "English" / "Romana"
-4. Confirmation via "OK" button — triggers `Activity.recreate()` to apply locale
+4. Confirmation via "Change Language" button (`settings_language_confirm`) — triggers `Activity.recreate()` to apply locale
 
 Source: I18N-UX-02, I18N-UX-03 decisions from CONTEXT.md
 
@@ -216,6 +218,7 @@ All copy is externalized in `strings.xml` (English) and `strings-ro/strings.xml`
 | Language setting label | Language | `auth_settings_language_label` |
 | Language option — English | English | `auth_settings_language_english` |
 | Language option — Romanian | Romana | `auth_settings_language_romanian` |
+| Language picker confirm button | Change Language | `settings_language_confirm` |
 | Empty state — no account yet (below sign in form) | New here? Switch to Create Account to get started. | `auth_sign_in_no_account_hint` |
 | Error — wrong password / email | Incorrect email or password. Check your details and try again. | `auth_error_invalid_credentials` |
 | Error — email already in use | An account with this email already exists. Try signing in. | `auth_error_email_exists` |
