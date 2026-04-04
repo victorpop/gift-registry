@@ -32,7 +32,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Security rules pass simulator tests for public registry read, private registry owner-only read, guest reservation write, and owner-only item write
   4. `assetlinks.json` placeholder is served from Firebase Hosting for future Android App Links verification
   5. All UI string resource files (strings.xml for Android, en.json and ro.json for web) have their structure defined with keys in place
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 01-01-PLAN.md -- Firebase project setup and scaffold (checkpoint: human-action for project creation)
+- [ ] 01-02-PLAN.md -- Firestore security rules + automated tests (TDD)
+- [ ] 01-03-PLAN.md -- String resources (Android + web i18n) and hosting assets (I18N-02)
 
 ### Phase 2: Android Core + Auth
 **Goal**: Users can create accounts, log in, and authenticate as guests — and the Android app scaffold with clean architecture, Hilt DI, Navigation3, and multilingual support is fully wired
@@ -107,11 +111,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Firebase Foundation | 0/TBD | Not started | - |
+| 1. Firebase Foundation | 0/3 | Planning complete | - |
 | 2. Android Core + Auth | 0/TBD | Not started | - |
 | 3. Registry + Item Management | 0/TBD | Not started | - |
 | 4. Reservation System | 0/TBD | Not started | - |
