@@ -13,6 +13,9 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 ### Validated
 
 - ✓ Multilingual support — all UI labels in separate resource files (strings.xml, i18n JSON) — Phase 1
+- ✓ Gift givers can log in, create an account, or continue as guest — Phase 2
+- ✓ Guest-to-account conversion offered at reservation time (UI ready, trigger in Phase 4) — Phase 2
+- ✓ Multilingual support (Romanian and English) with manual override and persistence — Phase 2
 
 ### Active
 
@@ -23,15 +26,12 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 - [ ] Owners can invite specific users to private registries (email + in-app notification for existing users, email-only for non-users)
 - [ ] Owners can opt in/out of purchase notifications
 - [ ] Gift givers can access registries via shareable links
-- [ ] Gift givers can log in, create an account, or continue as guest
 - [ ] Guests provide first name, last name, and email to reserve items
-- [ ] Guest-to-account conversion offered at reservation time
 - [ ] 30-minute reservation timer with auto-release on expiry
 - [ ] Givers are redirected to retailer immediately upon reservation
 - [ ] Expiration email sent to giver when reservation lapses, with option to re-reserve
 - [ ] URL transformer identifies merchant and appends correct affiliate tag
 - [ ] Web fallback for gift givers (view registry, reserve, purchase)
-- [ ] Multilingual support (Romanian and English)
 
 ### Out of Scope
 
@@ -86,4 +86,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-04 after Phase 1 completion*
+*Last updated: 2026-04-05 after Phase 2 completion*
