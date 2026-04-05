@@ -1,33 +1,28 @@
 {
   "version": "1.0",
-  "timestamp": "2026-04-04T23:13:04.377Z",
-  "phase": "02",
-  "phase_name": "android-core-auth",
-  "phase_dir": ".planning/phases/02-android-core-auth",
+  "timestamp": "2026-04-05T08:56:20.518Z",
+  "phase": "03",
+  "phase_name": "registry-item-management",
+  "phase_dir": ".planning/phases/03-registry-item-management",
   "plan": 0,
   "task": 0,
   "total_tasks": 0,
   "status": "paused",
   "completed_tasks": [],
-  "remaining_tasks": [
-    {"id": 1, "name": "02-01: Android project scaffold (Gradle, Hilt, Compose, theme, DI, Firebase)", "status": "not_started"},
-    {"id": 2, "name": "02-02: Auth domain + data layers (repository, use cases, data source)", "status": "not_started"},
-    {"id": 3, "name": "02-03: Auth UI + ViewModel (TDD) + Navigation3 gating + Google Sign-In", "status": "not_started"},
-    {"id": 4, "name": "02-04: Settings screen + language picker + guest conversion bottom sheet", "status": "not_started"}
-  ],
+  "remaining_tasks": [],
   "blockers": [],
-  "human_actions_pending": [
-    {"action": "Register Android app in Firebase console with package name com.giftregistry and download google-services.json", "context": "Required by Plan 02-01 Task 3 checkpoint — blocks all Firebase SDK initialization", "blocking": true},
-    {"action": "Enable Google Sign-In provider in Firebase Auth console", "context": "Required for AUTH-03 Google OAuth flow in Plan 02-03", "blocking": true}
-  ],
+  "human_actions_pending": [],
   "decisions": [
-    {"decision": "Replanned from scratch — 4 plans in 4 sequential waves", "rationale": "Fresh plan incorporating research findings (AGP 9.1.0, KSP 2.3.6, Hilt 2.56.2, Credential Manager)", "phase": "02"},
-    {"decision": "Removed stale 02-05-PLAN.md from background agent", "rationale": "Background agent from previous session wrote an extra plan not part of verified set", "phase": "02"}
+    {"decision": "Removed Hilt Gradle plugin for AGP 9 compatibility", "rationale": "com.google.dagger.hilt.android uses BaseExtension removed in AGP 9 — using explicit Hilt_* base class pattern instead", "phase": "02"},
+    {"decision": "Bumped minSdk from 21 to 23", "rationale": "Firebase Auth 24.x requires minSdk 23", "phase": "02"},
+    {"decision": "PrimaryTabRow instead of deprecated TabRow", "rationale": "TabRow deprecated in Material3; PrimaryTabRow is the replacement", "phase": "02"},
+    {"decision": "rememberViewModelStoreNavEntryDecorator not available in Navigation3 1.0.1", "rationale": "Not in stable API; hiltViewModel() works via Activity ViewModelStoreOwner", "phase": "02"},
+    {"decision": "SignOutUseCase added to domain layer", "rationale": "Plan 02-02 omitted it but ViewModel needed it for signOut()", "phase": "02"}
   ],
   "uncommitted_files": [
     ".planning/config.json",
     ".planning/phases/01-firebase-foundation/01-02-SUMMARY.md"
   ],
-  "next_action": "Run /gsd:execute-phase 2 to start building the Android project scaffold",
-  "context_notes": "Phase 2 planning is complete. All 4 plans verified by plan-checker (10 dimensions passed). All 8 requirements covered (AUTH-01 through AUTH-06, I18N-01, I18N-03). Plans follow sequential wave structure because each layer depends on the previous. Human checkpoint in Plan 02-01 Task 3 for Firebase console setup (google-services.json)."
+  "next_action": "Run /gsd:autonomous or /gsd:plan-phase 3 --auto to start Phase 3: Registry + Item Management",
+  "context_notes": "Phase 2 fully complete and verified (22/22 must-haves). Phase 3 has no plans yet — needs discuss/plan/execute cycle. User wants to run Phase 3 autonomously. Key build context: no Hilt Gradle plugin (AGP 9 compat), minSdk 23, explicit Hilt_* base classes required for any new @AndroidEntryPoint classes."
 }
