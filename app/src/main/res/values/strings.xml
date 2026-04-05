@@ -13,12 +13,33 @@
     <string name="common_retry">Retry</string>
     <string name="common_back">Back</string>
 
-    <!-- Auth screen (Phase 2 will expand) -->
+    <!-- Auth screen -->
     <string name="auth_sign_in_title">Sign In</string>
     <string name="auth_sign_up_title">Create Account</string>
     <string name="auth_continue_as_guest">Continue as Guest</string>
     <string name="auth_email_label">Email</string>
     <string name="auth_password_label">Password</string>
+    <string name="auth_sign_in_button">Sign In</string>
+    <string name="auth_sign_up_button">Create Account</string>
+    <string name="auth_google_sign_in_button">Sign in with Google</string>
+    <string name="auth_or_divider">OR</string>
+    <string name="auth_confirm_password_label">Confirm Password</string>
+    <string name="auth_password_show">Show password</string>
+    <string name="auth_password_hide">Hide password</string>
+    <string name="auth_sign_in_no_account_hint">New here? Switch to Create Account to get started.</string>
+    <string name="auth_error_invalid_credentials">Incorrect email or password. Check your details and try again.</string>
+    <string name="auth_error_email_exists">An account with this email already exists. Try signing in.</string>
+    <string name="auth_error_weak_password">Password must be at least 8 characters.</string>
+    <string name="auth_error_network">No connection. Check your internet and try again.</string>
+    <string name="auth_guest_conversion_title">Save your reservation?</string>
+    <string name="auth_guest_conversion_body">Create a free account to track your reservation and receive updates.</string>
+    <string name="auth_guest_conversion_create">Create Account</string>
+    <string name="auth_guest_conversion_dismiss">Maybe later</string>
+    <string name="auth_settings_title">Settings</string>
+    <string name="auth_settings_language_label">Language</string>
+    <string name="auth_settings_language_english">English</string>
+    <string name="auth_settings_language_romanian">Romana</string>
+    <string name="settings_language_confirm">Change Language</string>
 
     <!-- Registry (Phase 3 will expand) -->
     <string name="registry_create_title">New Registry</string>

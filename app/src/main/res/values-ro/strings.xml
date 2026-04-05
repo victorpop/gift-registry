@@ -13,12 +13,33 @@
     <string name="common_retry">Re\u00eencearc\u0103</string>
     <string name="common_back">\u00cenapoi</string>
 
-    <!-- Auth screen (Phase 2 will expand) -->
+    <!-- Auth screen -->
     <string name="auth_sign_in_title">Autentificare</string>
     <string name="auth_sign_up_title">Creeaz\u0103 Cont</string>
     <string name="auth_continue_as_guest">Continu\u0103 ca Oaspete</string>
     <string name="auth_email_label">Email</string>
     <string name="auth_password_label">Parol\u0103</string>
+    <string name="auth_sign_in_button">Autentificare</string>
+    <string name="auth_sign_up_button">Creeaz&#259; Cont</string>
+    <string name="auth_google_sign_in_button">Autentificare cu Google</string>
+    <string name="auth_or_divider">SAU</string>
+    <string name="auth_confirm_password_label">Confirm&#259; Parola</string>
+    <string name="auth_password_show">Arat&#259; parola</string>
+    <string name="auth_password_hide">Ascunde parola</string>
+    <string name="auth_sign_in_no_account_hint">Nou aici? Treci la Creeaz&#259; Cont pentru a &#238;ncepe.</string>
+    <string name="auth_error_invalid_credentials">Email sau parol&#259; incorecte. Verific&#259; datele &#537;i &#238;ncearc&#259; din nou.</string>
+    <string name="auth_error_email_exists">Un cont cu acest email exist&#259; deja. &#206;ncearc&#259; s&#259; te autentifici.</string>
+    <string name="auth_error_weak_password">Parola trebuie s&#259; aib&#259; cel pu&#539;in 8 caractere.</string>
+    <string name="auth_error_network">Nu exist&#259; conexiune. Verific&#259; internetul &#537;i &#238;ncearc&#259; din nou.</string>
+    <string name="auth_guest_conversion_title">Salvezi rezervarea?</string>
+    <string name="auth_guest_conversion_body">Creeaz&#259; un cont gratuit pentru a-&#539;i urm&#259;ri rezervarea &#537;i a primi actualiz&#259;ri.</string>
+    <string name="auth_guest_conversion_create">Creeaz&#259; Cont</string>
+    <string name="auth_guest_conversion_dismiss">Poate mai t&#226;rziu</string>
+    <string name="auth_settings_title">Set&#259;ri</string>
+    <string name="auth_settings_language_label">Limb&#259;</string>
+    <string name="auth_settings_language_english">English</string>
+    <string name="auth_settings_language_romanian">Rom&#226;n&#259;</string>
+    <string name="settings_language_confirm">Schimb&#259; Limba</string>
 
     <!-- Registry (Phase 3 will expand) -->
     <string name="registry_create_title">Registru Nou</string>

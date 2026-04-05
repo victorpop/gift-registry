@@ -4,11 +4,7 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import com.giftregistry.ui.navigation.AppNavigation
 import com.giftregistry.ui.theme.GiftRegistryTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -19,12 +15,7 @@ class MainActivity : Hilt_MainActivity() {
         enableEdgeToEdge()
         setContent {
             GiftRegistryTheme {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("Gift Registry") // Placeholder -- replaced in Plan 03
-                }
+                AppNavigation()
             }
         }
     }
