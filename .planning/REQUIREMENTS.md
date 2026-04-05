@@ -9,12 +9,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can sign up with email and password
-- [ ] **AUTH-02**: User can log in with email and password
-- [ ] **AUTH-03**: User can log in with Google OAuth
-- [ ] **AUTH-04**: User session persists across app restarts
-- [ ] **AUTH-05**: Guest can access registry and reserve items by providing first name, last name, and email
-- [ ] **AUTH-06**: Guest is offered account creation after completing a reservation
+- [x] **AUTH-01**: User can sign up with email and password
+- [x] **AUTH-02**: User can log in with email and password
+- [x] **AUTH-03**: User can log in with Google OAuth
+- [x] **AUTH-04**: User session persists across app restarts
+- [x] **AUTH-05**: Guest can access registry and reserve items by providing first name, last name, and email
+- [x] **AUTH-06**: Guest is offered account creation after completing a reservation
 
 ### Registry Management
 
@@ -73,7 +73,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Localization
 
-- [ ] **I18N-01**: App UI supports Romanian and English languages
+- [x] **I18N-01**: App UI supports Romanian and English languages
 - [x] **I18N-02**: All UI labels stored in separate resource files (strings.xml for Android, i18n files for web)
 - [ ] **I18N-03**: Language auto-detected from device/browser locale with manual override
 
@@ -117,12 +117,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 2 | Pending |
-| AUTH-02 | Phase 2 | Pending |
-| AUTH-03 | Phase 2 | Pending |
-| AUTH-04 | Phase 2 | Pending |
-| AUTH-05 | Phase 2 | Pending |
-| AUTH-06 | Phase 2 | Pending |
+| AUTH-01 | Phase 2 | Complete |
+| AUTH-02 | Phase 2 | Complete |
+| AUTH-03 | Phase 2 | Complete |
+| AUTH-04 | Phase 2 | Complete |
+| AUTH-05 | Phase 2 | Complete |
+| AUTH-06 | Phase 2 | Complete |
 | REG-01 | Phase 3 | Pending |
 | REG-02 | Phase 3 | Pending |
 | REG-03 | Phase 3 | Pending |
@@ -160,7 +160,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WEB-02 | Phase 5 | Pending |
 | WEB-03 | Phase 5 | Pending |
 | WEB-04 | Phase 5 | Pending |
-| I18N-01 | Phase 2 | Pending |
+| I18N-01 | Phase 2 | Complete |
 | I18N-02 | Phase 1 | Complete |
 | I18N-03 | Phase 2 | Pending |
 

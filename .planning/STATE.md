@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: "Checkpoint: 02-01 Task 3 (human-action: register Android app in Firebase, place google-services.json)"
-last_updated: "2026-04-05T06:43:15.767Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-04-05T07:13:53.568Z"
 last_activity: 2026-04-05
 progress:
   total_phases: 7
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 02 (android-core-auth) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-05
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-firebase-foundation P03 | 3 | 2 tasks | 6 files |
 | Phase 01-firebase-foundation P02 | 8min | 2 tasks | 6 files |
 | Phase 02-android-core-auth P01 | 3min | 2 tasks | 17 files |
+| Phase 02-android-core-auth P02 | 6min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,9 @@ Recent decisions affecting current work:
 - [Phase 02-android-core-auth]: AppCompatActivity (not ComponentActivity) — required for AppCompatDelegate.setApplicationLocales() locale switching (I18N-UX-03)
 - [Phase 02-android-core-auth]: Static seed color #6750A4, no dynamic color — ensures consistent brand identity across all Android versions including pre-Android 12
 - [Phase 02-android-core-auth]: No org.jetbrains.kotlin.android plugin — AGP 9.1.0 has Kotlin built in; adding the plugin causes duplicate plugin application error
+- [Phase 02-android-core-auth]: Zero Firebase imports in domain layer — pure Kotlin interfaces only, keeping domain testable without Android/Firebase dependencies
+- [Phase 02-android-core-auth]: callbackFlow with awaitClose for Firebase AuthStateListener bridging — ensures listener cleanup on Flow cancellation
+- [Phase 02-android-core-auth]: runCatching wraps Firebase suspend calls in AuthRepositoryImpl — converts exceptions to Result.failure keeping FirebaseExceptions out of domain
 
 ### Pending Todos
 
@@ -91,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-05T06:43:15.764Z
-Stopped at: Checkpoint: 02-01 Task 3 (human-action: register Android app in Firebase, place google-services.json)
+Last session: 2026-04-05T07:13:53.565Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
