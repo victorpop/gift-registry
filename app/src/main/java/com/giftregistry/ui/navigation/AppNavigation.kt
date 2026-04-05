@@ -30,6 +30,7 @@ import com.giftregistry.R
 import com.giftregistry.ui.auth.AuthScreen
 import com.giftregistry.ui.auth.AuthUiState
 import com.giftregistry.ui.auth.AuthViewModel
+import com.giftregistry.ui.settings.SettingsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,7 +103,7 @@ fun AppNavigation() {
                 }
             }
             entry<SettingsKey> {
-                Text("Settings \u2014 Plan 04")
+                SettingsScreen(onBack = { backStack.removeLast() })
             }
         }
     )
