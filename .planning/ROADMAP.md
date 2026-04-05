@@ -50,7 +50,7 @@ Plans:
   5. App UI displays in Romanian and English, auto-detected from device locale with a manual override available
 **Plans**: 4 plans
 Plans:
-- [ ] 02-01-PLAN.md -- Android project scaffold: Gradle, Hilt, Compose, Firebase, Material3 theme, DI modules (checkpoint: Firebase app registration)
+- [x] 02-01-PLAN.md -- Android project scaffold: Gradle, Hilt, Compose, Firebase, Material3 theme, DI modules (checkpoint: Firebase app registration)
 - [ ] 02-02-PLAN.md -- Auth domain + data layers: repository, use cases, Firebase data source, locale DataStore, DI bindings, test fake
 - [ ] 02-03-PLAN.md -- Auth UI screen, ViewModel with TDD, Navigation3 gating, Google Sign-In via Credential Manager, string resources
 - [ ] 02-04-PLAN.md -- Settings screen with language picker, locale persistence + restoration, guest conversion bottom sheet

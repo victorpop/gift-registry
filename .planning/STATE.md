@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 01-firebase-foundation/01-02-PLAN.md
-last_updated: "2026-04-04T17:44:18.594Z"
-last_activity: 2026-04-04
+status: executing
+stopped_at: "Checkpoint: 02-01 Task 3 (human-action: register Android app in Firebase, place google-services.json)"
+last_updated: "2026-04-05T06:43:15.767Z"
+last_activity: 2026-04-05
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 7
+  completed_plans: 4
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-04)
 
 **Core value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
-**Current focus:** Phase 01 — firebase-foundation
+**Current focus:** Phase 02 — android-core-auth
 
 ## Current Position
 
-Phase: 2
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-04
+Phase: 02 (android-core-auth) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-04-05
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-firebase-foundation P01 | 15 | 2 tasks | 9 files |
 | Phase 01-firebase-foundation P03 | 3 | 2 tasks | 6 files |
 | Phase 01-firebase-foundation P02 | 8min | 2 tasks | 6 files |
+| Phase 02-android-core-auth P01 | 3min | 2 tasks | 17 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,10 @@ Recent decisions affecting current work:
 - [Phase 01-firebase-foundation]: invitedUsers map (not array) for O(1) membership check in Firestore security rules
 - [Phase 01-firebase-foundation]: reservations collection hard-deny (allow read, write: if false) — Admin SDK bypasses rules for Cloud Functions
 - [Phase 01-firebase-foundation]: users delete disabled — account deletion requires backend business logic, not raw client delete
+- [Phase 02-android-core-auth]: KSP over KAPT for Hilt — AGP 9 built-in Kotlin makes KAPT incompatible; KSP 2.3.6 is the only viable annotation processor path
+- [Phase 02-android-core-auth]: AppCompatActivity (not ComponentActivity) — required for AppCompatDelegate.setApplicationLocales() locale switching (I18N-UX-03)
+- [Phase 02-android-core-auth]: Static seed color #6750A4, no dynamic color — ensures consistent brand identity across all Android versions including pre-Android 12
+- [Phase 02-android-core-auth]: No org.jetbrains.kotlin.android plugin — AGP 9.1.0 has Kotlin built in; adding the plugin causes duplicate plugin application error
 
 ### Pending Todos
 
@@ -86,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-04T17:34:29.117Z
-Stopped at: Completed 01-firebase-foundation/01-02-PLAN.md
+Last session: 2026-04-05T06:43:15.764Z
+Stopped at: Checkpoint: 02-01 Task 3 (human-action: register Android app in Firebase, place google-services.json)
 Resume file: None
