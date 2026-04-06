@@ -12,3 +12,4 @@ export const healthCheck = functions.https.onRequest((req, res) => {
 });
 
 export { fetchOgMetadata } from "./registry/fetchOgMetadata";
+export { inviteToRegistry } from "./registry/inviteToRegistry";
