@@ -2,16 +2,8 @@ package com.giftregistry.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,20 +11,19 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.giftregistry.R
 import com.giftregistry.ui.auth.AuthScreen
 import com.giftregistry.ui.auth.AuthUiState
 import com.giftregistry.ui.auth.AuthViewModel
+import com.giftregistry.ui.registry.create.CreateRegistryScreen
+import com.giftregistry.ui.registry.detail.RegistryDetailScreen
+import com.giftregistry.ui.registry.list.RegistryListScreen
 import com.giftregistry.ui.settings.SettingsScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavigation() {
     val authViewModel: AuthViewModel = hiltViewModel()
@@ -76,32 +67,59 @@ fun AppNavigation() {
         entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator()),
         entryProvider = entryProvider {
             entry<AuthKey> { AuthScreen() }
+
             entry<HomeKey> {
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = { Text(stringResource(R.string.app_name)) },
-                            actions = {
-                                IconButton(onClick = { backStack.add(SettingsKey) }) {
-                                    Icon(
-                                        imageVector = Icons.Default.Settings,
-                                        contentDescription = stringResource(R.string.auth_settings_title)
-                                    )
-                                }
-                            }
-                        )
+                RegistryListScreen(
+                    onNavigateToCreate = { backStack.add(CreateRegistryKey) },
+                    onNavigateToDetail = { registryId -> backStack.add(RegistryDetailKey(registryId)) },
+                    onNavigateToEdit = { registryId -> backStack.add(EditRegistryKey(registryId)) },
+                    onNavigateToSettings = { backStack.add(SettingsKey) }
+                )
+            }
+
+            entry<CreateRegistryKey> {
+                CreateRegistryScreen(
+                    onBack = { backStack.removeLast() },
+                    onSaved = { registryId ->
+                        backStack.removeLast()
+                        backStack.add(RegistryDetailKey(registryId))
                     }
-                ) { paddingValues ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Home \u2014 Phase 3")
-                    }
+                )
+            }
+
+            entry<EditRegistryKey> { key ->
+                CreateRegistryScreen(
+                    registryId = key.registryId,
+                    onBack = { backStack.removeLast() },
+                    onSaved = { backStack.removeLast() }
+                )
+            }
+
+            entry<RegistryDetailKey> { key ->
+                RegistryDetailScreen(
+                    registryId = key.registryId,
+                    onBack = { backStack.removeLast() },
+                    onNavigateToAddItem = { backStack.add(AddItemKey(key.registryId)) },
+                    onNavigateToEditItem = { itemId -> backStack.add(EditItemKey(key.registryId, itemId)) },
+                    onNavigateToEditRegistry = { backStack.add(EditRegistryKey(key.registryId)) },
+                    onNavigateToInvite = { /* Plan 05 Task 2 wires InviteBottomSheet */ }
+                )
+            }
+
+            entry<AddItemKey> { key ->
+                // Placeholder — Plan 05 replaces with AddItemScreen
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Add Item — Plan 05")
                 }
             }
+
+            entry<EditItemKey> { key ->
+                // Placeholder — Plan 05 replaces with EditItemScreen
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("Edit Item — Plan 05")
+                }
+            }
+
             entry<SettingsKey> {
                 SettingsScreen(onBack = { backStack.removeLast() })
             }
