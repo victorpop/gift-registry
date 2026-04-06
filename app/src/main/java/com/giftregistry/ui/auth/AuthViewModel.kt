@@ -12,7 +12,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -34,10 +33,7 @@ class AuthViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            // drop(1) skips the initial null from Firebase before session is restored.
-            // This prevents a brief flash of the auth screen on app restart.
             observeAuthStateUseCase()
-                .drop(1)
                 .collect { user ->
                     _authState.value = if (user != null) {
                         AuthUiState.Authenticated(uid = user.uid, isAnonymous = user.isAnonymous)

@@ -1,6 +1,8 @@
 package com.giftregistry.ui.auth
 
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,12 +13,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -27,14 +37,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -45,10 +51,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
@@ -67,15 +75,7 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    var selectedTabIndex by remember { mutableIntStateOf(0) }
-    var signInPasswordVisible by remember { mutableStateOf(false) }
-    var signUpPasswordVisible by remember { mutableStateOf(false) }
-    var signUpConfirmPasswordVisible by remember { mutableStateOf(false) }
-
-    // Clear error on tab switch
-    LaunchedEffect(selectedTabIndex) {
-        viewModel.clearError()
-    }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -83,284 +83,305 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
                 .verticalScroll(rememberScrollState())
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // App title
-            Spacer(modifier = Modifier.height(64.dp))
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.headlineLarge,
-                modifier = Modifier.semantics { heading() }
-            )
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-            // Tab row
-            PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
-                Tab(
-                    selected = selectedTabIndex == 0,
-                    onClick = { selectedTabIndex = 0 },
-                    text = { Text(stringResource(R.string.auth_sign_in_title)) }
-                )
-                Tab(
-                    selected = selectedTabIndex == 1,
-                    onClick = { selectedTabIndex = 1 },
-                    text = { Text(stringResource(R.string.auth_sign_up_title)) }
-                )
-            }
+            // Main card container
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(24.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp, vertical = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Gift icon
+                    Icon(
+                        imageVector = Icons.Default.CardGiftcard,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
 
-            Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            // Tab content
-            AnimatedContent(targetState = selectedTabIndex, label = "auth_tab_content") { tabIndex ->
-                when (tabIndex) {
-                    0 -> {
-                        // Sign In tab
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            // Email field
-                            OutlinedTextField(
-                                value = formState.email,
-                                onValueChange = { viewModel.updateEmail(it) },
-                                label = { Text(stringResource(R.string.auth_email_label)) },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Email,
-                                    imeAction = ImeAction.Next
-                                ),
-                                singleLine = true
-                            )
+                    // App title
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.headlineLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier.semantics { heading() }
+                    )
 
-                            Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                            // Password field
-                            OutlinedTextField(
-                                value = formState.password,
-                                onValueChange = { viewModel.updatePassword(it) },
-                                label = { Text(stringResource(R.string.auth_password_label)) },
-                                modifier = Modifier.fillMaxWidth(),
-                                visualTransformation = if (signInPasswordVisible) {
-                                    VisualTransformation.None
-                                } else {
-                                    PasswordVisualTransformation()
-                                },
-                                trailingIcon = {
-                                    IconButton(onClick = { signInPasswordVisible = !signInPasswordVisible }) {
-                                        Icon(
-                                            imageVector = if (signInPasswordVisible) {
-                                                Icons.Default.VisibilityOff
-                                            } else {
-                                                Icons.Default.Visibility
-                                            },
-                                            contentDescription = stringResource(
-                                                if (signInPasswordVisible) R.string.auth_password_hide
-                                                else R.string.auth_password_show
-                                            )
-                                        )
-                                    }
-                                },
-                                supportingText = if (formState.errorMessage != null) {
-                                    {
-                                        Text(
-                                            text = formState.errorMessage!!,
-                                            color = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                } else null,
-                                isError = formState.errorMessage != null,
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Password,
-                                    imeAction = ImeAction.Done
-                                ),
-                                singleLine = true
-                            )
+                    // Subtitle
+                    Text(
+                        text = stringResource(R.string.auth_subtitle),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
-                            Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-                            // Sign In button
-                            Button(
-                                onClick = { viewModel.signIn() },
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = !formState.isLoading
-                            ) {
-                                if (formState.isLoading) {
-                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                                } else {
-                                    Text(
-                                        text = stringResource(R.string.auth_sign_in_button),
-                                        style = MaterialTheme.typography.labelLarge
-                                    )
+                    // Google Sign In button (primary/filled)
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                val credentialManager = CredentialManager.create(context)
+                                val googleIdOption = GetGoogleIdOption.Builder()
+                                    .setFilterByAuthorizedAccounts(false)
+                                    .setServerClientId(context.getString(R.string.default_web_client_id))
+                                    .build()
+                                val request = GetCredentialRequest.Builder()
+                                    .addCredentialOption(googleIdOption)
+                                    .build()
+                                try {
+                                    val result = credentialManager.getCredential(context = context, request = request)
+                                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
+                                    viewModel.signInWithGoogle(googleIdTokenCredential.idToken)
+                                } catch (e: GetCredentialException) {
+                                    scope.launch { snackbarHostState.showSnackbar(e.message ?: "Google sign in failed.") }
+                                } catch (e: Exception) {
+                                    scope.launch { snackbarHostState.showSnackbar(e.message ?: "Google sign in failed.") }
                                 }
                             }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = 48.dp),
+                        enabled = !formState.isLoading,
+                        shape = RoundedCornerShape(24.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.auth_google_sign_in_button),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    }
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                            // OR divider
-                            OrDivider()
+                    // "or sign in with email" divider
+                    OrDivider()
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                            // Google Sign In button
-                            GoogleSignInButton(
-                                isLoading = formState.isLoading,
-                                onGoogleSignIn = { idToken -> viewModel.signInWithGoogle(idToken) },
-                                onError = { message ->
-                                    scope.launch { snackbarHostState.showSnackbar(message) }
-                                },
-                                context = context
+                    // Email label + field
+                    Text(
+                        text = stringResource(R.string.auth_email_label),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    )
+                    OutlinedTextField(
+                        value = formState.email,
+                        onValueChange = { viewModel.updateEmail(it) },
+                        placeholder = { Text(stringResource(R.string.auth_email_placeholder)) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Email,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Password label + field
+                    Text(
+                        text = stringResource(R.string.auth_password_label),
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp)
+                    )
+                    OutlinedTextField(
+                        value = formState.password,
+                        onValueChange = { viewModel.updatePassword(it) },
+                        placeholder = { Text("\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022") },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    imageVector = if (passwordVisible) {
+                                        Icons.Default.VisibilityOff
+                                    } else {
+                                        Icons.Default.Visibility
+                                    },
+                                    contentDescription = stringResource(
+                                        if (passwordVisible) R.string.auth_password_hide
+                                        else R.string.auth_password_show
+                                    )
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        visualTransformation = if (passwordVisible) {
+                            VisualTransformation.None
+                        } else {
+                            PasswordVisualTransformation()
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        singleLine = true
+                    )
+
+                    // Forgot password link
+                    TextButton(
+                        onClick = { /* TODO: forgot password flow */ },
+                        modifier = Modifier.align(Alignment.End)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.auth_forgot_password),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    // Error banner
+                    if (formState.errorMessage != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Error,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Text(
+                                    text = formState.errorMessage!!,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.error,
+                                    modifier = Modifier.padding(start = 12.dp)
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Sign In button (outlined)
+                    OutlinedButton(
+                        onClick = { viewModel.signIn() },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .defaultMinSize(minHeight = 48.dp),
+                        enabled = !formState.isLoading,
+                        shape = RoundedCornerShape(24.dp)
+                    ) {
+                        if (formState.isLoading) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                        } else {
+                            Text(
+                                text = stringResource(R.string.auth_sign_in_button),
+                                style = MaterialTheme.typography.labelLarge
                             )
                         }
                     }
-                    1 -> {
-                        // Create Account tab
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            // Email field
-                            OutlinedTextField(
-                                value = formState.email,
-                                onValueChange = { viewModel.updateEmail(it) },
-                                label = { Text(stringResource(R.string.auth_email_label)) },
-                                modifier = Modifier.fillMaxWidth(),
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Email,
-                                    imeAction = ImeAction.Next
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // "Don't have an account? Create account"
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(R.string.auth_no_account_prompt),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        TextButton(onClick = { /* TODO: navigate to create account */ }) {
+                            Text(
+                                text = stringResource(R.string.auth_sign_up_title),
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold
                                 ),
-                                singleLine = true
-                            )
-
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            // Password field
-                            OutlinedTextField(
-                                value = formState.password,
-                                onValueChange = { viewModel.updatePassword(it) },
-                                label = { Text(stringResource(R.string.auth_password_label)) },
-                                modifier = Modifier.fillMaxWidth(),
-                                visualTransformation = if (signUpPasswordVisible) {
-                                    VisualTransformation.None
-                                } else {
-                                    PasswordVisualTransformation()
-                                },
-                                trailingIcon = {
-                                    IconButton(onClick = { signUpPasswordVisible = !signUpPasswordVisible }) {
-                                        Icon(
-                                            imageVector = if (signUpPasswordVisible) {
-                                                Icons.Default.VisibilityOff
-                                            } else {
-                                                Icons.Default.Visibility
-                                            },
-                                            contentDescription = stringResource(
-                                                if (signUpPasswordVisible) R.string.auth_password_hide
-                                                else R.string.auth_password_show
-                                            )
-                                        )
-                                    }
-                                },
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Password,
-                                    imeAction = ImeAction.Next
-                                ),
-                                singleLine = true
-                            )
-
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            // Confirm Password field
-                            OutlinedTextField(
-                                value = formState.confirmPassword,
-                                onValueChange = { viewModel.updateConfirmPassword(it) },
-                                label = { Text(stringResource(R.string.auth_confirm_password_label)) },
-                                modifier = Modifier.fillMaxWidth(),
-                                visualTransformation = if (signUpConfirmPasswordVisible) {
-                                    VisualTransformation.None
-                                } else {
-                                    PasswordVisualTransformation()
-                                },
-                                trailingIcon = {
-                                    IconButton(onClick = { signUpConfirmPasswordVisible = !signUpConfirmPasswordVisible }) {
-                                        Icon(
-                                            imageVector = if (signUpConfirmPasswordVisible) {
-                                                Icons.Default.VisibilityOff
-                                            } else {
-                                                Icons.Default.Visibility
-                                            },
-                                            contentDescription = stringResource(
-                                                if (signUpConfirmPasswordVisible) R.string.auth_password_hide
-                                                else R.string.auth_password_show
-                                            )
-                                        )
-                                    }
-                                },
-                                supportingText = if (formState.errorMessage != null) {
-                                    {
-                                        Text(
-                                            text = formState.errorMessage!!,
-                                            color = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                } else null,
-                                isError = formState.errorMessage != null,
-                                keyboardOptions = KeyboardOptions(
-                                    keyboardType = KeyboardType.Password,
-                                    imeAction = ImeAction.Done
-                                ),
-                                singleLine = true
-                            )
-
-                            Spacer(modifier = Modifier.height(24.dp))
-
-                            // Create Account button
-                            Button(
-                                onClick = { viewModel.signUp() },
-                                modifier = Modifier.fillMaxWidth(),
-                                enabled = !formState.isLoading
-                            ) {
-                                if (formState.isLoading) {
-                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                                } else {
-                                    Text(
-                                        text = stringResource(R.string.auth_sign_up_button),
-                                        style = MaterialTheme.typography.labelLarge
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            // OR divider
-                            OrDivider()
-
-                            Spacer(modifier = Modifier.height(16.dp))
-
-                            // Google Sign In button
-                            GoogleSignInButton(
-                                isLoading = formState.isLoading,
-                                onGoogleSignIn = { idToken -> viewModel.signInWithGoogle(idToken) },
-                                onError = { message ->
-                                    scope.launch { snackbarHostState.showSnackbar(message) }
-                                },
-                                context = context
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
-            // Continue as Guest link
-            TextButton(
-                onClick = { viewModel.continueAsGuest() },
-                modifier = Modifier.defaultMinSize(minHeight = 44.dp)
+            // Footer links
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 24.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Text(
-                    text = stringResource(R.string.auth_continue_as_guest),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                TextButton(onClick = { /* TODO */ }) {
+                    Text(
+                        text = stringResource(R.string.auth_terms_of_service),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                TextButton(onClick = { /* TODO */ }) {
+                    Text(
+                        text = stringResource(R.string.auth_privacy_policy),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                TextButton(onClick = { /* TODO */ }) {
+                    Text(
+                        text = stringResource(R.string.auth_support),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-
-            Spacer(modifier = Modifier.height(24.dp))
         }
     }
 }
@@ -373,51 +394,11 @@ private fun OrDivider() {
     ) {
         HorizontalDivider(modifier = Modifier.weight(1f))
         Text(
-            text = stringResource(R.string.auth_or_divider),
-            modifier = Modifier.padding(horizontal = 8.dp),
-            style = MaterialTheme.typography.bodyLarge
+            text = stringResource(R.string.auth_or_email_divider),
+            modifier = Modifier.padding(horizontal = 12.dp),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         HorizontalDivider(modifier = Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun GoogleSignInButton(
-    isLoading: Boolean,
-    onGoogleSignIn: (String) -> Unit,
-    onError: (String) -> Unit,
-    context: android.content.Context
-) {
-    val scope = rememberCoroutineScope()
-
-    OutlinedButton(
-        onClick = {
-            scope.launch {
-                val credentialManager = CredentialManager.create(context)
-                val googleIdOption = GetGoogleIdOption.Builder()
-                    .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(context.getString(R.string.default_web_client_id))
-                    .build()
-                val request = GetCredentialRequest.Builder()
-                    .addCredentialOption(googleIdOption)
-                    .build()
-                try {
-                    val result = credentialManager.getCredential(context = context, request = request)
-                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
-                    onGoogleSignIn(googleIdTokenCredential.idToken)
-                } catch (e: GetCredentialException) {
-                    onError(e.message ?: "Google sign in failed.")
-                } catch (e: Exception) {
-                    onError(e.message ?: "Google sign in failed.")
-                }
-            }
-        },
-        modifier = Modifier.fillMaxWidth(),
-        enabled = !isLoading
-    ) {
-        Text(
-            text = stringResource(R.string.auth_google_sign_in_button),
-            style = MaterialTheme.typography.labelLarge
-        )
     }
 }
