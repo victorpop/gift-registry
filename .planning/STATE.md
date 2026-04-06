@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-registry-item-management-02-PLAN.md
-last_updated: "2026-04-06T09:38:27.189Z"
+stopped_at: Completed 03-registry-item-management 03-01-PLAN.md
+last_updated: "2026-04-06T09:41:19.870Z"
 last_activity: 2026-04-06
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 13
-  completed_plans: 8
+  completed_plans: 10
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 03 (registry-item-management) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-04-06
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-android-core-auth P03 | 24min | 2 tasks | 11 files |
 | Phase 02-android-core-auth P04 | 4min | 2 tasks | 6 files |
 | Phase 03-registry-item-management P02 | 5min | 2 tasks | 4 files |
+| Phase 03-registry-item-management P01 | 4min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase 03-registry-item-management]: inviteToRegistry uses email: prefix for non-user invite keys to prevent collision with Firebase UIDs in invitedUsers map
 - [Phase 03-registry-item-management]: fetchOgMetadata returns null fields on fetch failure so Android client can fall back to manual entry without HttpsError overhead
 - [Phase 03-registry-item-management]: node-html-parser chosen over cheerio for smaller bundle size in Node.js 22 Cloud Functions runtime
+- [Phase 03-registry-item-management]: AffiliateUrlTransformer uses placeholder affiliate IDs that must be replaced with BuildConfig fields before production
+- [Phase 03-registry-item-management]: merchantRules map pattern in AffiliateUrlTransformer enables merchant extensibility without changing core logic
 
 ### Pending Todos
 
@@ -105,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-06T09:38:27.186Z
-Stopped at: Completed 03-registry-item-management-02-PLAN.md
+Last session: 2026-04-06T09:41:19.868Z
+Stopped at: Completed 03-registry-item-management 03-01-PLAN.md
 Resume file: None

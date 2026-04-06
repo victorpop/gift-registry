@@ -18,11 +18,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Registry Management
 
-- [ ] **REG-01**: Owner can create a registry with a name, occasion type (Wedding, Baby shower, Anniversary, Christmas, custom), event date and time, event location, and a description
-- [ ] **REG-02**: Owner can edit all registry details (name, occasion type, date/time, location, description, visibility)
-- [ ] **REG-03**: Owner can delete a registry
-- [ ] **REG-10**: Owner can have multiple active registries simultaneously
-- [ ] **REG-04**: Owner can set registry visibility to public (shareable link) or private (invite-only)
+- [x] **REG-01**: Owner can create a registry with a name, occasion type (Wedding, Baby shower, Anniversary, Christmas, custom), event date and time, event location, and a description
+- [x] **REG-02**: Owner can edit all registry details (name, occasion type, date/time, location, description, visibility)
+- [x] **REG-03**: Owner can delete a registry
+- [x] **REG-10**: Owner can have multiple active registries simultaneously
+- [x] **REG-04**: Owner can set registry visibility to public (shareable link) or private (invite-only)
 - [x] **REG-05**: Owner can invite specific users to a private registry via email
 - [x] **REG-06**: Invited users with accounts receive in-app notification and email
 - [x] **REG-07**: Invited users without accounts receive email only with link to registry
@@ -31,20 +31,20 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Item Management
 
-- [ ] **ITEM-01**: Owner can add an item by pasting any URL
+- [x] **ITEM-01**: Owner can add an item by pasting any URL
 - [x] **ITEM-02**: URL import auto-fills item title, image, and price via Open Graph metadata
 - [ ] **ITEM-03**: Owner can browse and search EMAG product catalog via API
 - [ ] **ITEM-04**: Owner can add an item from EMAG catalog search results
-- [ ] **ITEM-05**: Owner can manually edit item details (title, image, price, notes)
-- [ ] **ITEM-06**: Owner can remove an item from a registry
-- [ ] **ITEM-07**: Items display real-time status (available, reserved, purchased)
+- [x] **ITEM-05**: Owner can manually edit item details (title, image, price, notes)
+- [x] **ITEM-06**: Owner can remove an item from a registry
+- [x] **ITEM-07**: Items display real-time status (available, reserved, purchased)
 
 ### Affiliate System
 
-- [ ] **AFF-01**: URL transformer identifies merchant domain and appends correct affiliate tag
-- [ ] **AFF-02**: EMAG items receive affiliate tags automatically on add
-- [ ] **AFF-03**: Affiliate tag injection is invisible to users
-- [ ] **AFF-04**: Unknown merchant URLs pass through without breaking (no affiliate tag, logged for review)
+- [x] **AFF-01**: URL transformer identifies merchant domain and appends correct affiliate tag
+- [x] **AFF-02**: EMAG items receive affiliate tags automatically on add
+- [x] **AFF-03**: Affiliate tag injection is invisible to users
+- [x] **AFF-04**: Unknown merchant URLs pass through without breaking (no affiliate tag, logged for review)
 
 ### Reservation System
 
@@ -123,27 +123,27 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-04 | Phase 2 | Complete |
 | AUTH-05 | Phase 2 | Complete |
 | AUTH-06 | Phase 2 | Complete |
-| REG-01 | Phase 3 | Pending |
-| REG-02 | Phase 3 | Pending |
-| REG-03 | Phase 3 | Pending |
-| REG-04 | Phase 3 | Pending |
+| REG-01 | Phase 3 | Complete |
+| REG-02 | Phase 3 | Complete |
+| REG-03 | Phase 3 | Complete |
+| REG-04 | Phase 3 | Complete |
 | REG-05 | Phase 3 | Complete |
 | REG-06 | Phase 3 | Complete |
 | REG-07 | Phase 3 | Complete |
 | REG-08 | Phase 3 | Pending |
 | REG-09 | Phase 3 | Pending |
-| REG-10 | Phase 3 | Pending |
-| ITEM-01 | Phase 3 | Pending |
+| REG-10 | Phase 3 | Complete |
+| ITEM-01 | Phase 3 | Complete |
 | ITEM-02 | Phase 3 | Complete |
 | ITEM-03 | Phase 7 | Pending |
 | ITEM-04 | Phase 7 | Pending |
-| ITEM-05 | Phase 3 | Pending |
-| ITEM-06 | Phase 3 | Pending |
-| ITEM-07 | Phase 3 | Pending |
-| AFF-01 | Phase 3 | Pending |
-| AFF-02 | Phase 3 | Pending |
-| AFF-03 | Phase 3 | Pending |
-| AFF-04 | Phase 3 | Pending |
+| ITEM-05 | Phase 3 | Complete |
+| ITEM-06 | Phase 3 | Complete |
+| ITEM-07 | Phase 3 | Complete |
+| AFF-01 | Phase 3 | Complete |
+| AFF-02 | Phase 3 | Complete |
+| AFF-03 | Phase 3 | Complete |
+| AFF-04 | Phase 3 | Complete |
 | RES-01 | Phase 4 | Pending |
 | RES-02 | Phase 4 | Pending |
 | RES-03 | Phase 4 | Pending |
