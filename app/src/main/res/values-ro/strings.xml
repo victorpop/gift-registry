@@ -21,11 +21,19 @@
     <string name="auth_password_label">Parol\u0103</string>
     <string name="auth_sign_in_button">Autentificare</string>
     <string name="auth_sign_up_button">Creeaz&#259; Cont</string>
-    <string name="auth_google_sign_in_button">Autentificare cu Google</string>
+    <string name="auth_google_sign_in_button">Continu&#259; cu Google</string>
     <string name="auth_or_divider">SAU</string>
     <string name="auth_confirm_password_label">Confirm&#259; Parola</string>
     <string name="auth_password_show">Arat&#259; parola</string>
     <string name="auth_password_hide">Ascunde parola</string>
+    <string name="auth_subtitle">Autentific&#259;-te pentru a-&#539;i gestiona listele de dorin&#539;e</string>
+    <string name="auth_email_placeholder">email@exemplu.com</string>
+    <string name="auth_forgot_password">Ai uitat parola?</string>
+    <string name="auth_no_account_prompt">Nu ai cont?</string>
+    <string name="auth_or_email_divider">sau autentific&#259;-te cu email</string>
+    <string name="auth_terms_of_service">Termeni &#537;i Condi&#539;ii</string>
+    <string name="auth_privacy_policy">Politic&#259; de Confiden&#539;ialitate</string>
+    <string name="auth_support">Suport</string>
     <string name="auth_sign_in_no_account_hint">Nou aici? Treci la Creeaz&#259; Cont pentru a &#238;ncepe.</string>
     <string name="auth_error_invalid_credentials">Email sau parol&#259; incorecte. Verific&#259; datele &#537;i &#238;ncearc&#259; din nou.</string>
     <string name="auth_error_email_exists">Un cont cu acest email exist&#259; deja. &#206;ncearc&#259; s&#259; te autentifici.</string>
@@ -40,10 +48,60 @@
     <string name="auth_settings_language_english">English</string>
     <string name="auth_settings_language_romanian">Rom&#226;n&#259;</string>
     <string name="settings_language_confirm">Schimb&#259; Limba</string>
+    <string name="settings_sign_out">Deconectare</string>
 
-    <!-- Registry (Phase 3 will expand) -->
-    <string name="registry_create_title">Registru Nou</string>
+    <!-- Registry management (Phase 3) -->
+    <string name="registry_list_title">Registrele mele</string>
+    <string name="registry_list_empty">Niciun registru. Creeaza primul tau!</string>
+    <string name="registry_create_title">Creeaza registru</string>
+    <string name="registry_create_button">Creeaza registru</string>
+    <string name="registry_title_label">Numele registrului</string>
+    <string name="registry_title_hint">ex. Lista de cadouri nunta</string>
+    <string name="registry_description_label">Descriere</string>
+    <string name="registry_description_hint">Detalii optionale pentru invitati</string>
+    <string name="registry_event_date_label">Data evenimentului</string>
+    <string name="registry_event_location_label">Locatia evenimentului</string>
+    <string name="registry_event_location_hint">ex. Grand Hotel, Bucuresti</string>
+    <string name="registry_visibility_label">Vizibilitate</string>
+    <string name="registry_visibility_public">Public</string>
+    <string name="registry_visibility_private">Privat (doar cu invitatie)</string>
     <string name="registry_occasion_label">Ocazie</string>
+    <string name="registry_occasion_wedding">Nunta</string>
+    <string name="registry_occasion_baby_shower">Baby Shower</string>
+    <string name="registry_occasion_anniversary">Aniversare</string>
+    <string name="registry_occasion_christmas">Craciun</string>
+    <string name="registry_occasion_birthday">Zi de nastere</string>
+    <string name="registry_occasion_custom">Altceva</string>
+    <string name="registry_edit_title">Editeaza registrul</string>
+    <string name="registry_delete_confirm_title">Stergi registrul?</string>
+    <string name="registry_delete_confirm_body">Registrul si toate articolele vor fi sterse permanent. Actiunea nu poate fi anulata.</string>
+    <string name="registry_notifications_label">Notificari achizitii</string>
+    <string name="registry_notifications_enabled">Anunta-ma cand cadourile sunt cumparate</string>
+    <string name="registry_invite_title">Invita persoane</string>
+    <string name="registry_invite_email_label">Adresa de email</string>
+    <string name="registry_invite_send_button">Trimite invitatie</string>
+    <string name="registry_invite_success">Invitatia a fost trimisa</string>
+    <string name="registry_detail_items_title">Articole</string>
+    <string name="registry_detail_no_items">Niciun articol. Adauga prima idee de cadou!</string>
+    <string name="registry_share_button">Distribuie registrul</string>
+
+    <!-- Item management (Phase 3) -->
+    <string name="item_add_title">Adauga articol</string>
+    <string name="item_add_url_label">Lipeste URL-ul produsului</string>
+    <string name="item_add_url_hint">https://www.emag.ro/...</string>
+    <string name="item_add_fetching_metadata">Se preiau detaliile produsului\u2026</string>
+    <string name="item_title_label">Numele articolului</string>
+    <string name="item_price_label">Pret</string>
+    <string name="item_notes_label">Note</string>
+    <string name="item_notes_hint">Note optionale pentru cei care ofera cadouri</string>
+    <string name="item_image_label">URL imagine</string>
+    <string name="item_edit_title">Editeaza articolul</string>
+    <string name="item_delete_confirm_title">Stergi articolul?</string>
+    <string name="item_delete_confirm_body">Articolul va fi sters din registru.</string>
+    <string name="item_status_available">Disponibil</string>
+    <string name="item_status_reserved">Rezervat</string>
+    <string name="item_status_purchased">Cumparat</string>
+    <string name="item_og_fetch_failed">Detaliile nu au putut fi completate automat. Te rugam sa le introduci manual.</string>
 
     <!-- Reservation (Phase 4 will expand) -->
     <string name="reservation_timer_label">Rezervat pentru %1$d minute</string>

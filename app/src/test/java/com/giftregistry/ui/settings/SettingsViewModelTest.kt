@@ -1,7 +1,9 @@
 package com.giftregistry.ui.settings
 
 import com.giftregistry.MainDispatcherRule
+import com.giftregistry.domain.auth.SignOutUseCase
 import com.giftregistry.domain.preferences.LanguagePreferencesRepository
+import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -34,10 +36,12 @@ class SettingsViewModelTest {
         }
     }
 
+    private val fakeSignOutUseCase: SignOutUseCase = mockk(relaxed = true)
+
     @Test
     fun `currentLocale defaults to en when DataStore has no stored value`() = runTest {
         val fakeRepo = FakeLanguagePreferencesRepository()
-        val viewModel = SettingsViewModel(fakeRepo)
+        val viewModel = SettingsViewModel(fakeRepo, fakeSignOutUseCase)
         advanceUntilIdle()
 
         assertEquals("en", viewModel.currentLocale.value)
@@ -47,7 +51,7 @@ class SettingsViewModelTest {
     fun `currentLocale emits ro when DataStore has ro stored`() = runTest {
         val fakeRepo = FakeLanguagePreferencesRepository()
         fakeRepo.emitLanguageTag("ro")
-        val viewModel = SettingsViewModel(fakeRepo)
+        val viewModel = SettingsViewModel(fakeRepo, fakeSignOutUseCase)
         advanceUntilIdle()
 
         assertEquals("ro", viewModel.currentLocale.value)
@@ -56,7 +60,7 @@ class SettingsViewModelTest {
     @Test
     fun `changeLocale calls repository setLanguageTag with provided tag`() = runTest {
         val fakeRepo = FakeLanguagePreferencesRepository()
-        val viewModel = SettingsViewModel(fakeRepo)
+        val viewModel = SettingsViewModel(fakeRepo, fakeSignOutUseCase)
         advanceUntilIdle()
 
         viewModel.changeLocale("ro")

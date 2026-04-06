@@ -21,11 +21,19 @@
     <string name="auth_password_label">Password</string>
     <string name="auth_sign_in_button">Sign In</string>
     <string name="auth_sign_up_button">Create Account</string>
-    <string name="auth_google_sign_in_button">Sign in with Google</string>
+    <string name="auth_google_sign_in_button">Continue with Google</string>
     <string name="auth_or_divider">OR</string>
     <string name="auth_confirm_password_label">Confirm Password</string>
     <string name="auth_password_show">Show password</string>
     <string name="auth_password_hide">Hide password</string>
+    <string name="auth_subtitle">Sign in to manage your wishlists</string>
+    <string name="auth_email_placeholder">your@email.com</string>
+    <string name="auth_forgot_password">Forgot password?</string>
+    <string name="auth_no_account_prompt">Don\'t have an account?</string>
+    <string name="auth_or_email_divider">or sign in with email</string>
+    <string name="auth_terms_of_service">Terms of Service</string>
+    <string name="auth_privacy_policy">Privacy Policy</string>
+    <string name="auth_support">Support</string>
     <string name="auth_sign_in_no_account_hint">New here? Switch to Create Account to get started.</string>
     <string name="auth_error_invalid_credentials">Incorrect email or password. Check your details and try again.</string>
     <string name="auth_error_email_exists">An account with this email already exists. Try signing in.</string>
@@ -40,10 +48,60 @@
     <string name="auth_settings_language_english">English</string>
     <string name="auth_settings_language_romanian">Romana</string>
     <string name="settings_language_confirm">Change Language</string>
+    <string name="settings_sign_out">Sign out</string>
 
-    <!-- Registry (Phase 3 will expand) -->
-    <string name="registry_create_title">New Registry</string>
+    <!-- Registry management (Phase 3) -->
+    <string name="registry_list_title">My Registries</string>
+    <string name="registry_list_empty">No registries yet. Create your first one!</string>
+    <string name="registry_create_title">Create Registry</string>
+    <string name="registry_create_button">Create Registry</string>
+    <string name="registry_title_label">Registry Name</string>
+    <string name="registry_title_hint">e.g. Wedding Gift List</string>
+    <string name="registry_description_label">Description</string>
+    <string name="registry_description_hint">Optional details for your guests</string>
+    <string name="registry_event_date_label">Event Date</string>
+    <string name="registry_event_location_label">Event Location</string>
+    <string name="registry_event_location_hint">e.g. Grand Hotel, Bucharest</string>
+    <string name="registry_visibility_label">Visibility</string>
+    <string name="registry_visibility_public">Public</string>
+    <string name="registry_visibility_private">Private (invite only)</string>
     <string name="registry_occasion_label">Occasion</string>
+    <string name="registry_occasion_wedding">Wedding</string>
+    <string name="registry_occasion_baby_shower">Baby Shower</string>
+    <string name="registry_occasion_anniversary">Anniversary</string>
+    <string name="registry_occasion_christmas">Christmas</string>
+    <string name="registry_occasion_birthday">Birthday</string>
+    <string name="registry_occasion_custom">Other</string>
+    <string name="registry_edit_title">Edit Registry</string>
+    <string name="registry_delete_confirm_title">Delete Registry?</string>
+    <string name="registry_delete_confirm_body">This will permanently delete this registry and all its items. This action cannot be undone.</string>
+    <string name="registry_notifications_label">Purchase Notifications</string>
+    <string name="registry_notifications_enabled">Notify me when gifts are purchased</string>
+    <string name="registry_invite_title">Invite People</string>
+    <string name="registry_invite_email_label">Email address</string>
+    <string name="registry_invite_send_button">Send Invite</string>
+    <string name="registry_invite_success">Invitation sent</string>
+    <string name="registry_detail_items_title">Items</string>
+    <string name="registry_detail_no_items">No items yet. Add your first gift idea!</string>
+    <string name="registry_share_button">Share Registry</string>
+
+    <!-- Item management (Phase 3) -->
+    <string name="item_add_title">Add Item</string>
+    <string name="item_add_url_label">Paste product URL</string>
+    <string name="item_add_url_hint">https://www.emag.ro/...</string>
+    <string name="item_add_fetching_metadata">Fetching product details\u2026</string>
+    <string name="item_title_label">Item Name</string>
+    <string name="item_price_label">Price</string>
+    <string name="item_notes_label">Notes</string>
+    <string name="item_notes_hint">Optional notes for gift givers</string>
+    <string name="item_image_label">Image URL</string>
+    <string name="item_edit_title">Edit Item</string>
+    <string name="item_delete_confirm_title">Remove Item?</string>
+    <string name="item_delete_confirm_body">This item will be removed from the registry.</string>
+    <string name="item_status_available">Available</string>
+    <string name="item_status_reserved">Reserved</string>
+    <string name="item_status_purchased">Purchased</string>
+    <string name="item_og_fetch_failed">Could not auto-fill details. Please enter manually.</string>
 
     <!-- Reservation (Phase 4 will expand) -->
     <string name="reservation_timer_label">Reserved for %1$d minutes</string>
