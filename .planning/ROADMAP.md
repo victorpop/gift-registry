@@ -71,7 +71,7 @@ Plans:
 - [x] 03-00-PLAN.md -- Wave 0: Test dependencies, fake repositories, and test stubs for Nyquist compliance
 - [x] 03-01-PLAN.md -- Foundation: Gradle deps, domain models, repository interfaces, AffiliateUrlTransformer (TDD), nav keys, string resources
 - [x] 03-02-PLAN.md -- Cloud Functions: fetchOgMetadata callable + inviteToRegistry stub callable
-- [ ] 03-03-PLAN.md -- Data layer: FirestoreDataSource, RegistryRepositoryImpl, ItemRepositoryImpl, use cases, Hilt DI wiring
+- [x] 03-03-PLAN.md -- Data layer: FirestoreDataSource, RegistryRepositoryImpl, ItemRepositoryImpl, use cases, Hilt DI wiring
 - [ ] 03-04-PLAN.md -- Registry UI: list screen (home), create/edit screen, detail screen with ViewModels, Navigation3 wiring
 - [ ] 03-05-PLAN.md -- Item UI: add item with OG auto-fill, edit item, invite bottom sheet, deep link routing (REG-08), security rule tests
 **UI hint**: yes
