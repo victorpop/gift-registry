@@ -30,9 +30,17 @@ class MainActivity : Hilt_MainActivity() {
         }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Handle deep link for registry invites (REG-08)
+        val deepLinkRegistryId = intent?.data?.let { uri ->
+            if (uri.host == "giftregistry.app" && uri.pathSegments.firstOrNull() == "registry") {
+                uri.pathSegments.getOrNull(1)
+            } else null
+        }
+
         setContent {
             GiftRegistryTheme {
-                AppNavigation()
+                AppNavigation(deepLinkRegistryId = deepLinkRegistryId)
             }
         }
     }
