@@ -26,7 +26,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **REG-05**: Owner can invite specific users to a private registry via email
 - [x] **REG-06**: Invited users with accounts receive in-app notification and email
 - [x] **REG-07**: Invited users without accounts receive email only with link to registry
-- [ ] **REG-08**: Invited non-users see login/signup/guest options upon accessing the link
+- [x] **REG-08**: Invited non-users see login/signup/guest options upon accessing the link
 - [x] **REG-09**: Owner can opt in or out of purchase notifications
 
 ### Item Management
@@ -130,7 +130,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REG-05 | Phase 3 | Complete |
 | REG-06 | Phase 3 | Complete |
 | REG-07 | Phase 3 | Complete |
-| REG-08 | Phase 3 | Pending |
+| REG-08 | Phase 3 | Complete |
 | REG-09 | Phase 3 | Complete |
 | REG-10 | Phase 3 | Complete |
 | ITEM-01 | Phase 3 | Complete |
