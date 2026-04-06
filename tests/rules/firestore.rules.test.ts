@@ -205,3 +205,80 @@ describe("Registry creation", () => {
     );
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// describe("Private registry invite flow")
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Private registry invite flow", () => {
+  it("invited user can read private registry", async () => {
+    await seedRegistry("private-invite-reg", {
+      ownerId: "owner-invite-test",
+      title: "Private Party",
+      occasion: "birthday",
+      visibility: "private",
+      invitedUsers: { "invited-user-1": true },
+      notificationsEnabled: true,
+      locale: "en",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    const invitedDb = testEnv.authenticatedContext("invited-user-1").firestore();
+    await assertSucceeds(
+      getDoc(doc(invitedDb, "registries", "private-invite-reg"))
+    );
+  });
+
+  it("non-invited user cannot read private registry", async () => {
+    await seedRegistry("private-noinvite-reg", {
+      ownerId: "some-owner",
+      title: "Private Secret",
+      occasion: "wedding",
+      visibility: "private",
+      invitedUsers: { "other-uid": true },
+      notificationsEnabled: true,
+      locale: "en",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    const nonInvitedDb = testEnv.authenticatedContext("non-invited-user-1").firestore();
+    await assertFails(
+      getDoc(doc(nonInvitedDb, "registries", "private-noinvite-reg"))
+    );
+  });
+
+  it("invited user can read items in private registry", async () => {
+    await seedRegistry("private-items-reg", {
+      ownerId: "items-owner",
+      title: "Items Test",
+      occasion: "christmas",
+      visibility: "private",
+      invitedUsers: { "invited-user-items": true },
+      notificationsEnabled: true,
+      locale: "en",
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(
+        doc(ctx.firestore(), "registries", "private-items-reg", "items", "item-1"),
+        {
+          title: "Gift Item",
+          originalUrl: "https://example.com",
+          affiliateUrl: "https://example.com",
+          status: "available",
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        }
+      );
+    });
+
+    const invitedDb = testEnv.authenticatedContext("invited-user-items").firestore();
+    await assertSucceeds(
+      getDoc(doc(invitedDb, "registries", "private-items-reg", "items", "item-1"))
+    );
+  });
+});
