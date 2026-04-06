@@ -66,7 +66,13 @@ Plans:
   3. Owner can edit item details, remove items, and delete or update any registry they own
   4. Owner can invite specific users to a private registry; existing users receive an in-app notification and email, non-users receive email only
   5. Items display their current status (available, reserved, purchased) in real time visible to all viewers
-**Plans**: TBD
+**Plans**: 5 plans
+Plans:
+- [ ] 03-01-PLAN.md -- Foundation: Gradle deps, domain models, repository interfaces, AffiliateUrlTransformer (TDD), nav keys, string resources
+- [ ] 03-02-PLAN.md -- Cloud Functions: fetchOgMetadata callable + inviteToRegistry stub callable
+- [ ] 03-03-PLAN.md -- Data layer: FirestoreDataSource, RegistryRepositoryImpl, ItemRepositoryImpl, use cases, Hilt DI wiring
+- [ ] 03-04-PLAN.md -- Registry UI: list screen (home), create/edit screen, detail screen with ViewModels, Navigation3 wiring
+- [ ] 03-05-PLAN.md -- Item UI: add item with OG auto-fill, edit item, invite flow, security rule tests for invites
 **UI hint**: yes
 
 ### Phase 4: Reservation System
@@ -122,7 +128,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 |-------|----------------|--------|-----------|
 | 1. Firebase Foundation | 3/3 | Complete   | 2026-04-04 |
 | 2. Android Core + Auth | 0/4 | Planning complete | - |
-| 3. Registry + Item Management | 0/TBD | Not started | - |
+| 3. Registry + Item Management | 0/5 | Planning complete | - |
 | 4. Reservation System | 0/TBD | Not started | - |
 | 5. Web Fallback | 0/TBD | Not started | - |
 | 6. Notifications + Email Flows | 0/TBD | Not started | - |
