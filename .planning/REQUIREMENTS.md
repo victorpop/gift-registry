@@ -23,16 +23,16 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **REG-03**: Owner can delete a registry
 - [ ] **REG-10**: Owner can have multiple active registries simultaneously
 - [ ] **REG-04**: Owner can set registry visibility to public (shareable link) or private (invite-only)
-- [ ] **REG-05**: Owner can invite specific users to a private registry via email
-- [ ] **REG-06**: Invited users with accounts receive in-app notification and email
-- [ ] **REG-07**: Invited users without accounts receive email only with link to registry
+- [x] **REG-05**: Owner can invite specific users to a private registry via email
+- [x] **REG-06**: Invited users with accounts receive in-app notification and email
+- [x] **REG-07**: Invited users without accounts receive email only with link to registry
 - [ ] **REG-08**: Invited non-users see login/signup/guest options upon accessing the link
 - [ ] **REG-09**: Owner can opt in or out of purchase notifications
 
 ### Item Management
 
 - [ ] **ITEM-01**: Owner can add an item by pasting any URL
-- [ ] **ITEM-02**: URL import auto-fills item title, image, and price via Open Graph metadata
+- [x] **ITEM-02**: URL import auto-fills item title, image, and price via Open Graph metadata
 - [ ] **ITEM-03**: Owner can browse and search EMAG product catalog via API
 - [ ] **ITEM-04**: Owner can add an item from EMAG catalog search results
 - [ ] **ITEM-05**: Owner can manually edit item details (title, image, price, notes)
@@ -127,14 +127,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REG-02 | Phase 3 | Pending |
 | REG-03 | Phase 3 | Pending |
 | REG-04 | Phase 3 | Pending |
-| REG-05 | Phase 3 | Pending |
-| REG-06 | Phase 3 | Pending |
-| REG-07 | Phase 3 | Pending |
+| REG-05 | Phase 3 | Complete |
+| REG-06 | Phase 3 | Complete |
+| REG-07 | Phase 3 | Complete |
 | REG-08 | Phase 3 | Pending |
 | REG-09 | Phase 3 | Pending |
 | REG-10 | Phase 3 | Pending |
 | ITEM-01 | Phase 3 | Pending |
-| ITEM-02 | Phase 3 | Pending |
+| ITEM-02 | Phase 3 | Complete |
 | ITEM-03 | Phase 7 | Pending |
 | ITEM-04 | Phase 7 | Pending |
 | ITEM-05 | Phase 3 | Pending |
