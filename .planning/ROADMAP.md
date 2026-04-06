@@ -72,7 +72,7 @@ Plans:
 - [x] 03-01-PLAN.md -- Foundation: Gradle deps, domain models, repository interfaces, AffiliateUrlTransformer (TDD), nav keys, string resources
 - [x] 03-02-PLAN.md -- Cloud Functions: fetchOgMetadata callable + inviteToRegistry stub callable
 - [x] 03-03-PLAN.md -- Data layer: FirestoreDataSource, RegistryRepositoryImpl, ItemRepositoryImpl, use cases, Hilt DI wiring
-- [ ] 03-04-PLAN.md -- Registry UI: list screen (home), create/edit screen, detail screen with ViewModels, Navigation3 wiring
+- [x] 03-04-PLAN.md -- Registry UI: list screen (home), create/edit screen, detail screen with ViewModels, Navigation3 wiring
 - [ ] 03-05-PLAN.md -- Item UI: add item with OG auto-fill, edit item, invite bottom sheet, deep link routing (REG-08), security rule tests
 **UI hint**: yes
 
@@ -129,7 +129,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 |-------|----------------|--------|-----------|
 | 1. Firebase Foundation | 3/3 | Complete   | 2026-04-04 |
 | 2. Android Core + Auth | 0/4 | Planning complete | - |
-| 3. Registry + Item Management | 1/6 | In Progress|  |
+| 3. Registry + Item Management | 5/6 | In Progress|  |
 | 4. Reservation System | 0/TBD | Not started | - |
 | 5. Web Fallback | 0/TBD | Not started | - |
 | 6. Notifications + Email Flows | 0/TBD | Not started | - |
