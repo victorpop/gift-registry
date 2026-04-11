@@ -1,5 +1,6 @@
 package com.giftregistry.ui.registry.detail
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -50,9 +52,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.giftregistry.R
@@ -77,7 +81,13 @@ fun RegistryDetailScreen(
     val items by viewModel.items.collectAsStateWithLifecycle()
     val deleteError by viewModel.deleteError.collectAsStateWithLifecycle()
     val registryDeleted by viewModel.registryDeleted.collectAsStateWithLifecycle()
+    val isReserving by viewModel.isReserving.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val context = LocalContext.current
+    var showGuestSheet by remember { mutableStateOf(false) }
+    val unavailableMsg = stringResource(R.string.reservation_error_unavailable)
+    val genericErrorMsg = stringResource(R.string.reservation_error_generic)
 
     var overflowMenuExpanded by remember { mutableStateOf(false) }
     var showDeleteRegistryDialog by remember { mutableStateOf(false) }
@@ -92,6 +102,26 @@ fun RegistryDetailScreen(
 
     LaunchedEffect(registryDeleted) {
         if (registryDeleted) onBack()
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.reservationEvents.collect { event ->
+            when (event) {
+                is RegistryDetailViewModel.ReservationEvent.OpenRetailer -> {
+                    runCatching {
+                        val intent = Intent(Intent.ACTION_VIEW, event.affiliateUrl.toUri())
+                        context.startActivity(intent)
+                    }
+                }
+                RegistryDetailViewModel.ReservationEvent.ShowGuestSheet -> {
+                    showGuestSheet = true
+                }
+                is RegistryDetailViewModel.ReservationEvent.ShowConflictError -> {
+                    val msg = if (event.code == "ITEM_UNAVAILABLE") unavailableMsg else genericErrorMsg
+                    snackbarHostState.showSnackbar(msg)
+                }
+            }
+        }
     }
 
     Scaffold(
@@ -242,13 +272,26 @@ fun RegistryDetailScreen(
                     items(items, key = { it.id }) { item ->
                         ItemCard(
                             item = item,
+                            isReserving = isReserving,
                             onEditClick = { onNavigateToEditItem(item.id) },
-                            onDeleteClick = { itemToDelete = item }
+                            onDeleteClick = { itemToDelete = item },
+                            onReserveClick = { viewModel.onReserveClicked(item.id) }
                         )
                     }
                 }
             }
         }
+    }
+
+    if (showGuestSheet) {
+        GuestIdentitySheet(
+            initial = null,
+            onDismiss = { showGuestSheet = false },
+            onSubmit = { guest ->
+                showGuestSheet = false
+                viewModel.onGuestIdentitySubmitted(guest)
+            },
+        )
     }
 
     if (showDeleteRegistryDialog) {
@@ -377,8 +420,10 @@ private fun RegistryInfoSection(registry: com.giftregistry.domain.model.Registry
 @Composable
 private fun ItemCard(
     item: Item,
+    isReserving: Boolean,
     onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onReserveClick: () -> Unit,
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
 
@@ -418,6 +463,29 @@ private fun ItemCard(
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 ItemStatusChip(status = item.status)
+
+                // Reserve button for available items
+                if (item.status == ItemStatus.AVAILABLE) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(
+                        onClick = onReserveClick,
+                        enabled = !isReserving,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
+                        Text(stringResource(R.string.reservation_reserve_button))
+                    }
+                }
+
+                // Reserved label for reserved items
+                // Note: Item model does not expose expiresAt; countdown deferred until domain model updated
+                if (item.status == ItemStatus.RESERVED) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = stringResource(R.string.reservation_reserved_label),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.tertiary,
+                    )
+                }
             }
 
             Box {

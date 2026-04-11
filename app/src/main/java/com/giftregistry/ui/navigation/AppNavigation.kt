@@ -144,6 +144,21 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
             entry<SettingsKey> {
                 SettingsScreen(onBack = { backStack.removeLast() })
             }
+
+            entry<ReReserveDeepLink> { key ->
+                // Phase 4: deep link target exists so the email stub URL is well-formed.
+                // Phase 6 will resolve reservationId -> registryId and re-open RegistryDetailScreen
+                // with the reserve flow pre-triggered.
+                LaunchedEffect(key.reservationId) {
+                    android.util.Log.i("AppNavigation", "TODO Phase 6: resolve re-reserve for ${key.reservationId}")
+                }
+                RegistryListScreen(
+                    onNavigateToCreate = { backStack.add(CreateRegistryKey) },
+                    onNavigateToDetail = { registryId -> backStack.add(RegistryDetailKey(registryId)) },
+                    onNavigateToEdit = { registryId -> backStack.add(EditRegistryKey(registryId)) },
+                    onNavigateToSettings = { backStack.add(SettingsKey) }
+                )
+            }
         }
     )
 }
