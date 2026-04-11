@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 04-reservation-system 04-03-PLAN.md
-last_updated: "2026-04-11T16:41:16.866Z"
+status: verifying
+stopped_at: Completed 04-reservation-system 04-04-PLAN.md
+last_updated: "2026-04-11T16:45:57.189Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 17
-  completed_plans: 16
+  completed_plans: 17
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 
 Phase: 04 (reservation-system) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-11
 
 Progress: [░░░░░░░░░░] 0%
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-reservation-system P01 | 2min | 2 tasks | 9 files |
 | Phase 04-reservation-system P02 | 1min | 2 tasks | 3 files |
 | Phase 04-reservation-system P03 | 2min | 2 tasks | 9 files |
+| Phase 04-reservation-system P04 | 3min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,9 @@ Recent decisions affecting current work:
 - [Phase 04-reservation-system]: GuestPreferencesDataStore uses DataStore name='guest_prefs' — unique Context extension property prevents runtime IllegalStateException from duplicate DataStore initialization
 - [Phase 04-reservation-system]: GuestPreferencesDataStoreTest uses in-memory fake (not Robolectric) — verifies repository contract without Android framework; DataStore persistence verified manually per 04-VALIDATION.md
 - [Phase 04-reservation-system]: ReservationRepositoryImpl payload includes giverId as nullable — supports both anonymous guests (null) and authenticated users passing Firebase UID
+- [Phase 04-reservation-system]: ReservationEvent as Channel<BUFFERED> in ViewModel -- one-shot events collected in LaunchedEffect(Unit) so Intent fires exactly once per reservation
+- [Phase 04-reservation-system]: Item domain model lacks expiresAt field -- countdown deferred, showing only Reserved label; no domain model changes made in Plan 04
+- [Phase 04-reservation-system]: ReReserveDeepLink NavEntry navigates to HomeKey with Phase 6 TODO -- placeholder route exists so email stub URL is well-formed (RES-08 partial)
 
 ### Pending Todos
 
@@ -125,6 +129,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T16:41:16.863Z
-Stopped at: Completed 04-reservation-system 04-03-PLAN.md
+Last session: 2026-04-11T16:45:57.187Z
+Stopped at: Completed 04-reservation-system 04-04-PLAN.md
 Resume file: None

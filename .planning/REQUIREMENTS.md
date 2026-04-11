@@ -51,7 +51,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **RES-01**: Gift giver can reserve an available item
 - [x] **RES-02**: Reserved items show as unavailable to other givers in real time
 - [x] **RES-03**: 30-minute reservation timer starts on reserve action
-- [ ] **RES-04**: Giver is redirected to retailer immediately upon reservation
+- [x] **RES-04**: Giver is redirected to retailer immediately upon reservation
 - [x] **RES-05**: Reservation auto-releases after 30 minutes if not confirmed as purchased
 - [x] **RES-06**: Auto-released items return to available status in real time
 - [x] **RES-07**: Giver receives expiration email when reservation lapses
@@ -147,7 +147,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RES-01 | Phase 4 | Complete |
 | RES-02 | Phase 4 | Complete |
 | RES-03 | Phase 4 | Complete |
-| RES-04 | Phase 4 | Pending |
+| RES-04 | Phase 4 | Complete |
 | RES-05 | Phase 4 | Complete |
 | RES-06 | Phase 4 | Complete |
 | RES-07 | Phase 4 | Complete |
