@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 04-reservation-system 04-01-PLAN.md
-last_updated: "2026-04-11T16:33:29.686Z"
+stopped_at: Completed 04-reservation-system 04-02-PLAN.md
+last_updated: "2026-04-11T16:36:58.118Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 17
-  completed_plans: 14
+  completed_plans: 15
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 04 (reservation-system) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-11
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 03-registry-item-management P03 | 12 | 2 tasks | 18 files |
 | Phase 03-registry-item-management P05 | 8min | 2 tasks | 16 files |
 | Phase 04-reservation-system P01 | 2min | 2 tasks | 9 files |
+| Phase 04-reservation-system P02 | 1min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,8 @@ Recent decisions affecting current work:
 - [Phase 03-registry-item-management]: InviteBottomSheet resets inviteSent via resetInviteSent() — allows sending multiple invites per bottom sheet session
 - [Phase 04-reservation-system]: createReservation stub omits CloudTasksClient import — dependency pre-wired in package.json but import deferred to Plan 02 to keep stub minimal
 - [Phase 04-reservation-system]: releaseReservation throws Error (not HttpsError) since onTaskDispatched handlers do not use HttpsError
+- [Phase 04-reservation-system]: createReservation wraps CloudTasksClient.createTask in try/catch so emulator build works without Cloud Tasks; cloudTaskName stored as empty string in transaction, updated via post-transaction .update()
+- [Phase 04-reservation-system]: Guard transaction pattern for releaseReservation: status==active check + now>expiresAt check before any writes — idempotent handler survives Cloud Tasks retry
 
 ### Pending Todos
 
@@ -118,6 +121,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T16:33:29.684Z
-Stopped at: Completed 04-reservation-system 04-01-PLAN.md
+Last session: 2026-04-11T16:36:58.116Z
+Stopped at: Completed 04-reservation-system 04-02-PLAN.md
 Resume file: None

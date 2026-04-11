@@ -88,7 +88,7 @@ Plans:
 **Plans**: 4 plans
 Plans:
 - [x] 04-01-PLAN.md -- Wave 0: Cloud Function stubs, @google-cloud/tasks install, failing Kotlin + security rule test scaffolding
-- [ ] 04-02-PLAN.md -- Cloud Functions: createReservation (transaction + Cloud Tasks enqueue) + releaseReservation (onTaskDispatched guard + stub email)
+- [x] 04-02-PLAN.md -- Cloud Functions: createReservation (transaction + Cloud Tasks enqueue) + releaseReservation (onTaskDispatched guard + stub email)
 - [ ] 04-03-PLAN.md -- Android domain + data: ReservationRepository, ReserveItemUseCase, GuestPreferencesDataStore, Hilt wiring
 - [ ] 04-04-PLAN.md -- Android UI: RegistryDetailScreen reserve button, GuestIdentitySheet, countdown, retailer Intent, re-reserve deep link (checkpoint)
 **UI hint**: yes
@@ -136,7 +136,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Firebase Foundation | 3/3 | Complete   | 2026-04-04 |
 | 2. Android Core + Auth | 0/4 | Planning complete | - |
 | 3. Registry + Item Management | 5/6 | In Progress|  |
-| 4. Reservation System | 0/TBD | Not started | - |
+| 4. Reservation System | 2/4 | In Progress|  |
 | 5. Web Fallback | 0/TBD | Not started | - |
 | 6. Notifications + Email Flows | 0/TBD | Not started | - |
 | 7. EMAG Catalog Integration | 0/TBD | Not started | - |

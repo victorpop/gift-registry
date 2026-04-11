@@ -55,7 +55,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **RES-05**: Reservation auto-releases after 30 minutes if not confirmed as purchased
 - [x] **RES-06**: Auto-released items return to available status in real time
 - [x] **RES-07**: Giver receives expiration email when reservation lapses
-- [ ] **RES-08**: Expiration email includes option to re-reserve immediately
+- [x] **RES-08**: Expiration email includes option to re-reserve immediately
 - [x] **RES-09**: Two givers cannot simultaneously reserve the same item (race condition prevention)
 
 ### Notifications
@@ -151,7 +151,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RES-05 | Phase 4 | Complete |
 | RES-06 | Phase 4 | Complete |
 | RES-07 | Phase 4 | Complete |
-| RES-08 | Phase 4 | Pending |
+| RES-08 | Phase 4 | Complete |
 | RES-09 | Phase 4 | Complete |
 | NOTF-01 | Phase 6 | Pending |
 | NOTF-02 | Phase 6 | Pending |
