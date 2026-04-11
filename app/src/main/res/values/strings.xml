@@ -106,4 +106,17 @@
     <!-- Reservation (Phase 4 will expand) -->
     <string name="reservation_timer_label">Reserved for %1$d minutes</string>
     <string name="reservation_expired">Reservation expired</string>
+
+    <!-- Phase 4: Reservation System -->
+    <string name="reservation_reserve_button">Reserve</string>
+    <string name="reservation_reserved_label">Reserved</string>
+    <string name="reservation_countdown_format">%1$d:%2$02d remaining</string>
+    <string name="reservation_guest_sheet_title">Your details</string>
+    <string name="reservation_guest_first_name">First name</string>
+    <string name="reservation_guest_last_name">Last name</string>
+    <string name="reservation_guest_email">Email</string>
+    <string name="reservation_guest_submit">Continue</string>
+    <string name="reservation_error_unavailable">This item is no longer available.</string>
+    <string name="reservation_error_generic">Could not reserve. Please try again.</string>
+    <string name="reservation_in_progress">Reserving\u2026</string>
 </resources>

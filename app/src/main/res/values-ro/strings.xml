@@ -106,4 +106,17 @@
     <!-- Reservation (Phase 4 will expand) -->
     <string name="reservation_timer_label">Rezervat pentru %1$d minute</string>
     <string name="reservation_expired">Rezervare expirat\u0103</string>
+
+    <!-- Faza 4: Sistem de rezervare -->
+    <string name="reservation_reserve_button">Rezerv\u0103</string>
+    <string name="reservation_reserved_label">Rezervat</string>
+    <string name="reservation_countdown_format">%1$d:%2$02d r\u0103mas</string>
+    <string name="reservation_guest_sheet_title">Datele tale</string>
+    <string name="reservation_guest_first_name">Prenume</string>
+    <string name="reservation_guest_last_name">Nume</string>
+    <string name="reservation_guest_email">Email</string>
+    <string name="reservation_guest_submit">Continu\u0103</string>
+    <string name="reservation_error_unavailable">Acest cadou nu mai este disponibil.</string>
+    <string name="reservation_error_generic">Rezervarea a e\u0219uat. \u00cencearc\u0103 din nou.</string>
+    <string name="reservation_in_progress">Se rezerv\u0103\u2026</string>
 </resources>
