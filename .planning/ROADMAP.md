@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Firebase Foundation** - Define Firestore schema, security rules, and project infrastructure before any feature code exists (completed 2026-04-04)
 - [ ] **Phase 2: Android Core + Auth** - Android app scaffold with clean architecture, authentication flows, and multilingual scaffolding
 - [ ] **Phase 3: Registry + Item Management** - Owners can create registries, add items via URL, and manage their lists with affiliate injection live
-- [ ] **Phase 4: Reservation System** - Server-authoritative 30-minute reservation timer with race condition prevention and auto-expiry
+- [x] **Phase 4: Reservation System** - Server-authoritative 30-minute reservation timer with race condition prevention and auto-expiry (completed 2026-04-11)
 - [ ] **Phase 5: Web Fallback** - Gift givers can view and reserve from a browser without installing the Android app
 - [ ] **Phase 6: Notifications + Email Flows** - Expiry emails, re-reserve flow, owner push notifications, and private registry invites
 - [ ] **Phase 7: EMAG Catalog Integration** - Owners can browse and add items from EMAG product catalog (requires pre-phase API research spike)
@@ -136,7 +136,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 1. Firebase Foundation | 3/3 | Complete   | 2026-04-04 |
 | 2. Android Core + Auth | 0/4 | Planning complete | - |
 | 3. Registry + Item Management | 5/6 | In Progress|  |
-| 4. Reservation System | 2/4 | In Progress|  |
+| 4. Reservation System | 6/6 | Complete   | 2026-04-11 |
 | 5. Web Fallback | 0/TBD | Not started | - |
 | 6. Notifications + Email Flows | 0/TBD | Not started | - |
 | 7. EMAG Catalog Integration | 0/TBD | Not started | - |

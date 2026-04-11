@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: verifying
-stopped_at: Completed 04-reservation-system 04-04-PLAN.md
-last_updated: "2026-04-11T16:45:57.189Z"
+stopped_at: Completed 04-reservation-system 04-05-PLAN.md
+last_updated: "2026-04-11T17:04:34.028Z"
 last_activity: 2026-04-11
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 17
-  completed_plans: 17
+  total_plans: 19
+  completed_plans: 19
   percent: 0
 ---
 
@@ -67,6 +67,8 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-reservation-system P02 | 1min | 2 tasks | 3 files |
 | Phase 04-reservation-system P03 | 2min | 2 tasks | 9 files |
 | Phase 04-reservation-system P04 | 3min | 3 tasks | 9 files |
+| Phase 04-reservation-system P05 | 8min | 2 tasks | 7 files |
+| Phase 04-reservation-system P06 | 4min | 3 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -117,6 +119,11 @@ Recent decisions affecting current work:
 - [Phase 04-reservation-system]: ReservationEvent as Channel<BUFFERED> in ViewModel -- one-shot events collected in LaunchedEffect(Unit) so Intent fires exactly once per reservation
 - [Phase 04-reservation-system]: Item domain model lacks expiresAt field -- countdown deferred, showing only Reserved label; no domain model changes made in Plan 04
 - [Phase 04-reservation-system]: ReReserveDeepLink NavEntry navigates to HomeKey with Phase 6 TODO -- placeholder route exists so email stub URL is well-formed (RES-08 partial)
+- [Phase 04-reservation-system]: doc.getTimestamp('expiresAt') used for reading server-written Timestamps — POJO auto-mapping to Long fails silently
+- [Phase 04-reservation-system]: expiresAt excluded from Item.toMap()/toUpdateMap() — client must never write this field (D-08: no client-side timer authority)
+- [Phase 04-reservation-system]: item.expiresAt?.let{} pattern for countdown display — backward compat with legacy reserved items that predate the field
+- [Phase 04-reservation-system]: ReservationDeepLinkBus SharedFlow(replay=1) chosen over adding autoReserveItemId to RegistryDetailKey — avoids Navigation3 @Serializable default-value complications
+- [Phase 04-reservation-system]: resolveReservation Cloud Function has no auth guard — giver arrives from email link unauthenticated (guest flow); returns only opaque navigation IDs, no PII
 
 ### Pending Todos
 
@@ -129,6 +136,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T16:45:57.187Z
-Stopped at: Completed 04-reservation-system 04-04-PLAN.md
+Last session: 2026-04-11T17:04:34.025Z
+Stopped at: Completed 04-reservation-system 04-05-PLAN.md
 Resume file: None
