@@ -15,3 +15,4 @@ export { fetchOgMetadata } from "./registry/fetchOgMetadata";
 export { inviteToRegistry } from "./registry/inviteToRegistry";
 export { createReservation } from "./reservation/createReservation";
 export { releaseReservation } from "./reservation/releaseReservation";
+export { resolveReservation } from "./reservation/resolveReservation";
