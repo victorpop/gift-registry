@@ -65,6 +65,7 @@ class ReserveItemViewModelTest {
             deleteItemUseCase = deleteItem,
             reserveItemUseCase = reserveItemUseCase,
             guestPreferencesRepository = guestPrefs,
+            deepLinkBus = ReservationDeepLinkBus(),
             savedStateHandle = ssh,
         )
     }

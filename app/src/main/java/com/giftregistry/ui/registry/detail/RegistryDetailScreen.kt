@@ -476,8 +476,7 @@ private fun ItemCard(
                     }
                 }
 
-                // Reserved label for reserved items
-                // Note: Item model does not expose expiresAt; countdown deferred until domain model updated
+                // Reserved label + live countdown for reserved items (D-08, D-18, RES-02/RES-06)
                 if (item.status == ItemStatus.RESERVED) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
@@ -485,6 +484,11 @@ private fun ItemCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.tertiary,
                     )
+                    item.expiresAt?.let { expiresAtMs ->
+                        ReservationCountdown(
+                            expiresAtMs = expiresAtMs,
+                        )
+                    }
                 }
             }
 

@@ -30,6 +30,9 @@ class ReserveItemUseCaseTest {
             lastGiverId = giverId
             return response
         }
+
+        override suspend fun resolve(reservationId: String): Result<com.giftregistry.domain.model.ReservationLookup> =
+            Result.failure(UnsupportedOperationException("not used in ReserveItemUseCaseTest"))
     }
 
     private val guest = GuestUser(firstName = "Ana", lastName = "Pop", email = "ana@example.com")
