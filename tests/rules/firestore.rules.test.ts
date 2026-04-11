@@ -282,3 +282,42 @@ describe("Private registry invite flow", () => {
     );
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// describe("Phase 4: Items status field read")
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Phase 4: Items status field read (RES-02/RES-06)", () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(
+        doc(ctx.firestore(), "registries", "p4-reg"),
+        { ownerId: "owner-p4", visibility: "public", invitedUsers: {} }
+      );
+      await setDoc(
+        doc(ctx.firestore(), "registries", "p4-reg", "items", "item-1"),
+        { title: "Gift", status: "available", affiliateUrl: "https://example.com" }
+      );
+    });
+  });
+
+  it("allows unauthenticated read of item status (RES-02/RES-06)", async () => {
+    const unauthDb = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(
+      getDoc(doc(unauthDb, "registries", "p4-reg", "items", "item-1"))
+    );
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// describe("Phase 4: Reservations hard-deny extended")
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Phase 4: Reservations hard-deny extended (D-19/RES-09)", () => {
+  it("denies authenticated write to reservations collection", async () => {
+    const db = testEnv.authenticatedContext("any-uid").firestore();
+    await assertFails(
+      setDoc(doc(db, "reservations", "res-auth"), { status: "active", itemId: "i", registryId: "r" })
+    );
+  });
+});
