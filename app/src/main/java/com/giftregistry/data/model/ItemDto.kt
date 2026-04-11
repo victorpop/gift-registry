@@ -10,5 +10,6 @@ data class ItemDto(
     val notes: String? = null,
     val status: String = "available",
     val createdAt: Long = 0L,
-    val updatedAt: Long = 0L
+    val updatedAt: Long = 0L,
+    val expiresAt: Long? = null,
 )

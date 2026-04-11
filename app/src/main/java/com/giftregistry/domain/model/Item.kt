@@ -11,5 +11,6 @@ data class Item(
     val notes: String? = null,
     val status: ItemStatus = ItemStatus.AVAILABLE,
     val createdAt: Long = 0L,
-    val updatedAt: Long = 0L
+    val updatedAt: Long = 0L,
+    val expiresAt: Long? = null,
 )

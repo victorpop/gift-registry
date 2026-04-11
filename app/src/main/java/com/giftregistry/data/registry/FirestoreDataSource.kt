@@ -61,7 +61,11 @@ class FirestoreDataSource @Inject constructor(
             .addSnapshotListener { snapshot, error ->
                 if (error != null) { close(error); return@addSnapshotListener }
                 val items = snapshot?.documents?.mapNotNull { doc ->
-                    doc.toObject(ItemDto::class.java)?.copy(id = doc.id)
+                    val expiresAtMs = doc.getTimestamp("expiresAt")?.toDate()?.time
+                    doc.toObject(ItemDto::class.java)?.copy(
+                        id = doc.id,
+                        expiresAt = expiresAtMs,
+                    )
                 } ?: emptyList()
                 trySend(items)
             }

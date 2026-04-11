@@ -60,7 +60,8 @@ class ItemRepositoryImpl @Inject constructor(
         originalUrl = originalUrl, affiliateUrl = affiliateUrl,
         imageUrl = imageUrl, price = price, notes = notes,
         status = ItemStatus.fromString(status),
-        createdAt = createdAt, updatedAt = updatedAt
+        createdAt = createdAt, updatedAt = updatedAt,
+        expiresAt = expiresAt,
     )
 
     private fun Item.toMap(): Map<String, Any?> = mapOf(
