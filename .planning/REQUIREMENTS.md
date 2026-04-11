@@ -48,15 +48,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Reservation System
 
-- [ ] **RES-01**: Gift giver can reserve an available item
-- [ ] **RES-02**: Reserved items show as unavailable to other givers in real time
-- [ ] **RES-03**: 30-minute reservation timer starts on reserve action
+- [x] **RES-01**: Gift giver can reserve an available item
+- [x] **RES-02**: Reserved items show as unavailable to other givers in real time
+- [x] **RES-03**: 30-minute reservation timer starts on reserve action
 - [ ] **RES-04**: Giver is redirected to retailer immediately upon reservation
-- [ ] **RES-05**: Reservation auto-releases after 30 minutes if not confirmed as purchased
-- [ ] **RES-06**: Auto-released items return to available status in real time
-- [ ] **RES-07**: Giver receives expiration email when reservation lapses
+- [x] **RES-05**: Reservation auto-releases after 30 minutes if not confirmed as purchased
+- [x] **RES-06**: Auto-released items return to available status in real time
+- [x] **RES-07**: Giver receives expiration email when reservation lapses
 - [ ] **RES-08**: Expiration email includes option to re-reserve immediately
-- [ ] **RES-09**: Two givers cannot simultaneously reserve the same item (race condition prevention)
+- [x] **RES-09**: Two givers cannot simultaneously reserve the same item (race condition prevention)
 
 ### Notifications
 
@@ -144,15 +144,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AFF-02 | Phase 3 | Complete |
 | AFF-03 | Phase 3 | Complete |
 | AFF-04 | Phase 3 | Complete |
-| RES-01 | Phase 4 | Pending |
-| RES-02 | Phase 4 | Pending |
-| RES-03 | Phase 4 | Pending |
+| RES-01 | Phase 4 | Complete |
+| RES-02 | Phase 4 | Complete |
+| RES-03 | Phase 4 | Complete |
 | RES-04 | Phase 4 | Pending |
-| RES-05 | Phase 4 | Pending |
-| RES-06 | Phase 4 | Pending |
-| RES-07 | Phase 4 | Pending |
+| RES-05 | Phase 4 | Complete |
+| RES-06 | Phase 4 | Complete |
+| RES-07 | Phase 4 | Complete |
 | RES-08 | Phase 4 | Pending |
-| RES-09 | Phase 4 | Pending |
+| RES-09 | Phase 4 | Complete |
 | NOTF-01 | Phase 6 | Pending |
 | NOTF-02 | Phase 6 | Pending |
 | NOTF-03 | Phase 6 | Pending |
