@@ -51,7 +51,9 @@ service cloud.firestore {
       }
     }
 
-    // Reservations — Cloud Functions write only (Admin SDK bypasses rules)
+    // Phase 4 (RES-09 / D-19): Reservations are ONLY writable by Cloud Functions
+    // via Admin SDK (which bypasses rules). All client writes are denied.
+    // createReservation callable runs a runTransaction to guarantee atomicity.
     match /reservations/{reservationId} {
       allow read, write: if false;
     }
