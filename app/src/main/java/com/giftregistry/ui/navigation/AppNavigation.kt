@@ -15,6 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
+import com.giftregistry.domain.usecase.ResolveReservationUseCase
+import com.giftregistry.ui.registry.detail.ReservationDeepLinkBus
+import kotlinx.coroutines.launch
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
@@ -146,19 +150,83 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
             }
 
             entry<ReReserveDeepLink> { key ->
-                // Phase 4: deep link target exists so the email stub URL is well-formed.
-                // Phase 6 will resolve reservationId -> registryId and re-open RegistryDetailScreen
-                // with the reserve flow pre-triggered.
-                LaunchedEffect(key.reservationId) {
-                    android.util.Log.i("AppNavigation", "TODO Phase 6: resolve re-reserve for ${key.reservationId}")
-                }
-                RegistryListScreen(
-                    onNavigateToCreate = { backStack.add(CreateRegistryKey) },
-                    onNavigateToDetail = { registryId -> backStack.add(RegistryDetailKey(registryId)) },
-                    onNavigateToEdit = { registryId -> backStack.add(EditRegistryKey(registryId)) },
-                    onNavigateToSettings = { backStack.add(SettingsKey) }
+                ReReserveResolver(
+                    reservationId = key.reservationId,
+                    onResolved = { registryId, _ ->
+                        backStack.clear()
+                        backStack.add(HomeKey)
+                        backStack.add(RegistryDetailKey(registryId = registryId))
+                    },
+                    onError = {
+                        backStack.clear()
+                        backStack.add(HomeKey)
+                    },
                 )
             }
         }
     )
+}
+
+@Composable
+private fun ReReserveResolver(
+    reservationId: String,
+    onResolved: (registryId: String, itemId: String) -> Unit,
+    onError: () -> Unit,
+) {
+    val viewModel: ReReserveResolverViewModel = hiltViewModel(
+        key = "re-reserve-$reservationId"
+    )
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    LaunchedEffect(reservationId) {
+        viewModel.resolve(reservationId)
+    }
+
+    LaunchedEffect(state) {
+        when (val s = state) {
+            is ReReserveResolverViewModel.State.Resolved ->
+                onResolved(s.registryId, s.itemId)
+            is ReReserveResolverViewModel.State.Error -> onError()
+            else -> Unit
+        }
+    }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
+    }
+}
+
+@dagger.hilt.android.lifecycle.HiltViewModel
+class ReReserveResolverViewModel @javax.inject.Inject constructor(
+    private val resolveReservationUseCase: ResolveReservationUseCase,
+    private val deepLinkBus: ReservationDeepLinkBus,
+) : androidx.lifecycle.ViewModel() {
+
+    sealed interface State {
+        data object Idle : State
+        data object Loading : State
+        data class Resolved(val registryId: String, val itemId: String) : State
+        data class Error(val code: String) : State
+    }
+
+    private val _state = kotlinx.coroutines.flow.MutableStateFlow<State>(State.Idle)
+    val state: kotlinx.coroutines.flow.StateFlow<State> = _state
+
+    fun resolve(reservationId: String) {
+        if (_state.value is State.Loading || _state.value is State.Resolved) return
+        _state.value = State.Loading
+        viewModelScope.launch {
+            resolveReservationUseCase(reservationId)
+                .onSuccess { lookup ->
+                    deepLinkBus.request(lookup.registryId, lookup.itemId)
+                    _state.value = State.Resolved(lookup.registryId, lookup.itemId)
+                }
+                .onFailure { err ->
+                    _state.value = State.Error(err.message ?: "RESOLVE_FAILED")
+                }
+        }
+    }
 }

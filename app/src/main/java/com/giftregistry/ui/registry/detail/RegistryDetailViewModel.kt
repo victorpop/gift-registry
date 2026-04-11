@@ -32,10 +32,21 @@ class RegistryDetailViewModel @Inject constructor(
     private val deleteItemUseCase: DeleteItemUseCase,
     private val reserveItemUseCase: ReserveItemUseCase,
     private val guestPreferencesRepository: GuestPreferencesRepository,
+    private val deepLinkBus: ReservationDeepLinkBus,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
     val registryId: String = checkNotNull(savedStateHandle["registryId"])
+
+    init {
+        viewModelScope.launch {
+            deepLinkBus.requests.collect { req ->
+                if (req.registryId == registryId) {
+                    onReserveClicked(req.itemId)
+                }
+            }
+        }
+    }
 
     val registry: StateFlow<Registry?> = observeRegistryUseCase(registryId)
         .catch { emit(null) }
