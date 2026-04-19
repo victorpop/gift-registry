@@ -66,7 +66,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Web Fallback
 
-- [ ] **WEB-01**: Gift givers can view a registry via web browser without installing the app
+- [x] **WEB-01**: Gift givers can view a registry via web browser without installing the app
 - [ ] **WEB-02**: Gift givers can reserve items from the web fallback
 - [ ] **WEB-03**: Gift givers can log in, create an account, or continue as guest on web
 - [ ] **WEB-04**: Web fallback redirects to retailer on reservation (same as Android flow)
@@ -156,7 +156,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | NOTF-01 | Phase 6 | Pending |
 | NOTF-02 | Phase 6 | Pending |
 | NOTF-03 | Phase 6 | Pending |
-| WEB-01 | Phase 5 | Pending |
+| WEB-01 | Phase 5 | Complete |
 | WEB-02 | Phase 5 | Pending |
 | WEB-03 | Phase 5 | Pending |
 | WEB-04 | Phase 5 | Pending |
