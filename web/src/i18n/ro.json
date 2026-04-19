@@ -47,6 +47,17 @@
     "banner_view": "Vezi pe {{retailer}}",
     "conflict": "Cineva tocmai a rezervat acest cadou. \u00cencearc\u0103 altul.",
     "success": "Cadou rezervat! Redirecționare c\u0103tre magazin\u2026",
-    "resolving": "Se verific\u0103 rezervarea\u2026"
+    "resolving": "Se verific\u0103 rezervarea\u2026",
+    "confirm_purchase_heading": "Ai finalizat achizi\u021bia?",
+    "confirm_purchase_cta": "Am finalizat achizi\u021bia",
+    "confirm_purchase_loading": "Se confirm\u0103\u2026",
+    "confirm_purchase_success": "Achizi\u021bie confirmat\u0103. Mul\u021bumim!",
+    "confirm_purchase_error": "Nu s-a putut confirma. \u00cencearc\u0103 din nou."
+  },
+  "notifications": {
+    "purchase_snackbar": "Un cadou din {{registryName}} a fost cump\u0103rat!"
+  },
+  "settings": {
+    "email_language_label": "Limba emailurilor"
   }
 }

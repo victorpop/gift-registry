@@ -131,4 +131,21 @@
     <string name="reservation_error_unavailable">Acest cadou nu mai este disponibil.</string>
     <string name="reservation_error_generic">Rezervarea a e\u0219uat. \u00cencearc\u0103 din nou.</string>
     <string name="reservation_in_progress">Se rezerv\u0103\u2026</string>
+
+    <!-- Faza 6: CTA confirmare achizitie -->
+    <string name="reservation_confirm_purchase_heading">Ai finalizat achizi\u021bia?</string>
+    <string name="reservation_confirm_purchase_cta">Am finalizat achizi\u021bia</string>
+    <string name="reservation_confirm_purchase_loading">Se confirm\u0103\u2026</string>
+    <string name="reservation_confirm_purchase_success">Achizi\u021bie confirmat\u0103. Mul\u021bumim!</string>
+    <string name="reservation_confirm_purchase_error">Nu s-a putut confirma. \u00cencearc\u0103 din nou.</string>
+
+    <!-- Faza 6: Notificari (proprietar) -->
+    <string name="notifications_purchase_snackbar">Un cadou din %1$s a fost cump\u0103rat!</string>
+    <string name="notifications_purchase_snackbar_action">Vezi</string>
+    <!-- Channel name + description: English only (channel ID is compile-time) -->
+    <string name="notifications_channel_purchase_name">Purchase alerts</string>
+    <string name="notifications_channel_purchase_description">Notified when a gift is purchased from your registry</string>
+
+    <!-- Faza 6: Setare limba email -->
+    <string name="settings_email_language_label">Limba emailurilor</string>
 </resources>

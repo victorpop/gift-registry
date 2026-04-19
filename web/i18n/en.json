@@ -47,6 +47,17 @@
     "banner_view": "View on {{retailer}}",
     "conflict": "Someone just reserved this gift. Try another.",
     "success": "Gift reserved! Redirecting to retailer\u2026",
-    "resolving": "Checking your reservation\u2026"
+    "resolving": "Checking your reservation\u2026",
+    "confirm_purchase_heading": "Did you complete the purchase?",
+    "confirm_purchase_cta": "I completed the purchase",
+    "confirm_purchase_loading": "Confirming\u2026",
+    "confirm_purchase_success": "Purchase confirmed. Thank you!",
+    "confirm_purchase_error": "Could not confirm. Please try again."
+  },
+  "notifications": {
+    "purchase_snackbar": "A gift was purchased from {{registryName}}!"
+  },
+  "settings": {
+    "email_language_label": "Email language"
   }
 }

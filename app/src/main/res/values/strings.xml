@@ -131,4 +131,20 @@
     <string name="reservation_error_unavailable">This item is no longer available.</string>
     <string name="reservation_error_generic">Could not reserve. Please try again.</string>
     <string name="reservation_in_progress">Reserving\u2026</string>
+
+    <!-- Phase 6: Confirm Purchase CTA (giver-facing) -->
+    <string name="reservation_confirm_purchase_heading">Did you complete the purchase?</string>
+    <string name="reservation_confirm_purchase_cta">I completed the purchase</string>
+    <string name="reservation_confirm_purchase_loading">Confirming\u2026</string>
+    <string name="reservation_confirm_purchase_success">Purchase confirmed. Thank you!</string>
+    <string name="reservation_confirm_purchase_error">Could not confirm. Please try again.</string>
+
+    <!-- Phase 6: Notifications (owner-facing) -->
+    <string name="notifications_purchase_snackbar">A gift was purchased from %1$s!</string>
+    <string name="notifications_purchase_snackbar_action">View</string>
+    <string name="notifications_channel_purchase_name">Purchase alerts</string>
+    <string name="notifications_channel_purchase_description">Notified when a gift is purchased from your registry</string>
+
+    <!-- Phase 6: Email language setting -->
+    <string name="settings_email_language_label">Email language</string>
 </resources>
