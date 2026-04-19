@@ -55,4 +55,12 @@ class ReservationRepositoryImpl @Inject constructor(
             status = (data["status"] as? String) ?: "unknown",
         )
     }
+
+    override suspend fun confirmPurchase(reservationId: String): Result<Unit> = runCatching {
+        functions
+            .getHttpsCallable("confirmPurchase")
+            .call(mapOf("reservationId" to reservationId))
+            .await()
+        Unit
+    }
 }

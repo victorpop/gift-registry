@@ -13,4 +13,9 @@ interface ReservationRepository {
     ): Result<ReservationResult>
 
     suspend fun resolve(reservationId: String): Result<ReservationLookup>
+
+    // Phase 6 (D-01/D-02): giver confirms they completed the purchase.
+    // Implementation calls the Firebase `confirmPurchase` callable which runs a server-side
+    // transaction and cancels the Cloud Task.
+    suspend fun confirmPurchase(reservationId: String): Result<Unit>
 }
