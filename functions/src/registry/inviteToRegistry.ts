@@ -1,6 +1,9 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { FieldPath } from "firebase-admin/firestore";
+import { inviteTemplate } from "../email/templates/invite";
+import { sendEmail } from "../email/send";
+import { sendInvitePush } from "../notifications/invitePush";
 
 interface InviteRequest {
   registryId: string;
@@ -86,10 +89,38 @@ export const inviteToRegistry = onCall(
       // "admin.firestore.FieldPath is not a constructor" error.
       await registryRef.update(new FieldPath("invitedUsers", inviteKey), true);
 
-      // STUB: Email sending — Phase 6 will implement actual email delivery
-      // For REG-06 (existing user): would send in-app notification + email
-      // For REG-07 (non-user): would send email-only with registry link
-      console.log(`[STUB] Invite email would be sent to ${email} for registry ${registryId}. isExistingUser=${isExistingUser}`);
+      // D-16/D-18: Write invite email to mail collection (Trigger Email extension delivers)
+      const registryUrl = `https://giftregistry.app/registry/${registryId}`;
+      // ownerName: best-effort lookup from auth record; fall back to "Someone" if unknown
+      let ownerName = "Someone";
+      try {
+        const ownerRecord = await admin.auth().getUser(request.auth.uid);
+        ownerName = ownerRecord.displayName || ownerRecord.email?.split("@")[0] || "Someone";
+      } catch (err) {
+        console.warn(`[inviteToRegistry] owner lookup failed for ${request.auth.uid}:`, err);
+      }
+      const registryName = (registryData.title as string) ?? "a registry";
+      const locale: "en" | "ro" = "en"; // D-14: invite recipient locale unknown; default en
+      const { subject, html, text } = inviteTemplate(
+        { ownerName, registryName, registryUrl },
+        locale,
+      );
+      try {
+        await sendEmail({ to: email, subject, html, text });
+      } catch (err) {
+        console.error(`[inviteToRegistry] sendEmail failed for invite to ${email}:`, err);
+      }
+
+      // D-17: existing-user invite ALSO delivers an FCM push to every token on
+      // the invited user's account. D-18: non-user invite stays email-only.
+      if (isExistingUser && invitedUid) {
+        await sendInvitePush({
+          invitedUid,
+          registryId,
+          registryName,
+          locale,
+        });
+      }
 
       return {
         success: true,
