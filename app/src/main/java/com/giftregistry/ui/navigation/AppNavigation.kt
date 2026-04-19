@@ -35,6 +35,7 @@ import com.giftregistry.ui.registry.detail.RegistryDetailScreen
 import com.giftregistry.ui.registry.invite.InviteBottomSheet
 import com.giftregistry.ui.registry.list.RegistryListScreen
 import com.giftregistry.ui.settings.SettingsScreen
+import com.giftregistry.ui.store.list.StoreListScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,7 +108,8 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                     onNavigateToCreate = { backStack.add(CreateRegistryKey) },
                     onNavigateToDetail = { registryId -> backStack.add(RegistryDetailKey(registryId)) },
                     onNavigateToEdit = { registryId -> backStack.add(EditRegistryKey(registryId)) },
-                    onNavigateToSettings = { backStack.add(SettingsKey) }
+                    onNavigateToSettings = { backStack.add(SettingsKey) },
+                    onNavigateToBrowseStores = { backStack.add(StoreListKey(preSelectedRegistryId = null)) },
                 )
             }
 
@@ -138,7 +140,8 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                     onNavigateToAddItem = { backStack.add(AddItemKey(key.registryId)) },
                     onNavigateToEditItem = { itemId -> backStack.add(EditItemKey(key.registryId, itemId)) },
                     onNavigateToEditRegistry = { backStack.add(EditRegistryKey(key.registryId)) },
-                    onNavigateToInvite = { showInviteSheet = true }
+                    onNavigateToInvite = { showInviteSheet = true },
+                    onNavigateToBrowseStores = { backStack.add(StoreListKey(preSelectedRegistryId = key.registryId)) },
                 )
 
                 if (showInviteSheet) {
@@ -147,6 +150,15 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                         onDismiss = { showInviteSheet = false }
                     )
                 }
+            }
+
+            entry<StoreListKey> { key ->
+                StoreListScreen(
+                    onBack = { backStack.removeLast() },
+                    onStoreSelected = { storeId ->
+                        backStack.add(StoreBrowserKey(storeId = storeId, registryId = key.preSelectedRegistryId))
+                    },
+                )
             }
 
             entry<AddItemKey> { key ->

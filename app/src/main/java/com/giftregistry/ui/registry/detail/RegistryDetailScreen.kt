@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -77,6 +78,7 @@ fun RegistryDetailScreen(
     onNavigateToEditItem: (String) -> Unit,
     onNavigateToEditRegistry: () -> Unit,
     onNavigateToInvite: () -> Unit,
+    onNavigateToBrowseStores: () -> Unit = {},
     onNavigateToRegistry: (String) -> Unit = {},
     viewModel: RegistryDetailViewModel = hiltViewModelWithNavArgs(
         key = registryId,
@@ -245,11 +247,29 @@ fun RegistryDetailScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToAddItem) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.item_add_title)
-                )
+            var addMenuExpanded by remember { mutableStateOf(false) }
+            Box {
+                FloatingActionButton(onClick = { addMenuExpanded = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = stringResource(R.string.item_add_title)
+                    )
+                }
+                DropdownMenu(
+                    expanded = addMenuExpanded,
+                    onDismissRequest = { addMenuExpanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.item_add_title)) },
+                        leadingIcon = { Icon(Icons.Default.Add, contentDescription = null) },
+                        onClick = { addMenuExpanded = false; onNavigateToAddItem() },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.stores_browse_label)) },
+                        leadingIcon = { Icon(Icons.Default.ShoppingBag, contentDescription = null) },
+                        onClick = { addMenuExpanded = false; onNavigateToBrowseStores() },
+                    )
+                }
             }
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
