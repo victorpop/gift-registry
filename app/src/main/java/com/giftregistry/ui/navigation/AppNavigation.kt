@@ -27,6 +27,9 @@ import com.giftregistry.ui.auth.AuthUiState
 import com.giftregistry.ui.auth.AuthViewModel
 import com.giftregistry.ui.item.add.AddItemScreen
 import com.giftregistry.ui.item.edit.EditItemScreen
+import com.giftregistry.ui.onboarding.OnboardingScreen
+import com.giftregistry.ui.onboarding.OnboardingSeenState
+import com.giftregistry.ui.onboarding.OnboardingViewModel
 import com.giftregistry.ui.registry.create.CreateRegistryScreen
 import com.giftregistry.ui.registry.detail.RegistryDetailScreen
 import com.giftregistry.ui.registry.invite.InviteBottomSheet
@@ -39,9 +42,12 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
     val authViewModel: AuthViewModel = hiltViewModel()
     val authUiState by authViewModel.authState.collectAsStateWithLifecycle()
 
+    val onboardingViewModel: OnboardingViewModel = hiltViewModel()
+    val onboardingSeenState by onboardingViewModel.state.collectAsStateWithLifecycle()
+
     val backStack = remember { mutableStateListOf<Any>(AuthKey) }
 
-    LaunchedEffect(authUiState) {
+    LaunchedEffect(authUiState, onboardingSeenState) {
         when (authUiState) {
             is AuthUiState.Authenticated -> {
                 if (backStack.lastOrNull() !is HomeKey) {
@@ -55,9 +61,20 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                 }
             }
             is AuthUiState.Unauthenticated -> {
-                if (backStack.lastOrNull() !is AuthKey) {
+                // Route through onboarding when the flag is not yet set; otherwise go
+                // straight to Auth. Signing out lands on Auth (flag persists in DataStore).
+                val entryKey: Any = if (onboardingSeenState is OnboardingSeenState.NotSeen) {
+                    OnboardingKey
+                } else {
+                    AuthKey
+                }
+                val current = backStack.lastOrNull()
+                val alreadyOnCorrect =
+                    (entryKey is OnboardingKey && current is OnboardingKey) ||
+                        (entryKey == AuthKey && current is AuthKey)
+                if (!alreadyOnCorrect) {
                     backStack.clear()
-                    backStack.add(AuthKey)
+                    backStack.add(entryKey)
                 }
             }
             is AuthUiState.Loading -> {
@@ -66,7 +83,7 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
         }
     }
 
-    if (authUiState is AuthUiState.Loading) {
+    if (authUiState is AuthUiState.Loading || onboardingSeenState is OnboardingSeenState.Loading) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -82,6 +99,8 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
         entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator()),
         entryProvider = entryProvider {
             entry<AuthKey> { AuthScreen() }
+
+            entry<OnboardingKey> { OnboardingScreen() }
 
             entry<HomeKey> {
                 RegistryListScreen(
