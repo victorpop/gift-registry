@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-web-fallback-05-05-PLAN.md
-last_updated: "2026-04-19T15:23:30.094Z"
+stopped_at: Completed 05-web-fallback-05-06-PLAN.md
+last_updated: "2026-04-19T15:33:22.027Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 26
-  completed_plans: 24
+  completed_plans: 25
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 05 (web-fallback) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -74,6 +74,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-web-fallback P03 | 2min | 2 tasks | 14 files |
 | Phase 05-web-fallback P04 | 10min | 3 tasks | 13 files |
 | Phase 05-web-fallback P05 | 3min | 2 tasks | 9 files |
+| Phase 05-web-fallback P06 | 7min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -142,6 +143,9 @@ Recent decisions affecting current work:
 - [Phase 05-web-fallback]: ItemCard.reserveSlot + ItemGrid.renderReserve extension points — Plan 06 injects real ReserveButton; Plan 04 renders disabled placeholder with min-h-[48px] touch target
 - [Phase 05-web-fallback]: authProviders.ts catches auth/popup-closed-by-user and auth/cancelled-popup-request silently returning null — caller no-ops instead of showing error toast
 - [Phase 05-web-fallback]: AuthModal Dialog.Description added as sr-only element — Radix warns when no description present; both modals have accessible descriptions
+- [Phase 05-web-fallback]: httpsCallable called at module level (not inside hook) — callable is singleton; test must not reset httpsCallableMock in beforeEach
+- [Phase 05-web-fallback]: useActiveReservation uses React state only (not localStorage) — tab-scoped UX acceptable for 30-min window per CONTEXT.md discretion
+- [Phase 05-web-fallback]: RegistryPage/App tests: vi.mock all reservation + auth imports to avoid firebase/auth initialization in jsdom test environment
 
 ### Pending Todos
 
@@ -154,6 +158,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-19T15:23:30.091Z
-Stopped at: Completed 05-web-fallback-05-05-PLAN.md
+Last session: 2026-04-19T15:33:22.024Z
+Stopped at: Completed 05-web-fallback-05-06-PLAN.md
 Resume file: None
