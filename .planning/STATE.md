@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-web-fallback-05-01-PLAN.md
-last_updated: "2026-04-19T14:55:41.849Z"
+stopped_at: Completed 05-web-fallback-05-02-PLAN.md
+last_updated: "2026-04-19T14:59:58.544Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 26
-  completed_plans: 20
+  completed_plans: 21
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 05 (web-fallback) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -70,6 +70,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-reservation-system P05 | 8min | 2 tasks | 7 files |
 | Phase 04-reservation-system P06 | 4min | 3 tasks | 9 files |
 | Phase 05-web-fallback P01 | 8min | 2 tasks | 21 files |
+| Phase 05-web-fallback P02 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,8 @@ Recent decisions affecting current work:
 - [Phase 05-web-fallback]: Tailwind v3 (3.4.19) pinned for web scaffold — v4 changed config format to CSS-first; all UI-SPEC examples use v3 tailwind.config.ts syntax
 - [Phase 05-web-fallback]: i18next ^26.0 — npm-verified current version; CLAUDE.md reference to v24 is stale per RESEARCH.md
 - [Phase 05-web-fallback]: assetlinks.json migrated to web/public/.well-known/ — emptyOutDir: true deletes hosting/public/ on each Vite build; web/public/ is Vite static asset source
+- [Phase 05-web-fallback]: ES module import hoisting means firebase.ts singletons are constructed before debug token code runs, but initializeAppCheck is called in module body before createRoot — network calls only fire when components read/write, after App Check is active
+- [Phase 05-web-fallback]: VITE_RECAPTCHA_SITE_KEY absence in dev skips App Check with console.warn — no crash, frictionless local dev without reCAPTCHA registration
 
 ### Pending Todos
 
@@ -140,6 +143,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-19T14:55:41.847Z
-Stopped at: Completed 05-web-fallback-05-01-PLAN.md
+Last session: 2026-04-19T14:59:58.541Z
+Stopped at: Completed 05-web-fallback-05-02-PLAN.md
 Resume file: None
