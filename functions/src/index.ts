@@ -16,6 +16,7 @@ export { inviteToRegistry } from "./registry/inviteToRegistry";
 export { createReservation } from "./reservation/createReservation";
 export { releaseReservation } from "./reservation/releaseReservation";
 export { resolveReservation } from "./reservation/resolveReservation";
+export { confirmPurchase } from "./reservation/confirmPurchase";
 
 // Dev-only listener: logs rendered mail docs to console in emulator (D-08).
 // In production, the Trigger Email extension consumes mail/ docs instead.
