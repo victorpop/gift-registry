@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Registry + Item Management** - Owners can create registries, add items via URL, and manage their lists with affiliate injection live (completed 2026-04-06)
 - [x] **Phase 4: Reservation System** - Server-authoritative 30-minute reservation timer with race condition prevention and auto-expiry (completed 2026-04-11)
 - [x] **Phase 5: Web Fallback** - Gift givers can view and reserve from a browser without installing the Android app (completed 2026-04-19)
-- [ ] **Phase 6: Notifications + Email Flows** - Expiry emails, re-reserve flow, owner push notifications, and private registry invites
+- [x] **Phase 6: Notifications + Email Flows** - Expiry emails, re-reserve flow, owner push notifications, and private registry invites (completed 2026-04-19)
 - [ ] **Phase 7: EMAG Catalog Integration** - Owners can browse and add items from EMAG product catalog (requires pre-phase API research spike)
 
 ## Phase Details
@@ -146,5 +146,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 3. Registry + Item Management | 5/6 | In Progress|  |
 | 4. Reservation System | 6/6 | Complete   | 2026-04-11 |
 | 5. Web Fallback | 7/7 | Complete   | 2026-04-19 |
-| 6. Notifications + Email Flows | 5/6 | In Progress|  |
+| 6. Notifications + Email Flows | 6/6 | Complete   | 2026-04-19 |
 | 7. EMAG Catalog Integration | 0/TBD | Not started | - |
