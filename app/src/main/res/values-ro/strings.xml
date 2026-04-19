@@ -51,6 +51,17 @@
     <string name="settings_language_confirm">Schimb&#259; Limba</string>
     <string name="settings_sign_out">Deconectare</string>
 
+    <!-- Onboarding carousel -->
+    <string name="onboarding_slide_1_title">Creeaz&#259;-&#539;i lista</string>
+    <string name="onboarding_slide_1_body">List&#259; de dorin&#539;e, list&#259; personal&#259; de cump&#259;r&#259;turi, registru pentru evenimente — orice list&#259; dore&#537;ti!</string>
+    <string name="onboarding_slide_2_title">Adaug&#259; produse de oriunde</string>
+    <string name="onboarding_slide_2_body">Caut&#259; online, adaug&#259; un link sau introdu manual</string>
+    <string name="onboarding_slide_3_title">Cadoul perfect, de fiecare dat&#259;</string>
+    <string name="onboarding_slide_3_body">Prime&#537;ti cadoul pe care &#238;l dore&#537;ti. Oferi cadoul pe care &#238;l doresc.</string>
+    <string name="onboarding_skip">Omite</string>
+    <string name="onboarding_next">Continu&#259;</string>
+    <string name="onboarding_get_started">&#206;ncepe</string>
+
     <!-- Registry management (Phase 3) -->
     <string name="registry_list_title">Registrele mele</string>
     <string name="registry_list_empty">Niciun registru. Creeaza primul tau!</string>

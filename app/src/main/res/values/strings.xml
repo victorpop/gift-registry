@@ -51,6 +51,17 @@
     <string name="settings_language_confirm">Change Language</string>
     <string name="settings_sign_out">Sign out</string>
 
+    <!-- Onboarding carousel -->
+    <string name="onboarding_slide_1_title">Create your list</string>
+    <string name="onboarding_slide_1_body">Wishlist, personal shopping list, event gift registry — any list you want!</string>
+    <string name="onboarding_slide_2_title">Add items from anywhere</string>
+    <string name="onboarding_slide_2_body">Browse online, add a link, or add manually</string>
+    <string name="onboarding_slide_3_title">The perfect gift, every time</string>
+    <string name="onboarding_slide_3_body">Get the gift you want. Give the gift they want.</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_get_started">Get Started</string>
+
     <!-- Registry management (Phase 3) -->
     <string name="registry_list_title">My Registries</string>
     <string name="registry_list_empty">No registries yet. Create your first one!</string>

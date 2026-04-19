@@ -3,6 +3,7 @@ package com.giftregistry.di
 import com.giftregistry.data.auth.AuthRepositoryImpl
 import com.giftregistry.data.preferences.GuestPreferencesDataStore
 import com.giftregistry.data.preferences.LanguagePreferencesDataStore
+import com.giftregistry.data.preferences.OnboardingPreferencesDataStore
 import com.giftregistry.data.registry.ItemRepositoryImpl
 import com.giftregistry.data.registry.RegistryRepositoryImpl
 import com.giftregistry.data.reservation.ReservationRepositoryImpl
@@ -10,6 +11,7 @@ import com.giftregistry.domain.auth.AuthRepository
 import com.giftregistry.domain.item.ItemRepository
 import com.giftregistry.domain.preferences.GuestPreferencesRepository
 import com.giftregistry.domain.preferences.LanguagePreferencesRepository
+import com.giftregistry.domain.preferences.OnboardingPreferencesRepository
 import com.giftregistry.domain.registry.RegistryRepository
 import com.giftregistry.domain.reservation.ReservationRepository
 import dagger.Binds
@@ -45,4 +47,8 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindGuestPreferences(impl: GuestPreferencesDataStore): GuestPreferencesRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindOnboardingPreferences(impl: OnboardingPreferencesDataStore): OnboardingPreferencesRepository
 }
