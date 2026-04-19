@@ -16,6 +16,7 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 - ✓ Gift givers can log in, create an account, or continue as guest — Phase 2
 - ✓ Guest-to-account conversion offered at reservation time (UI ready, trigger in Phase 4) — Phase 2
 - ✓ Multilingual support (Romanian and English) with manual override and persistence — Phase 2
+- ✓ Web fallback for gift givers — view registry, log in / sign up / guest, reserve, retailer redirect — Phase 5 (automated; 7 items pending real-browser UAT)
 
 ### Active
 
@@ -31,7 +32,6 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 - [ ] Givers are redirected to retailer immediately upon reservation
 - [ ] Expiration email sent to giver when reservation lapses, with option to re-reserve
 - [ ] URL transformer identifies merchant and appends correct affiliate tag
-- [ ] Web fallback for gift givers (view registry, reserve, purchase)
 
 ### Out of Scope
 
@@ -86,4 +86,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-05 after Phase 2 completion*
+*Last updated: 2026-04-19 after Phase 5 completion*
