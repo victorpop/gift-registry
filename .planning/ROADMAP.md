@@ -139,7 +139,12 @@ Plans:
 - Curated store list is a small static config (stored in code or Firestore config doc — decided during discuss). No store admin UI in this phase.
 - The add flow itself already ships in Phase 3; this phase is about the funnel into it.
 
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 07-00-PLAN.md -- Wave 1 foundation: seed data/script, Firestore rules for config/stores, ProGuard keep rule, stores_* strings (en + ro), 9 bundled store logos (human checkpoint)
+- [ ] 07-01-PLAN.md -- Wave 2: domain + data layer (Store model, StoreRepository, LastRegistryPreferencesDataStore, StoresModule, unit tests)
+- [ ] 07-02-PLAN.md -- Wave 3: StoreListScreen + StoreListViewModel + Home FAB menu refactor + Registry Detail entry + AppNavigation wiring
+- [ ] 07-03-PLAN.md -- Wave 4: StoreBrowserScreen (AndroidView-wrapped WebView) + AddItemKey extension + end-to-end UAT (human checkpoint)
 **UI hint**: yes
 
 ## Progress
@@ -155,4 +160,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Reservation System | 6/6 | Complete   | 2026-04-11 |
 | 5. Web Fallback | 7/7 | Complete   | 2026-04-19 |
 | 6. Notifications + Email Flows | 6/6 | Complete   | 2026-04-19 |
-| 7. Romanian Store Browser | 0/TBD | Not started | - |
+| 7. Romanian Store Browser | 0/4 | Planning complete | - |
