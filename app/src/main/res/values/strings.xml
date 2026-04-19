@@ -147,4 +147,26 @@
 
     <!-- Phase 6: Email language setting -->
     <string name="settings_email_language_label">Email language</string>
+
+    <!-- Phase 7: Store Browser entry points -->
+    <string name="stores_fab_label">New</string>
+    <string name="stores_browse_label">Browse stores</string>
+    <string name="stores_create_registry_label">Create registry</string>
+
+    <!-- Phase 7: Store List screen -->
+    <string name="stores_list_title">Browse stores</string>
+    <string name="stores_list_error_heading">Couldn\'t load stores</string>
+    <string name="stores_list_error_body">Check your connection and try again.</string>
+    <string name="stores_retry">Try again</string>
+    <string name="stores_logo_content_description">Store</string>
+
+    <!-- Phase 7: Store Browser (WebView) screen -->
+    <string name="stores_webview_close">Close</string>
+    <string name="stores_webview_error_heading">Page didn\'t load</string>
+    <string name="stores_webview_error_body">Check your connection and try again.</string>
+    <string name="stores_add_to_list_cta">Add to list</string>
+    <string name="stores_external_link_blocked">This link opens in an external app</string>
+
+    <!-- Phase 7: Registry picker (add-item screen extension) -->
+    <string name="stores_registry_picker_label">Add to registry:</string>
 </resources>

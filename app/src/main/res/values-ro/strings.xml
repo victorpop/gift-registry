@@ -148,4 +148,26 @@
 
     <!-- Faza 6: Setare limba email -->
     <string name="settings_email_language_label">Limba emailurilor</string>
+
+    <!-- Faza 7: Puncte de intrare în Store Browser -->
+    <string name="stores_fab_label">Nou</string>
+    <string name="stores_browse_label">R\u0103sfoie\u015fte magazine</string>
+    <string name="stores_create_registry_label">Creeaz\u0103 o list\u0103</string>
+
+    <!-- Faza 7: Ecranul listei de magazine -->
+    <string name="stores_list_title">R\u0103sfoie\u015fte magazine</string>
+    <string name="stores_list_error_heading">Nu s-au putut \u00eenc\u0103rca magazinele</string>
+    <string name="stores_list_error_body">Verific\u0103 conexiunea \u015fi \u00eencearc\u0103 din nou.</string>
+    <string name="stores_retry">\u00cencearc\u0103 din nou</string>
+    <string name="stores_logo_content_description">Magazin</string>
+
+    <!-- Faza 7: Ecranul Store Browser (WebView) -->
+    <string name="stores_webview_close">\u00cenchide</string>
+    <string name="stores_webview_error_heading">Pagina nu s-a \u00eenc\u0103rcat</string>
+    <string name="stores_webview_error_body">Verific\u0103 conexiunea \u015fi \u00eencearc\u0103 din nou.</string>
+    <string name="stores_add_to_list_cta">Adaug\u0103 la list\u0103</string>
+    <string name="stores_external_link_blocked">Acest link se deschide \u00edntr-o alt\u0103 aplica\u021bie</string>
+
+    <!-- Faza 7: Selector registru (extensie ecran adăugare articol) -->
+    <string name="stores_registry_picker_label">Adaug\u0103 \u00een lista:</string>
 </resources>
