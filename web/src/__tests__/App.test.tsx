@@ -27,6 +27,9 @@ vi.mock('../features/reservation/ReserveButton', () => ({
 vi.mock('../features/reservation/ReservationBanner', () => ({
   default: () => null,
 }))
+vi.mock('../features/reservation/ConfirmPurchaseBanner', () => ({
+  ConfirmPurchaseBanner: () => null,
+}))
 vi.mock('../features/reservation/useActiveReservation', () => ({
   useActiveReservation: () => ({ active: null, set: vi.fn(), clear: vi.fn() }),
   ActiveReservationProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,

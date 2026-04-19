@@ -41,6 +41,9 @@ vi.mock('../../reservation/ReserveButton', () => ({
 vi.mock('../../reservation/ReservationBanner', () => ({
   default: () => null,
 }))
+vi.mock('../../reservation/ConfirmPurchaseBanner', () => ({
+  ConfirmPurchaseBanner: () => null,
+}))
 vi.mock('../../auth/AuthModal', () => ({
   default: ({ open }: { open: boolean }) => open ? <div data-testid="auth-modal" /> : null,
 }))

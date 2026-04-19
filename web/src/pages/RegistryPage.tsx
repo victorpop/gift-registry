@@ -10,6 +10,7 @@ import NotFoundPage from './NotFoundPage'
 import LanguageSwitcher from '../components/LanguageSwitcher'
 import ReserveButton from '../features/reservation/ReserveButton'
 import ReservationBanner from '../features/reservation/ReservationBanner'
+import { ConfirmPurchaseBanner } from '../features/reservation/ConfirmPurchaseBanner'
 import AuthModal from '../features/auth/AuthModal'
 import GuestIdentityModal from '../features/auth/GuestIdentityModal'
 import { useAuth } from '../features/auth/useAuth'
@@ -27,7 +28,7 @@ export default function RegistryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const { user, isReady: authReady } = useAuth()
   const { identity } = useGuestIdentity()
-  const { set: setActive } = useActiveReservation()
+  const { active, set: setActive } = useActiveReservation()
   const { showToast } = useToast()
   const registryQ = useRegistryQuery(id)
   const itemsQ = useItemsQuery(id)
@@ -178,6 +179,9 @@ export default function RegistryPage() {
       </nav>
 
       <ReservationBanner />
+      {active && (
+        <ConfirmPurchaseBanner reservationId={active.reservationId} />
+      )}
 
       {isInitialLoading ? (
         <>
