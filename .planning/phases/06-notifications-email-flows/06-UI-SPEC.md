@@ -65,16 +65,18 @@ Exceptions:
 
 Source: `app/src/main/java/com/giftregistry/ui/theme/Type.kt`
 
-### Web (Tailwind v3 — unchanged from Phase 5)
+### Web (Tailwind v3 — 2 weights: 400 + 700)
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Body | 16px (text-base) | 400 | 1.5 |
-| Label / button | 14px (text-sm) | 600 (font-semibold) | 1.25 |
-| Heading | 20px (text-xl) | 600 (font-semibold) | 1.2 |
+| Body | 16px (text-base) | 400 (font-normal) | 1.5 |
+| Label / button | 14px (text-sm) | 700 (font-bold) | 1.25 |
+| Heading | 20px (text-xl) | 700 (font-bold) | 1.2 |
 | Display | 28px (text-3xl) | 700 (font-bold) | 1.2 |
 
-Source: existing ToastProvider.tsx, ReservationBanner.tsx patterns (text-base, text-sm, font-semibold).
+Maximum 2 weights: 400 (body) and 700 (all prominent text). `font-semibold` (600) is not used on this project.
+
+Source: existing ToastProvider.tsx, ReservationBanner.tsx patterns — updated to 400/700 contract.
 
 ### Email Templates (new surface — inline HTML only)
 
@@ -158,8 +160,8 @@ Accent reserved for: email header band background, CTA button only. No other ele
 - Background: `bg-surface-variant` (#E7E0EC), text: `text-surface-on` (#1C1B1F)
 - Height: minimum 64px, padding: px-4 py-3
 - Left icon: shopping-cart SVG (20px), color: `text-primary`
-- Body text: `text-sm font-medium` — `"Did you complete the purchase?"`
-- CTA button: `bg-primary text-primary-on rounded-md px-4 py-2 text-sm font-semibold min-h-[48px]`
+- Body text: `text-sm font-bold` — `"Did you complete the purchase?"`
+- CTA button: `bg-primary text-primary-on rounded-md px-4 py-2 text-sm font-bold min-h-[48px]`
   - Label: `"I completed the purchase"` / `"Am finalizat achiziția"` (i18next key: `reservation.confirm_purchase_cta`)
   - Loading state: spinner replaces label text; button disabled + `opacity-60`
 - No dismiss button. Component unmounts when `active` reservation clears from state.
@@ -191,7 +193,7 @@ Accent reserved for: email header band background, CTA button only. No other ele
 **Visual:**
 - Snackbar, duration `SnackbarDuration.Long` (10 seconds)
 - Message: `"A gift was purchased from {registryName}!"` (i18n key: `notifications_purchase_snackbar`)
-- Action label: `"View"` — navigates to the registry detail screen for `data.registryId`
+- Action label: `"View"` (i18n key: `notifications_purchase_snackbar_action`) — space-constrained Material3 Snackbar exception; single-word action label is intentional and consistent with M3 Snackbar guidelines for constrained action areas. Navigates to the registry detail screen for `data.registryId`.
 - No custom drawable; standard M3 Snackbar
 
 **Background FCM:** OS-rendered system notification. No custom notification layout in v1. Notification channel: `purchase_notifications`, importance: `IMPORTANCE_DEFAULT`.
@@ -324,6 +326,8 @@ Note: `giverFirstName` and `giverLastName` may be `null` for authenticated users
 | Email language dialog title | Email language | Limba emailurilor | (same key) |
 | Notification channel name | Purchase alerts | (Android only — not localized at channel creation time; use English) | `notifications_channel_purchase_name` |
 | Notification channel description | Notified when a gift is purchased from your registry | (Android only — English) | `notifications_channel_purchase_description` |
+
+Note on `notifications_purchase_snackbar_action` (`"View"`): single-word label is a justified space-constrained Material3 Snackbar exception. M3 Snackbar action areas are narrow; single imperative verbs are the standard pattern in this context.
 
 **Empty states:** No new empty states introduced in this phase. Existing reservation empty state (`reservation.expired`) handles the post-expiry case.
 
