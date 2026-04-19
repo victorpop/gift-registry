@@ -88,6 +88,7 @@ Accent (`#6750A4`) is reserved for ONLY these elements:
 2. Countdown badge background on reserved item cards
 3. Sticky "Your reservation" banner background
 4. Underline on the active nav/breadcrumb link
+5. Focus rings (`ring-2 ring-primary`) on all interactive elements — treated as a system-wide a11y affordance, not decorative accent usage. Does not count toward the 10% visual weight budget.
 
 No other element may use the accent color. Available item status badges use `#1C1B1F` on `#E7E0EC` background (surface-variant), not accent.
 
@@ -210,6 +211,7 @@ All interactive elements must have these states explicitly styled:
 - Mobile: single column (`grid-cols-1`)
 - Desktop (≥768px): two columns (`md:grid-cols-2`)
 - No sidebar. No pagination. Infinite scroll is out of scope — items render in a single list.
+- **Primary visual anchor:** the `ReserveButton` on each `ItemCard` — it is the only accent-colored interactive element visible at rest. Secondary anchor: the registry name (Display 28px semibold) in `RegistryHeader`. When `ReservationBanner` is active, it becomes the topmost accent surface and claims primary anchor until dismissed.
 
 ### `/reservation/:id/re-reserve` — Re-Reserve Deep Link
 
