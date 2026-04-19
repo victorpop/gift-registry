@@ -107,7 +107,7 @@ Plans:
 - [x] 05-01-PLAN.md -- Vite + React 19 + TS scaffold, Tailwind v3, Vitest + Playwright, hosting/public build target
 - [x] 05-02-PLAN.md -- Firebase JS SDK init (europe-west3 pin + App Check + emulator wiring) + TanStack QueryClient
 - [x] 05-03-PLAN.md -- i18next setup + React Router v7 data mode + page stubs (WEB-01 precondition)
-- [ ] 05-04-PLAN.md -- Registry view: onSnapshot hooks, header, item grid, skeletons, generic 404 for denied/missing (WEB-01, WEB-04 privacy)
+- [x] 05-04-PLAN.md -- Registry view: onSnapshot hooks, header, item grid, skeletons, generic 404 for denied/missing (WEB-01, WEB-04 privacy)
 - [ ] 05-05-PLAN.md -- Auth + Guest identity: useAuth, useGuestIdentity, AuthModal, GuestIdentityModal (WEB-03)
 - [ ] 05-06-PLAN.md -- Reservation flow: ReserveButton, Toast, ReservationBanner, createReservation callable, retailer redirect (WEB-02, WEB-04)
 - [ ] 05-07-PLAN.md -- Re-reserve deep link page + autoReserveItemId auto-fire on RegistryPage (WEB-02)
@@ -145,6 +145,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 2. Android Core + Auth | 0/4 | Planning complete | - |
 | 3. Registry + Item Management | 5/6 | In Progress|  |
 | 4. Reservation System | 6/6 | Complete   | 2026-04-11 |
-| 5. Web Fallback | 2/7 | In Progress|  |
+| 5. Web Fallback | 4/7 | In Progress|  |
 | 6. Notifications + Email Flows | 0/TBD | Not started | - |
 | 7. EMAG Catalog Integration | 0/TBD | Not started | - |

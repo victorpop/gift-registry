@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 05-web-fallback-05-03-PLAN.md
-last_updated: "2026-04-19T15:04:56.847Z"
+stopped_at: Completed 05-web-fallback-05-04-PLAN.md
+last_updated: "2026-04-19T15:18:07.591Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 26
-  completed_plans: 22
+  completed_plans: 23
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 05 (web-fallback) — EXECUTING
-Plan: 4 of 7
+Plan: 5 of 7
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -72,6 +72,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-web-fallback P01 | 8min | 2 tasks | 21 files |
 | Phase 05-web-fallback P02 | 2min | 2 tasks | 4 files |
 | Phase 05-web-fallback P03 | 2min | 2 tasks | 14 files |
+| Phase 05-web-fallback P04 | 10min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -135,6 +136,9 @@ Recent decisions affecting current work:
 - [Phase 05-web-fallback]: i18n import order in main.tsx: import './i18n' at line 6, import App at line 7 — guarantees i18next initialized synchronously before any React component mounts
 - [Phase 05-web-fallback]: React Router v7 import surface: from 'react-router' not 'react-router-dom' — v7 merged dom into main package; all Plan 04+ hooks import from 'react-router'
 - [Phase 05-web-fallback]: Legacy seed sync: web/i18n/*.json kept byte-identical to web/src/i18n/*.json — prevents drift for any tool referencing the legacy seed path
+- [Phase 05-web-fallback]: data: undefined|null|Registry semantics in useRegistryQuery — undefined=loading skeleton, null=not-found OR permission-denied (WEB-D-13+D-14), Registry=success
+- [Phase 05-web-fallback]: Test pattern: await waitFor(handle not null) before firing onNext — useEffect registers callbacks asynchronously; calling before registration yields null data
+- [Phase 05-web-fallback]: ItemCard.reserveSlot + ItemGrid.renderReserve extension points — Plan 06 injects real ReserveButton; Plan 04 renders disabled placeholder with min-h-[48px] touch target
 
 ### Pending Todos
 
@@ -147,6 +151,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-19T15:04:56.844Z
-Stopped at: Completed 05-web-fallback-05-03-PLAN.md
+Last session: 2026-04-19T15:18:07.588Z
+Stopped at: Completed 05-web-fallback-05-04-PLAN.md
 Resume file: None
