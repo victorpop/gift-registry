@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 06-03-PLAN.md
-last_updated: "2026-04-19T19:06:09.770Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-04-19T19:07:41.481Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 32
-  completed_plans: 28
+  completed_plans: 29
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 06 (notifications-email-flows) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -78,6 +78,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-web-fallback P07 | 7min | 2 tasks | 8 files |
 | Phase 06-notifications-email-flows P00 | 7min | 3 tasks | 11 files |
 | Phase 06-notifications-email-flows P03 | 4min | 3 tasks | 14 files |
+| Phase 06-notifications-email-flows P01 | 7min | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -155,6 +156,8 @@ Recent decisions affecting current work:
 - [Phase 06-notifications-email-flows]: mail + notifications_failures collections hard-deny all client access; fcmTokens subcollection owner-only via isSignedIn() + uid match
 - [Phase 06-notifications-email-flows]: relaxed=true required for MockK mocking of final Firebase classes on Java 25 — Byte Buddy inline instrumentation does not support Java 25 bytecode
 - [Phase 06-notifications-email-flows]: FCM token registration silently no-ops for anonymous users (return@runCatching Unit) — tokens are tied to user accounts
+- [Phase 06-notifications-email-flows]: sendEmail validates to+subject presence and throws Error; locale defaults to en for both expiry and invite emails when recipient locale unknown (D-14 fallback)
+- [Phase 06-notifications-email-flows]: invitePush handles both FCM throw and batch.commit cleanup failure independently, each writing to notifications_failures — best-effort with no error propagation
 
 ### Pending Todos
 
@@ -173,6 +176,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-19T19:06:09.768Z
-Stopped at: Completed 06-03-PLAN.md
+Last session: 2026-04-19T19:07:41.477Z
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None

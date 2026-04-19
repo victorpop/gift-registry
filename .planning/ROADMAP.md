@@ -146,5 +146,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 3. Registry + Item Management | 5/6 | In Progress|  |
 | 4. Reservation System | 6/6 | Complete   | 2026-04-11 |
 | 5. Web Fallback | 7/7 | Complete   | 2026-04-19 |
-| 6. Notifications + Email Flows | 2/6 | In Progress|  |
+| 6. Notifications + Email Flows | 3/6 | In Progress|  |
 | 7. EMAG Catalog Integration | 0/TBD | Not started | - |
