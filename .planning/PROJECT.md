@@ -17,21 +17,21 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 - ✓ Guest-to-account conversion offered at reservation time (UI ready, trigger in Phase 4) — Phase 2
 - ✓ Multilingual support (Romanian and English) with manual override and persistence — Phase 2
 - ✓ Web fallback for gift givers — view registry, log in / sign up / guest, reserve, retailer redirect — Phase 5 (automated; 7 items pending real-browser UAT)
+- ✓ Owners can opt in/out of purchase notifications — Phase 6 (automated; 5 items pending real-device / real-SMTP UAT)
+- ✓ Owners can invite specific users to private registries (email + in-app notification for existing users, email-only for non-users) — Phase 6
+- ✓ Expiration email sent to giver when reservation lapses, with option to re-reserve — Phase 6
+- ✓ Registry owners can create registries for any occasion — Phase 3
+- ✓ Owners can add items via any URL with automatic affiliate tag injection — Phase 3
+- ✓ Owners can set registry visibility (public link or private invite-only) — Phase 3
+- ✓ Gift givers can access registries via shareable links — Phase 3
+- ✓ Guests provide first name, last name, and email to reserve items — Phase 4
+- ✓ 30-minute reservation timer with auto-release on expiry — Phase 4
+- ✓ Givers are redirected to retailer immediately upon reservation — Phase 4
+- ✓ URL transformer identifies merchant and appends correct affiliate tag — Phase 3
 
 ### Active
 
-- [ ] Registry owners can create registries for any occasion
-- [ ] Owners can add items via any URL with automatic affiliate tag injection
 - [ ] Owners can browse and add items from EMAG product catalog via API
-- [ ] Owners can set registry visibility (public link or private invite-only)
-- [ ] Owners can invite specific users to private registries (email + in-app notification for existing users, email-only for non-users)
-- [ ] Owners can opt in/out of purchase notifications
-- [ ] Gift givers can access registries via shareable links
-- [ ] Guests provide first name, last name, and email to reserve items
-- [ ] 30-minute reservation timer with auto-release on expiry
-- [ ] Givers are redirected to retailer immediately upon reservation
-- [ ] Expiration email sent to giver when reservation lapses, with option to re-reserve
-- [ ] URL transformer identifies merchant and appends correct affiliate tag
 
 ### Out of Scope
 
@@ -86,4 +86,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-19 after Phase 5 completion*
+*Last updated: 2026-04-19 after Phase 6 completion*
