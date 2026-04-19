@@ -60,9 +60,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Notifications
 
-- [ ] **NOTF-01**: Owner receives push notification when a gift is purchased (if opted in)
-- [ ] **NOTF-02**: Owner receives email when a gift is purchased (if opted in)
-- [ ] **NOTF-03**: Giver receives expiration email when reservation timer expires
+- [x] **NOTF-01**: Owner receives push notification when a gift is purchased (if opted in)
+- [x] **NOTF-02**: Owner receives email when a gift is purchased (if opted in)
+- [x] **NOTF-03**: Giver receives expiration email when reservation timer expires
 
 ### Web Fallback
 
@@ -153,9 +153,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RES-07 | Phase 4 | Complete |
 | RES-08 | Phase 4 | Complete |
 | RES-09 | Phase 4 | Complete |
-| NOTF-01 | Phase 6 | Pending |
-| NOTF-02 | Phase 6 | Pending |
-| NOTF-03 | Phase 6 | Pending |
+| NOTF-01 | Phase 6 | Complete |
+| NOTF-02 | Phase 6 | Complete |
+| NOTF-03 | Phase 6 | Complete |
 | WEB-01 | Phase 5 | Complete |
 | WEB-02 | Phase 5 | Complete |
 | WEB-03 | Phase 5 | Complete |

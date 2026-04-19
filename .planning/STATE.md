@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 5 complete (automated); HUMAN-UAT pending batch after Phase 6. Paused autonomous for /clear before Phase 6.
-last_updated: "2026-04-19T15:50:47.308Z"
+status: executing
+stopped_at: Completed 06-00-PLAN.md
+last_updated: "2026-04-19T18:58:47.526Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 26
-  completed_plans: 26
+  total_plans: 32
+  completed_plans: 27
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-04)
 
 **Core value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
-**Current focus:** Phase 05 — web-fallback
+**Current focus:** Phase 06 — notifications-email-flows
 
 ## Current Position
 
-Phase: 6
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 06 (notifications-email-flows) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
 Last activity: 2026-04-19
 
 Progress: [░░░░░░░░░░] 0%
@@ -76,6 +76,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-web-fallback P05 | 3min | 2 tasks | 9 files |
 | Phase 05-web-fallback P06 | 7min | 2 tasks | 13 files |
 | Phase 05-web-fallback P07 | 7min | 2 tasks | 8 files |
+| Phase 06-notifications-email-flows P00 | 7min | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,8 @@ Recent decisions affecting current work:
 - [Phase 05-web-fallback]: RegistryPage/App tests: vi.mock all reservation + auth imports to avoid firebase/auth initialization in jsdom test environment
 - [Phase 05-web-fallback]: useResolveReservation calls httpsCallable inside hook (not module level) — only used on ReReservePage, no singleton benefit; test mocks apply at call time without beforeEach reset constraint
 - [Phase 05-web-fallback]: autoReserveFiredRef.current set before GuestIdentityModal open — prevents double-fire between setState calls; same ref prevents StrictMode double-effect
+- [Phase 06-notifications-email-flows]: firebase-functions-test requires --legacy-peer-deps for npm install due to peer dep range declaration on firebase-admin (functional at runtime with admin@13.x)
+- [Phase 06-notifications-email-flows]: mail + notifications_failures collections hard-deny all client access; fcmTokens subcollection owner-only via isSignedIn() + uid match
 
 ### Pending Todos
 
@@ -161,6 +164,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-19T15:50:47.305Z
-Stopped at: Phase 5 complete (automated); HUMAN-UAT pending batch after Phase 6. Paused autonomous for /clear before Phase 6.
-Resume file: .planning/phases/05-web-fallback/05-VERIFICATION.md
+Last session: 2026-04-19T18:58:47.523Z
+Stopped at: Completed 06-00-PLAN.md
+Resume file: None
