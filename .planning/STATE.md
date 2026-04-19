@@ -176,8 +176,8 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 7 (EMAG Catalog): EMAG has no confirmed public product catalog API. A research spike is required before Phase 7 implementation planning begins. Integration strategy (2Performant affiliate links, WebView embed, URL paste as primary) is unresolved.
-- Phase 4 (Reservation): Cloud Tasks cancellation API (`cloudTaskName` pattern) should be verified against current Firebase documentation before Phase 4 planning.
+- ~~Phase 7 (EMAG Catalog): EMAG has no confirmed public product catalog API~~ — **Resolved 2026-04-19**: Phase 7 re-scoped to "Romanian Store Browser" (in-app WebView + persistent Add-to-list CTA). Retires ITEM-03/04 and introduces STORE-01..04.
+- ~~Phase 4 (Reservation): Cloud Tasks cancellation API~~ — **Resolved**: `cloudTaskName` pattern verified and working (used in createReservation + confirmPurchase with NOT_FOUND swallowing).
 
 ### Quick Tasks Completed
 

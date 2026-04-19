@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Reservation System** - Server-authoritative 30-minute reservation timer with race condition prevention and auto-expiry (completed 2026-04-11)
 - [x] **Phase 5: Web Fallback** - Gift givers can view and reserve from a browser without installing the Android app (completed 2026-04-19)
 - [x] **Phase 6: Notifications + Email Flows** - Expiry emails, re-reserve flow, owner push notifications, and private registry invites (completed 2026-04-19)
-- [ ] **Phase 7: EMAG Catalog Integration** - Owners can browse and add items from EMAG product catalog (requires pre-phase API research spike)
+- [ ] **Phase 7: Romanian Store Browser** - Owners can browse popular Romanian retailers in an in-app WebView with a persistent "Add to list" CTA that funnels products into the existing URL-based add flow (replaces original EMAG Catalog scope — no confirmed public EMAG catalog API)
 
 ## Phase Details
 
@@ -123,14 +123,22 @@ Plans:
   3. Owner opting out of purchase notifications receives neither push nor email when a gift is reserved or purchased
 **Plans**: TBD
 
-### Phase 7: EMAG Catalog Integration
-**Goal**: Registry owners can browse and search the EMAG product catalog from within the Android app and add items directly to their registry with affiliate tags applied automatically
+### Phase 7: Romanian Store Browser
+**Goal**: Registry owners can browse a curated list of popular Romanian retailers, open any store in an in-app WebView, and add products to a registry via a persistent bottom "Add to list" CTA that pipes the current URL into the existing affiliate-tagging add-item flow
 **Depends on**: Phase 3
-**Requirements**: ITEM-03, ITEM-04
+**Requirements**: STORE-01, STORE-02, STORE-03, STORE-04
 **Success Criteria** (what must be TRUE):
-  1. Owner can search for products in EMAG's catalog from the item add screen and see results with images, titles, and prices
-  2. Owner can add a product from EMAG search results to their registry and the item receives an affiliate tag automatically
-  3. If the EMAG catalog is unavailable, the UI shows an error state and the manual URL add path remains fully functional
+  1. Owner can open a "Browse stores" entry point from the registry detail or home screen and see a curated list of popular Romanian retailers with logos and names
+  2. Tapping a store opens an in-app WebView at the retailer's homepage; the WebView retains a persistent bottom bar with an "Add to list" primary button that remains accessible while the user browses
+  3. Tapping "Add to list" opens the existing add-item sheet pre-filled with the current WebView URL; confirming adds the item to the selected registry with affiliate tag applied automatically (reuses Phase 3 AffiliateUrlTransformer and Open Graph fetch path)
+  4. If the store page fails to load (offline, blocked, 500), the WebView shows an error state and the "Add to list" button is disabled; users can retry or back out without breaking the nav stack
+
+**Scope notes:**
+- Replaces the original "EMAG Catalog Integration" phase after confirming no public EMAG catalog API exists. Original REQ-IDs ITEM-03/ITEM-04 are retired (moved to Out of Scope in REQUIREMENTS.md).
+- Android-only. Web fallback is giver-only (PROJECT.md constraint) so no web variant.
+- Curated store list is a small static config (stored in code or Firestore config doc — decided during discuss). No store admin UI in this phase.
+- The add flow itself already ships in Phase 3; this phase is about the funnel into it.
+
 **Plans**: TBD
 **UI hint**: yes
 
@@ -147,4 +155,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Reservation System | 6/6 | Complete   | 2026-04-11 |
 | 5. Web Fallback | 7/7 | Complete   | 2026-04-19 |
 | 6. Notifications + Email Flows | 6/6 | Complete   | 2026-04-19 |
-| 7. EMAG Catalog Integration | 0/TBD | Not started | - |
+| 7. Romanian Store Browser | 0/TBD | Not started | - |

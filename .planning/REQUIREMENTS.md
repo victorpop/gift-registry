@@ -33,8 +33,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **ITEM-01**: Owner can add an item by pasting any URL
 - [x] **ITEM-02**: URL import auto-fills item title, image, and price via Open Graph metadata
-- [ ] **ITEM-03**: Owner can browse and search EMAG product catalog via API
-- [ ] **ITEM-04**: Owner can add an item from EMAG catalog search results
+- [~] **ITEM-03**: ~~Owner can browse and search EMAG product catalog via API~~ — **RETIRED 2026-04-19**: No public EMAG catalog API available. Replaced by STORE-01..04 (in-app WebView store browser).
+- [~] **ITEM-04**: ~~Owner can add an item from EMAG catalog search results~~ — **RETIRED 2026-04-19**: Superseded by STORE-03 (add from WebView into existing URL-import flow).
 - [x] **ITEM-05**: Owner can manually edit item details (title, image, price, notes)
 - [x] **ITEM-06**: Owner can remove an item from a registry
 - [x] **ITEM-07**: Items display real-time status (available, reserved, purchased)
@@ -57,6 +57,13 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **RES-07**: Giver receives expiration email when reservation lapses
 - [x] **RES-08**: Expiration email includes option to re-reserve immediately
 - [x] **RES-09**: Two givers cannot simultaneously reserve the same item (race condition prevention)
+
+### Store Browser (replaces retired ITEM-03/04 EMAG API scope)
+
+- [ ] **STORE-01**: Owner can open a "Browse stores" entry point and see a curated list of popular Romanian retailers (logo + name)
+- [ ] **STORE-02**: Tapping a store opens the retailer's homepage in an in-app WebView
+- [ ] **STORE-03**: A persistent bottom "Add to list" button opens the existing add-item sheet pre-filled with the current WebView URL; confirming adds the item with affiliate tag applied via the Phase 3 AffiliateUrlTransformer
+- [ ] **STORE-04**: If the store page fails to load, the WebView shows an error state and the "Add to list" button is disabled; retry available, nav stack intact
 
 ### Notifications
 
@@ -102,6 +109,7 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
+| EMAG public product catalog API | No confirmed public catalog API exists (Marketplace API is seller-only). Replaced by curated WebView store browser in Phase 7 (STORE-01..04) |
 | In-app purchasing / payment processing | Users buy at the retailer; avoids PCI compliance and payment gateway complexity |
 | iOS app | Android-first; web fallback covers iOS gift givers for v1 |
 | Social features (comments, likes, public feed) | Changes product from utility to social network; moderation overhead |
@@ -135,8 +143,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REG-10 | Phase 3 | Complete |
 | ITEM-01 | Phase 3 | Complete |
 | ITEM-02 | Phase 3 | Complete |
-| ITEM-03 | Phase 7 | Pending |
-| ITEM-04 | Phase 7 | Pending |
+| ITEM-03 | — | Retired (no EMAG API) |
+| ITEM-04 | — | Retired (superseded by STORE-03) |
+| STORE-01 | Phase 7 | Pending |
+| STORE-02 | Phase 7 | Pending |
+| STORE-03 | Phase 7 | Pending |
+| STORE-04 | Phase 7 | Pending |
 | ITEM-05 | Phase 3 | Complete |
 | ITEM-06 | Phase 3 | Complete |
 | ITEM-07 | Phase 3 | Complete |
@@ -165,10 +177,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | I18N-03 | Phase 2 | Complete |
 
 **Coverage:**
-- v1 requirements: 45 total
-- Mapped to phases: 45
+- v1 requirements: 45 total (ITEM-03 and ITEM-04 retired — 43 active + 4 STORE-* added = 47 mapped)
+- Mapped to phases: 47
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-04*
-*Last updated: 2026-04-04 after roadmap creation*
+*Last updated: 2026-04-19 — Phase 7 rescoped from EMAG API to Romanian Store Browser*
