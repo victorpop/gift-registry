@@ -37,8 +37,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
@@ -75,6 +77,7 @@ fun RegistryDetailScreen(
     onNavigateToEditItem: (String) -> Unit,
     onNavigateToEditRegistry: () -> Unit,
     onNavigateToInvite: () -> Unit,
+    onNavigateToRegistry: (String) -> Unit = {},
     viewModel: RegistryDetailViewModel = hiltViewModelWithNavArgs(
         key = registryId,
         "registryId" to registryId,
@@ -85,6 +88,8 @@ fun RegistryDetailScreen(
     val deleteError by viewModel.deleteError.collectAsStateWithLifecycle()
     val registryDeleted by viewModel.registryDeleted.collectAsStateWithLifecycle()
     val isReserving by viewModel.isReserving.collectAsStateWithLifecycle()
+    val hasActiveReservation by viewModel.hasActiveReservation.collectAsStateWithLifecycle()
+    val confirmingPurchase by viewModel.confirmingPurchase.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
     val context = LocalContext.current
@@ -122,6 +127,34 @@ fun RegistryDetailScreen(
                 is RegistryDetailViewModel.ReservationEvent.ShowConflictError -> {
                     val msg = if (event.code == "ITEM_UNAVAILABLE") unavailableMsg else genericErrorMsg
                     snackbarHostState.showSnackbar(msg)
+                }
+            }
+        }
+    }
+
+    // Phase 6 (UI-SPEC Contract 2 & 3): collect confirm-purchase + FCM push snackbar messages
+    LaunchedEffect(Unit) {
+        viewModel.snackbarMessages.collect { msg ->
+            when (msg) {
+                is SnackbarMessage.Resource ->
+                    snackbarHostState.showSnackbar(
+                        message = context.getString(msg.resId),
+                        duration = androidx.compose.material3.SnackbarDuration.Short,
+                    )
+                is SnackbarMessage.Push -> {
+                    val text = context.getString(
+                        R.string.notifications_purchase_snackbar,
+                        msg.registryName,
+                    )
+                    val actionLabel = context.getString(R.string.notifications_purchase_snackbar_action)
+                    val result = snackbarHostState.showSnackbar(
+                        message = text,
+                        actionLabel = actionLabel,
+                        duration = SnackbarDuration.Long,
+                    )
+                    if (result == SnackbarResult.ActionPerformed && msg.registryId != registryId) {
+                        onNavigateToRegistry(msg.registryId)
+                    }
                 }
             }
         }
@@ -244,6 +277,26 @@ fun RegistryDetailScreen(
                 // Registry info section
                 item {
                     RegistryInfoSection(registry = registry!!)
+                }
+
+                // Phase 6 (UI-SPEC Contract 1): confirm-purchase banner for givers with active reservation
+                if (hasActiveReservation) {
+                    item(key = "confirm-purchase-banner") {
+                        ConfirmPurchaseBanner(
+                            isConfirming = confirmingPurchase,
+                            onConfirm = {
+                                // Use first reserved item's id as the reservation proxy.
+                                // Full reservationId wiring requires Plan 06-03 server response
+                                // stored in GuestPreferencesDataStore — deferred to future plan.
+                                // For now, use the first RESERVED item id as the reservationId
+                                // (matches server-side lookup in confirmPurchase callable).
+                                val firstReservedItem = items.firstOrNull {
+                                    it.status == com.giftregistry.domain.model.ItemStatus.RESERVED
+                                }
+                                firstReservedItem?.let { viewModel.onConfirmPurchase(it.id) }
+                            },
+                        )
+                    }
                 }
 
                 // Items section header

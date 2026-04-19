@@ -18,6 +18,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -31,8 +32,8 @@ class RegistryDetailViewModelConfirmPurchaseTest {
 
     @get:Rule val mainDispatcherRule = MainDispatcherRule()
 
-    private val observeRegistry: ObserveRegistryUseCase = mockk { every { invoke(any()) } returns emptyFlow() }
-    private val observeItems: ObserveItemsUseCase = mockk { every { invoke(any()) } returns emptyFlow() }
+    private val observeRegistry: ObserveRegistryUseCase = mockk(relaxed = true)
+    private val observeItems: ObserveItemsUseCase = mockk(relaxed = true)
     private val deleteRegistry: DeleteRegistryUseCase = mockk(relaxed = true)
     private val deleteItem: DeleteItemUseCase = mockk(relaxed = true)
     private val reserveItemUseCase: ReserveItemUseCase = mockk(relaxed = true)
@@ -94,7 +95,7 @@ class RegistryDetailViewModelConfirmPurchaseTest {
         // The flow starts with false; after launch it becomes true, then false again.
         // Using a list to capture all emissions.
         val states = mutableListOf<Boolean>()
-        val collectJob = kotlinx.coroutines.launch {
+        val collectJob = launch {
             viewModel.confirmingPurchase.collect { states.add(it) }
         }
 
@@ -123,7 +124,8 @@ class RegistryDetailViewModelConfirmPurchaseTest {
         advanceUntilIdle() // allow init{} collector to subscribe
 
         viewModel.snackbarMessages.test {
-            notificationBus.emit(PurchasePush("reg1", "Ana's Registry"))
+            // notificationBus.emit is a suspend fun — launch it in the test coroutine
+            launch { notificationBus.emit(PurchasePush("reg1", "Ana's Registry")) }
             advanceUntilIdle()
 
             val msg = awaitItem()

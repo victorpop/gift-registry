@@ -4,11 +4,13 @@ import androidx.lifecycle.SavedStateHandle
 import com.giftregistry.domain.model.GuestUser
 import com.giftregistry.domain.model.ReservationResult
 import com.giftregistry.domain.preferences.GuestPreferencesRepository
+import com.giftregistry.domain.usecase.ConfirmPurchaseUseCase
 import com.giftregistry.domain.usecase.DeleteItemUseCase
 import com.giftregistry.domain.usecase.DeleteRegistryUseCase
 import com.giftregistry.domain.usecase.ObserveItemsUseCase
 import com.giftregistry.domain.usecase.ObserveRegistryUseCase
 import com.giftregistry.domain.usecase.ReserveItemUseCase
+import com.giftregistry.ui.notifications.NotificationBus
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -66,6 +68,8 @@ class ReserveItemViewModelTest {
             reserveItemUseCase = reserveItemUseCase,
             guestPreferencesRepository = guestPrefs,
             deepLinkBus = ReservationDeepLinkBus(),
+            confirmPurchaseUseCase = mockk(relaxed = true),
+            notificationBus = NotificationBus(),
             savedStateHandle = ssh,
         )
     }
