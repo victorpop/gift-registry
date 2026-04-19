@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Phase 4 complete — paused for device validation before Phase 5 web fallback
-last_updated: "2026-04-11T17:16:17.419Z"
-last_activity: 2026-04-11
+status: executing
+stopped_at: Completed 05-web-fallback-05-01-PLAN.md
+last_updated: "2026-04-19T14:55:41.849Z"
+last_activity: 2026-04-19
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 19
-  completed_plans: 19
+  total_plans: 26
+  completed_plans: 20
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-04)
 
 **Core value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
-**Current focus:** Phase 04 — reservation-system
+**Current focus:** Phase 05 — web-fallback
 
 ## Current Position
 
-Phase: 5
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-11
+Phase: 05 (web-fallback) — EXECUTING
+Plan: 2 of 7
+Status: Ready to execute
+Last activity: 2026-04-19
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -69,6 +69,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 04-reservation-system P04 | 3min | 3 tasks | 9 files |
 | Phase 04-reservation-system P05 | 8min | 2 tasks | 7 files |
 | Phase 04-reservation-system P06 | 4min | 3 tasks | 9 files |
+| Phase 05-web-fallback P01 | 8min | 2 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,9 @@ Recent decisions affecting current work:
 - [Phase 04-reservation-system]: item.expiresAt?.let{} pattern for countdown display — backward compat with legacy reserved items that predate the field
 - [Phase 04-reservation-system]: ReservationDeepLinkBus SharedFlow(replay=1) chosen over adding autoReserveItemId to RegistryDetailKey — avoids Navigation3 @Serializable default-value complications
 - [Phase 04-reservation-system]: resolveReservation Cloud Function has no auth guard — giver arrives from email link unauthenticated (guest flow); returns only opaque navigation IDs, no PII
+- [Phase 05-web-fallback]: Tailwind v3 (3.4.19) pinned for web scaffold — v4 changed config format to CSS-first; all UI-SPEC examples use v3 tailwind.config.ts syntax
+- [Phase 05-web-fallback]: i18next ^26.0 — npm-verified current version; CLAUDE.md reference to v24 is stale per RESEARCH.md
+- [Phase 05-web-fallback]: assetlinks.json migrated to web/public/.well-known/ — emptyOutDir: true deletes hosting/public/ on each Vite build; web/public/ is Vite static asset source
 
 ### Pending Todos
 
@@ -136,6 +140,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-11T17:16:17.416Z
-Stopped at: Phase 4 complete — paused for device validation before Phase 5 web fallback
-Resume file: .planning/phases/04-reservation-system/04-VERIFICATION.md
+Last session: 2026-04-19T14:55:41.847Z
+Stopped at: Completed 05-web-fallback-05-01-PLAN.md
+Resume file: None
