@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 Phase: 06 (notifications-email-flows) — EXECUTING
 Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-04-19
+Last activity: 2026-04-19 - Completed quick task 260419-ubj: Onboarding carousel (3 slides) before auth screen
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -161,6 +161,12 @@ None yet.
 
 - Phase 7 (EMAG Catalog): EMAG has no confirmed public product catalog API. A research spike is required before Phase 7 implementation planning begins. Integration strategy (2Performant affiliate links, WebView embed, URL paste as primary) is unresolved.
 - Phase 4 (Reservation): Cloud Tasks cancellation API (`cloudTaskName` pattern) should be verified against current Firebase documentation before Phase 4 planning.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260419-ubj | Onboarding carousel (3 slides) before auth screen | 2026-04-19 | e1aeb0f | [260419-ubj-onboarding-carousel-3-slides-before-auth](./quick/260419-ubj-onboarding-carousel-3-slides-before-auth/) |
 
 ## Session Continuity
 
