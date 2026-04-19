@@ -178,6 +178,9 @@ Source: CONTEXT.md D-11, `<specifics>` section; `RegistryListScreen.kt` confirms
 | Success | `stores` list non-empty | `LazyVerticalGrid` of store cards |
 | Empty / Error | Firestore doc missing or fetch failure | Error state: centered `Icons.Default.CloudOff` (48dp, `onSurfaceVariant` tint) + `titleMedium` heading + `bodyLarge` body + `OutlinedButton` retry |
 
+
+**Primary visual anchor:** The store card grid (64dp logo + store name label pattern) is the focal point of this screen. Cards should dominate the viewport; the TopAppBar is secondary chrome. Ensure logos are loaded promptly and the 2-column grid fills the screen width with minimal whitespace.
+
 Source: CONTEXT.md D-17, `<specifics>` section
 
 ---
@@ -258,7 +261,7 @@ Layout:
   - On selection: updates `AddItemViewModel.selectedRegistryId`
   - Default selection: `initialRegistryId` if non-null; otherwise last-used from `LastRegistryPreferencesDataStore`; otherwise first registry in list
 - Hidden when `registries.size == 1` (auto-selects the single registry, no picker shown)
-- `Spacer(12.dp)` between picker and URL field
+- `Spacer(16.dp)` between picker and URL field (md token — standard field-to-field gap)
 
 Source: CONTEXT.md D-10, D-12
 
