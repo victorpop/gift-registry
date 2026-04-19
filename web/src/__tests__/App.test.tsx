@@ -42,6 +42,19 @@ vi.mock('../features/auth/GuestIdentityModal', () => ({
   default: () => null,
 }))
 
+// Mock useGuestIdentity and useCreateReservation (added by Plan 07 for autoReserve flow)
+// These imports transitively load firebase.ts which fails in jsdom without a valid API key
+vi.mock('../features/auth/useGuestIdentity', () => ({
+  useGuestIdentity: () => ({ identity: null, save: vi.fn(), clear: vi.fn() }),
+}))
+vi.mock('../features/reservation/useCreateReservation', () => ({
+  useCreateReservation: () => ({ mutate: vi.fn(), isPending: false }),
+}))
+// ReReservePage also imports useResolveReservation which calls firebase/functions at module level
+vi.mock('../features/reservation/useResolveReservation', () => ({
+  useResolveReservation: () => ({ mutate: vi.fn(), isPending: false, isSuccess: false, isError: false }),
+}))
+
 // Import pages after mocks are registered
 import AppRootPage from '../pages/AppRootPage'
 import RegistryPage from '../pages/RegistryPage'
