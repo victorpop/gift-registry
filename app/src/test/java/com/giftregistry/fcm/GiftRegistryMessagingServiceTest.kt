@@ -9,8 +9,8 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -37,7 +37,11 @@ class GiftRegistryMessagingServiceTest {
         val registerUseCase = mockk<RegisterFcmTokenUseCase>(relaxed = true)
         val bus = NotificationBus()
         val received = mutableListOf<PurchasePush>()
-        val collectJob = TestScope(StandardTestDispatcher()).launchCollector(bus, received)
+
+        // Collector must subscribe BEFORE the emit for replay=0 SharedFlow.
+        // Launch it in the runTest scope so advanceUntilIdle() drives both.
+        val collectJob: Job = launch { bus.events.collect { sink -> received.add(sink) } }
+        advanceUntilIdle() // ensure collector is subscribed
 
         val handler = MessagingHandler(registerUseCase, bus)
         val remoteMessage = mockk<RemoteMessage>()
@@ -63,7 +67,8 @@ class GiftRegistryMessagingServiceTest {
         val registerUseCase = mockk<RegisterFcmTokenUseCase>(relaxed = true)
         val bus = NotificationBus()
         val received = mutableListOf<PurchasePush>()
-        val collectJob = TestScope(StandardTestDispatcher()).launchCollector(bus, received)
+        val collectJob: Job = launch { bus.events.collect { sink -> received.add(sink) } }
+        advanceUntilIdle()
 
         val handler = MessagingHandler(registerUseCase, bus)
         val remoteMessage = mockk<RemoteMessage>()
@@ -82,7 +87,8 @@ class GiftRegistryMessagingServiceTest {
         val registerUseCase = mockk<RegisterFcmTokenUseCase>(relaxed = true)
         val bus = NotificationBus()
         val received = mutableListOf<PurchasePush>()
-        val collectJob = TestScope(StandardTestDispatcher()).launchCollector(bus, received)
+        val collectJob: Job = launch { bus.events.collect { sink -> received.add(sink) } }
+        advanceUntilIdle()
 
         val handler = MessagingHandler(registerUseCase, bus)
         val remoteMessage = mockk<RemoteMessage>()
@@ -96,6 +102,3 @@ class GiftRegistryMessagingServiceTest {
         collectJob.cancel()
     }
 }
-
-private fun TestScope.launchCollector(bus: NotificationBus, sink: MutableList<PurchasePush>) =
-    launch { bus.events.collect { sink += it } }

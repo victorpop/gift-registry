@@ -1,9 +1,15 @@
 package com.giftregistry
 
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.navigationevent.setViewTreeNavigationEventDispatcherOwner
 import com.giftregistry.ui.navigation.AppNavigation
 import com.giftregistry.ui.theme.GiftRegistryTheme
@@ -32,8 +38,29 @@ class MainActivity : Hilt_MainActivity() {
             } else null
         }
 
+        // Phase 6: register POST_NOTIFICATIONS launcher at Activity level (Pitfall 5).
+        // Must be registered before setContent (before the activity is started).
+        val permissionLauncher = registerForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { /* no-op: best-effort ask; server continues to register tokens regardless */ }
+
         setContent {
             GiftRegistryTheme {
+                val context = LocalContext.current
+                // Phase 6: request POST_NOTIFICATIONS on Android 13+ (TIRAMISU / API 33+).
+                // Deferred ask — fires once when MainActivity root composable first enters
+                // composition, which covers owner-surface entry per RESEARCH Pitfall 5.
+                LaunchedEffect(Unit) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        val granted = ContextCompat.checkSelfPermission(
+                            context,
+                            android.Manifest.permission.POST_NOTIFICATIONS
+                        ) == PackageManager.PERMISSION_GRANTED
+                        if (!granted) {
+                            permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        }
+                    }
+                }
                 AppNavigation(deepLinkRegistryId = deepLinkRegistryId)
             }
         }
