@@ -16,3 +16,10 @@ export { inviteToRegistry } from "./registry/inviteToRegistry";
 export { createReservation } from "./reservation/createReservation";
 export { releaseReservation } from "./reservation/releaseReservation";
 export { resolveReservation } from "./reservation/resolveReservation";
+
+// Dev-only listener: logs rendered mail docs to console in emulator (D-08).
+// In production, the Trigger Email extension consumes mail/ docs instead.
+if (process.env.FUNCTIONS_EMULATOR === "true") {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  module.exports.devMailLogger = require("./email/devMailLogger").devMailLogger;
+}
