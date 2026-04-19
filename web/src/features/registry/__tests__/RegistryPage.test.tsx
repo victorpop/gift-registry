@@ -5,13 +5,42 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import '../../../i18n'
 import type { Registry, Item } from '../../../lib/firestore-mapping'
 
-// Mock the two hooks used by RegistryPage
+// Mock the hooks used by RegistryPage (registry data + auth)
 const mocks = vi.hoisted(() => ({
   useRegistryQuery: vi.fn(),
   useItemsQuery: vi.fn(),
 }))
 vi.mock('../useRegistryQuery', () => ({ useRegistryQuery: mocks.useRegistryQuery }))
 vi.mock('../useItemsQuery', () => ({ useItemsQuery: mocks.useItemsQuery }))
+
+// Mock useAuth to avoid firebase/auth initialization
+vi.mock('../../auth/useAuth', () => ({
+  useAuth: () => ({ user: null, isReady: true }),
+}))
+
+// Mock reservation components/hooks so no firebase calls happen in this test
+vi.mock('../../reservation/ReserveButton', () => ({
+  default: () => <button type="button">Reserve Gift</button>,
+}))
+vi.mock('../../reservation/ReservationBanner', () => ({
+  default: () => null,
+}))
+vi.mock('../../reservation/useActiveReservation', () => ({
+  useActiveReservation: () => ({ active: null, set: vi.fn(), clear: vi.fn() }),
+  ActiveReservationProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
+vi.mock('../../../components/ToastProvider', () => ({
+  useToast: () => ({ showToast: vi.fn() }),
+  ToastProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
+
+// Mock auth modals to avoid firebase/auth dependency
+vi.mock('../../auth/AuthModal', () => ({
+  default: () => null,
+}))
+vi.mock('../../auth/GuestIdentityModal', () => ({
+  default: () => null,
+}))
 
 import RegistryPage from '../../../pages/RegistryPage'
 

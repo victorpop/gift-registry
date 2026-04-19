@@ -17,6 +17,31 @@ vi.mock('../features/registry/useItemsQuery', () => ({
   useItemsQuery: registryMocks.useItemsQuery,
 }))
 
+// Mock auth and reservation layer to avoid firebase/auth initialization in tests
+vi.mock('../features/auth/useAuth', () => ({
+  useAuth: () => ({ user: null, isReady: true }),
+}))
+vi.mock('../features/reservation/ReserveButton', () => ({
+  default: () => <button type="button">Reserve Gift</button>,
+}))
+vi.mock('../features/reservation/ReservationBanner', () => ({
+  default: () => null,
+}))
+vi.mock('../features/reservation/useActiveReservation', () => ({
+  useActiveReservation: () => ({ active: null, set: vi.fn(), clear: vi.fn() }),
+  ActiveReservationProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
+vi.mock('../components/ToastProvider', () => ({
+  useToast: () => ({ showToast: vi.fn() }),
+  ToastProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
+vi.mock('../features/auth/AuthModal', () => ({
+  default: () => null,
+}))
+vi.mock('../features/auth/GuestIdentityModal', () => ({
+  default: () => null,
+}))
+
 // Import pages after mocks are registered
 import AppRootPage from '../pages/AppRootPage'
 import RegistryPage from '../pages/RegistryPage'

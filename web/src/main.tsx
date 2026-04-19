@@ -7,6 +7,8 @@ import './i18n'
 import App from './App'
 import { queryClient } from './queryClient'
 import { app } from './firebase'
+import { ToastProvider } from './components/ToastProvider'
+import { ActiveReservationProvider } from './features/reservation/useActiveReservation'
 
 // STEP 1: Debug token MUST be set BEFORE initializeAppCheck.
 // Setting to `true` auto-generates a UUID on first run — copy it from the browser console
@@ -35,11 +37,15 @@ if (recaptchaSiteKey) {
   console.warn('[Phase 5] VITE_RECAPTCHA_SITE_KEY is empty. App Check disabled for this dev session.')
 }
 
-// STEP 3: Render React with QueryClientProvider wrapping App
+// STEP 3: Render React with providers wrapping App
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <App />
+      <ActiveReservationProvider>
+        <ToastProvider>
+          <App />
+        </ToastProvider>
+      </ActiveReservationProvider>
     </QueryClientProvider>
   </StrictMode>,
 )
