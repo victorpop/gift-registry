@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Completed 05-web-fallback-05-06-PLAN.md
-last_updated: "2026-04-19T15:33:22.027Z"
+status: verifying
+stopped_at: Completed 05-web-fallback-05-07-PLAN.md
+last_updated: "2026-04-19T15:39:50.514Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 26
-  completed_plans: 25
+  completed_plans: 26
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 
 Phase: 05 (web-fallback) — EXECUTING
 Plan: 7 of 7
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-19
 
 Progress: [░░░░░░░░░░] 0%
@@ -75,6 +75,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 05-web-fallback P04 | 10min | 3 tasks | 13 files |
 | Phase 05-web-fallback P05 | 3min | 2 tasks | 9 files |
 | Phase 05-web-fallback P06 | 7min | 2 tasks | 13 files |
+| Phase 05-web-fallback P07 | 7min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -146,6 +147,8 @@ Recent decisions affecting current work:
 - [Phase 05-web-fallback]: httpsCallable called at module level (not inside hook) — callable is singleton; test must not reset httpsCallableMock in beforeEach
 - [Phase 05-web-fallback]: useActiveReservation uses React state only (not localStorage) — tab-scoped UX acceptable for 30-min window per CONTEXT.md discretion
 - [Phase 05-web-fallback]: RegistryPage/App tests: vi.mock all reservation + auth imports to avoid firebase/auth initialization in jsdom test environment
+- [Phase 05-web-fallback]: useResolveReservation calls httpsCallable inside hook (not module level) — only used on ReReservePage, no singleton benefit; test mocks apply at call time without beforeEach reset constraint
+- [Phase 05-web-fallback]: autoReserveFiredRef.current set before GuestIdentityModal open — prevents double-fire between setState calls; same ref prevents StrictMode double-effect
 
 ### Pending Todos
 
@@ -158,6 +161,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-19T15:33:22.024Z
-Stopped at: Completed 05-web-fallback-05-06-PLAN.md
+Last session: 2026-04-19T15:39:50.511Z
+Stopped at: Completed 05-web-fallback-05-07-PLAN.md
 Resume file: None

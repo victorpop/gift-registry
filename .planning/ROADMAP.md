@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Android Core + Auth** - Android app scaffold with clean architecture, authentication flows, and multilingual scaffolding (completed 2026-04-05)
 - [x] **Phase 3: Registry + Item Management** - Owners can create registries, add items via URL, and manage their lists with affiliate injection live (completed 2026-04-06)
 - [x] **Phase 4: Reservation System** - Server-authoritative 30-minute reservation timer with race condition prevention and auto-expiry (completed 2026-04-11)
-- [ ] **Phase 5: Web Fallback** - Gift givers can view and reserve from a browser without installing the Android app
+- [x] **Phase 5: Web Fallback** - Gift givers can view and reserve from a browser without installing the Android app (completed 2026-04-19)
 - [ ] **Phase 6: Notifications + Email Flows** - Expiry emails, re-reserve flow, owner push notifications, and private registry invites
 - [ ] **Phase 7: EMAG Catalog Integration** - Owners can browse and add items from EMAG product catalog (requires pre-phase API research spike)
 
@@ -110,7 +110,7 @@ Plans:
 - [x] 05-04-PLAN.md -- Registry view: onSnapshot hooks, header, item grid, skeletons, generic 404 for denied/missing (WEB-01, WEB-04 privacy)
 - [x] 05-05-PLAN.md -- Auth + Guest identity: useAuth, useGuestIdentity, AuthModal, GuestIdentityModal (WEB-03)
 - [x] 05-06-PLAN.md -- Reservation flow: ReserveButton, Toast, ReservationBanner, createReservation callable, retailer redirect (WEB-02, WEB-04)
-- [ ] 05-07-PLAN.md -- Re-reserve deep link page + autoReserveItemId auto-fire on RegistryPage (WEB-02)
+- [x] 05-07-PLAN.md -- Re-reserve deep link page + autoReserveItemId auto-fire on RegistryPage (WEB-02)
 **UI hint**: yes
 
 ### Phase 6: Notifications + Email Flows
@@ -145,6 +145,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 2. Android Core + Auth | 0/4 | Planning complete | - |
 | 3. Registry + Item Management | 5/6 | In Progress|  |
 | 4. Reservation System | 6/6 | Complete   | 2026-04-11 |
-| 5. Web Fallback | 6/7 | In Progress|  |
+| 5. Web Fallback | 7/7 | Complete   | 2026-04-19 |
 | 6. Notifications + Email Flows | 0/TBD | Not started | - |
 | 7. EMAG Catalog Integration | 0/TBD | Not started | - |
