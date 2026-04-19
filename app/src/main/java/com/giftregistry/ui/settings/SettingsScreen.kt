@@ -4,10 +4,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.giftregistry.R
@@ -40,7 +44,9 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val currentLocale by viewModel.currentLocale.collectAsStateWithLifecycle()
+    val emailLocale by viewModel.emailLocale.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
+    var emailLocaleDialogOpen by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -76,6 +82,30 @@ fun SettingsScreen(
                     )
                 },
                 modifier = Modifier.clickable { showDialog = true }
+            )
+
+            // Phase 6 (UI-SPEC Contract 5): Email language picker
+            ListItem(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .clickable { emailLocaleDialogOpen = true },
+                headlineContent = { Text(stringResource(R.string.settings_email_language_label)) },
+                supportingContent = {
+                    val label = when (emailLocale) {
+                        "ro" -> stringResource(R.string.auth_settings_language_romanian)
+                        "en", null -> stringResource(R.string.auth_settings_language_english)
+                        else -> stringResource(R.string.auth_settings_language_english)
+                    }
+                    Text(label)
+                },
+                leadingContent = {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                },
             )
 
             HorizontalDivider()
@@ -145,6 +175,62 @@ fun SettingsScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        )
+    }
+
+    // Phase 6 (UI-SPEC Contract 5): Email language picker dialog — mirrors app language dialog pattern
+    if (emailLocaleDialogOpen) {
+        val currentEmailLocale = emailLocale ?: "en"
+        var selectedEmailLocale by remember(currentEmailLocale) { mutableStateOf(currentEmailLocale) }
+
+        AlertDialog(
+            onDismissRequest = { emailLocaleDialogOpen = false },
+            title = { Text(stringResource(R.string.settings_email_language_label)) },
+            text = {
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp)
+                            .clickable { selectedEmailLocale = "en" }
+                    ) {
+                        RadioButton(
+                            selected = selectedEmailLocale == "en",
+                            onClick = { selectedEmailLocale = "en" }
+                        )
+                        Text(stringResource(R.string.auth_settings_language_english))
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp)
+                            .clickable { selectedEmailLocale = "ro" }
+                    ) {
+                        RadioButton(
+                            selected = selectedEmailLocale == "ro",
+                            onClick = { selectedEmailLocale = "ro" }
+                        )
+                        Text(stringResource(R.string.auth_settings_language_romanian))
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onEmailLocaleChange(selectedEmailLocale)
+                        emailLocaleDialogOpen = false
+                    }
+                ) {
+                    Text(stringResource(R.string.settings_language_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { emailLocaleDialogOpen = false }) {
                     Text(stringResource(R.string.common_cancel))
                 }
             }
