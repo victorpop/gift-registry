@@ -9,7 +9,8 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "test": "jest --passWithNoTests",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "seed:stores": "npm run build && node lib/scripts/seedStores.js"
   },
   "engines": {
     "node": "22"

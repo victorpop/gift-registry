@@ -1,0 +1,12 @@
+{
+  "stores": [
+    { "id": "emag", "name": "eMAG", "homepageUrl": "https://www.emag.ro", "displayOrder": 10, "logoAsset": "store_emag" },
+    { "id": "altex", "name": "Altex", "homepageUrl": "https://altex.ro", "displayOrder": 20, "logoAsset": "store_altex" },
+    { "id": "flanco", "name": "Flanco", "homepageUrl": "https://www.flanco.ro", "displayOrder": 30, "logoAsset": "store_flanco" },
+    { "id": "libris", "name": "Libris", "homepageUrl": "https://www.libris.ro", "displayOrder": 40, "logoAsset": "store_libris" },
+    { "id": "carturesti", "name": "C\u0103rture\u0219ti", "homepageUrl": "https://carturesti.ro", "displayOrder": 50, "logoAsset": "store_carturesti" },
+    { "id": "ikea", "name": "IKEA", "homepageUrl": "https://www.ikea.com/ro/ro/", "displayOrder": 60, "logoAsset": "store_ikea" },
+    { "id": "dedeman", "name": "Dedeman", "homepageUrl": "https://www.dedeman.ro", "displayOrder": 70, "logoAsset": "store_dedeman" },
+    { "id": "elefant", "name": "Elefant", "homepageUrl": "https://www.elefant.ro", "displayOrder": 80, "logoAsset": "store_elefant" }
+  ]
+}

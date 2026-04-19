@@ -81,5 +81,14 @@ service cloud.firestore {
     match /users/{userId}/fcmTokens/{tokenId} {
       allow read, write, delete: if isSignedIn() && request.auth.uid == userId;
     }
+
+    // Phase 7 (STORE-01 / D-21): config collection — world-readable so the
+    // Store Browser can load the store list even for unauthenticated
+    // onboarding states. No client writes — admin only via seed script
+    // (Admin SDK bypasses rules).
+    match /config/{configId} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }
