@@ -321,3 +321,87 @@ describe("Phase 4: Reservations hard-deny extended (D-19/RES-09)", () => {
     );
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// describe("Phase 6: mail collection (D-22)")
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Phase 6: mail collection (D-22)", () => {
+  it("denies unauthenticated write to mail", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(setDoc(doc(db, "mail", "m1"), {
+      to: "a@b.com", message: { subject: "s", html: "h", text: "t" },
+    }));
+  });
+
+  it("denies authenticated write to mail", async () => {
+    const db = testEnv.authenticatedContext("any-uid").firestore();
+    await assertFails(setDoc(doc(db, "mail", "m1"), {
+      to: "a@b.com", message: { subject: "s", html: "h", text: "t" },
+    }));
+  });
+
+  it("denies authenticated read from mail", async () => {
+    const db = testEnv.authenticatedContext("any-uid").firestore();
+    await assertFails(getDoc(doc(db, "mail", "m1")));
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// describe("Phase 6: notifications_failures (D-22)")
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Phase 6: notifications_failures (D-22)", () => {
+  it("denies authenticated read", async () => {
+    const db = testEnv.authenticatedContext("any-uid").firestore();
+    await assertFails(getDoc(doc(db, "notifications_failures", "f1")));
+  });
+
+  it("denies authenticated write", async () => {
+    const db = testEnv.authenticatedContext("any-uid").firestore();
+    await assertFails(setDoc(doc(db, "notifications_failures", "f1"), { type: "test" }));
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// describe("Phase 6: users/{uid}/fcmTokens (D-22)")
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Phase 6: users/{uid}/fcmTokens (D-22)", () => {
+  it("allows owner to write their own fcmToken", async () => {
+    const db = testEnv.authenticatedContext("owner-u1").firestore();
+    await assertSucceeds(
+      setDoc(doc(db, "users", "owner-u1", "fcmTokens", "tok1"), {
+        token: "tok1", platform: "android", createdAt: Date.now(), lastSeenAt: Date.now(),
+      })
+    );
+  });
+
+  it("allows owner to read their own fcmToken", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users", "owner-u1", "fcmTokens", "tok1"), { token: "tok1" });
+    });
+    const db = testEnv.authenticatedContext("owner-u1").firestore();
+    await assertSucceeds(getDoc(doc(db, "users", "owner-u1", "fcmTokens", "tok1")));
+  });
+
+  it("denies other user from reading another user's fcmToken", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "users", "owner-u2", "fcmTokens", "tok2"), { token: "tok2" });
+    });
+    const db = testEnv.authenticatedContext("attacker-u").firestore();
+    await assertFails(getDoc(doc(db, "users", "owner-u2", "fcmTokens", "tok2")));
+  });
+
+  it("denies other user from writing to another user's fcmTokens", async () => {
+    const db = testEnv.authenticatedContext("attacker-u").firestore();
+    await assertFails(
+      setDoc(doc(db, "users", "victim-u", "fcmTokens", "tokX"), { token: "tokX" })
+    );
+  });
+
+  it("denies unauthenticated read of any fcmTokens", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(getDoc(doc(db, "users", "any-u", "fcmTokens", "any-tok")));
+  });
+});

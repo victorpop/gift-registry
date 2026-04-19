@@ -64,5 +64,22 @@ service cloud.firestore {
       allow create: if isSignedIn() && request.auth.uid == userId;
       allow delete: if false;
     }
+
+    // Phase 6: mail collection — Trigger Email extension manages via Admin SDK.
+    // No client read or write is allowed.
+    match /mail/{docId} {
+      allow read, write: if false;
+    }
+
+    // Phase 6: notifications_failures — ops-only log (Admin SDK bypasses rules).
+    match /notifications_failures/{docId} {
+      allow read, write: if false;
+    }
+
+    // Phase 6: FCM tokens subcollection — each user owns their own tokens.
+    // Another user cannot enumerate or read another user's tokens.
+    match /users/{userId}/fcmTokens/{tokenId} {
+      allow read, write, delete: if isSignedIn() && request.auth.uid == userId;
+    }
   }
 }
