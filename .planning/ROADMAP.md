@@ -102,7 +102,15 @@ Plans:
   2. Gift giver can log in, create an account, or continue as guest from the web fallback
   3. Gift giver can reserve an item on web and is redirected to the retailer — the same reservation flow and 30-minute timer as Android applies
   4. Web fallback respects private registry access rules — uninvited users cannot view a private registry
-**Plans**: TBD
+**Plans**: 7 plans
+Plans:
+- [ ] 05-01-PLAN.md -- Vite + React 19 + TS scaffold, Tailwind v3, Vitest + Playwright, hosting/public build target
+- [ ] 05-02-PLAN.md -- Firebase JS SDK init (europe-west3 pin + App Check + emulator wiring) + TanStack QueryClient
+- [ ] 05-03-PLAN.md -- i18next setup + React Router v7 data mode + page stubs (WEB-01 precondition)
+- [ ] 05-04-PLAN.md -- Registry view: onSnapshot hooks, header, item grid, skeletons, generic 404 for denied/missing (WEB-01, WEB-04 privacy)
+- [ ] 05-05-PLAN.md -- Auth + Guest identity: useAuth, useGuestIdentity, AuthModal, GuestIdentityModal (WEB-03)
+- [ ] 05-06-PLAN.md -- Reservation flow: ReserveButton, Toast, ReservationBanner, createReservation callable, retailer redirect (WEB-02, WEB-04)
+- [ ] 05-07-PLAN.md -- Re-reserve deep link page + autoReserveItemId auto-fire on RegistryPage (WEB-02)
 **UI hint**: yes
 
 ### Phase 6: Notifications + Email Flows
