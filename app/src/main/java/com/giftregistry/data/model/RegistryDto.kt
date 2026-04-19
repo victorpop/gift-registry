@@ -11,7 +11,12 @@ data class RegistryDto(
     val description: String? = null,
     val locale: String = "en",
     val notificationsEnabled: Boolean = true,
-    val invitedUsers: Map<String, Boolean> = emptyMap(),
+    // Typed as Map<String, Any?> rather than Map<String, Boolean> so a legacy
+    // document with a nested-map value (from an earlier bug in inviteToRegistry
+    // where dotted email keys were interpreted as nested paths) deserializes
+    // instead of crashing the whole snapshot listener. The domain mapper in
+    // RegistryRepositoryImpl coerces each entry back to a Boolean.
+    val invitedUsers: Map<String, Any?> = emptyMap(),
     val createdAt: Long = 0L,
     val updatedAt: Long = 0L
 )

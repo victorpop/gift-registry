@@ -43,7 +43,18 @@ class RegistryRepositoryImpl @Inject constructor(
         id = id, ownerId = ownerId, title = title, occasion = occasion,
         visibility = visibility, eventDateMs = eventDateMs, eventLocation = eventLocation,
         description = description, locale = locale, notificationsEnabled = notificationsEnabled,
-        invitedUsers = invitedUsers, createdAt = createdAt, updatedAt = updatedAt
+        // Coerce raw Firestore values to Boolean. New invites write `true`, but
+        // legacy documents from the pre-FieldPath inviteToRegistry may contain a
+        // nested Map at this key — in that case the user was still invited, so
+        // treat any non-null value as `true` rather than dropping the entry.
+        invitedUsers = invitedUsers.mapValues { (_, value) ->
+            when (value) {
+                is Boolean -> value
+                null -> false
+                else -> true
+            }
+        },
+        createdAt = createdAt, updatedAt = updatedAt
     )
 
     private fun Registry.toMap(): Map<String, Any?> = mapOf(

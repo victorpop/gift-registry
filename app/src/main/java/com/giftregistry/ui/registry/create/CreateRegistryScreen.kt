@@ -43,9 +43,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.giftregistry.R
+import com.giftregistry.ui.navigation.hiltViewModelWithNavArgs
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -57,7 +57,11 @@ fun CreateRegistryScreen(
     registryId: String? = null,
     onBack: () -> Unit,
     onSaved: (String) -> Unit,
-    viewModel: CreateRegistryViewModel = hiltViewModel()
+    viewModel: CreateRegistryViewModel = hiltViewModelWithNavArgs(
+        // "new" keeps the create-mode VM distinct from any edit-mode VM cached under a real id.
+        key = registryId ?: "new",
+        "registryId" to registryId,
+    )
 ) {
     val title by viewModel.title.collectAsStateWithLifecycle()
     val occasion by viewModel.occasion.collectAsStateWithLifecycle()

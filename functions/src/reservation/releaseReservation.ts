@@ -1,5 +1,6 @@
 import { onTaskDispatched } from "firebase-functions/v2/tasks";
 import * as admin from "firebase-admin";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 interface ReleasePayload { reservationId: string; }
 
@@ -38,8 +39,8 @@ export const releaseReservation = onTaskDispatched<ReleasePayload>(
         return;
       }
 
-      const nowSeconds = admin.firestore.Timestamp.now().seconds;
-      const expiresAtSeconds = (data.expiresAt as admin.firestore.Timestamp).seconds;
+      const nowSeconds = Timestamp.now().seconds;
+      const expiresAtSeconds = (data.expiresAt as Timestamp).seconds;
       if (nowSeconds < expiresAtSeconds) {
         console.info(`[releaseReservation] reservation ${reservationId} not yet expired; no-op`);
         return;
@@ -51,9 +52,9 @@ export const releaseReservation = onTaskDispatched<ReleasePayload>(
 
       tx.update(itemRef, {
         status: "available",
-        reservedBy: admin.firestore.FieldValue.delete(),
-        reservedAt: admin.firestore.FieldValue.delete(),
-        expiresAt: admin.firestore.FieldValue.delete(),
+        reservedBy: FieldValue.delete(),
+        reservedAt: FieldValue.delete(),
+        expiresAt: FieldValue.delete(),
       });
       tx.update(reservationRef, { status: "expired" });
 

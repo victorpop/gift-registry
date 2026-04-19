@@ -32,9 +32,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.giftregistry.R
+import com.giftregistry.ui.navigation.hiltViewModelWithNavArgs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,7 +42,11 @@ fun EditItemScreen(
     registryId: String,
     itemId: String,
     onBack: () -> Unit,
-    viewModel: EditItemViewModel = hiltViewModel()
+    viewModel: EditItemViewModel = hiltViewModelWithNavArgs(
+        key = "$registryId/$itemId",
+        "registryId" to registryId,
+        "itemId" to itemId,
+    )
 ) {
     val url by viewModel.url.collectAsStateWithLifecycle()
     val title by viewModel.title.collectAsStateWithLifecycle()

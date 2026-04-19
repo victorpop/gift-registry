@@ -1,5 +1,6 @@
 package com.giftregistry.ui.registry.invite
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.giftregistry.domain.usecase.InviteToRegistryUseCase
@@ -43,6 +44,7 @@ class InviteViewModel @Inject constructor(
                     email.value = ""
                 }
                 .onFailure { e ->
+                    Log.e("InviteVM", "inviteToRegistry failed for $emailValue on $registryId", e)
                     _error.value = e.message ?: "Failed to send invitation"
                 }
 

@@ -76,6 +76,7 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
     val context = LocalContext.current
 
     var passwordVisible by remember { mutableStateOf(false) }
+    var isSignUpMode by remember { mutableStateOf(false) }
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -260,16 +261,53 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
                         singleLine = true
                     )
 
-                    // Forgot password link
-                    TextButton(
-                        onClick = { /* TODO: forgot password flow */ },
-                        modifier = Modifier.align(Alignment.End)
-                    ) {
+                    // Confirm password — sign-up mode only
+                    if (isSignUpMode) {
+                        Spacer(modifier = Modifier.height(16.dp))
+
                         Text(
-                            text = stringResource(R.string.auth_forgot_password),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.primary
+                            text = stringResource(R.string.auth_confirm_password_label),
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp)
                         )
+                        OutlinedTextField(
+                            value = formState.confirmPassword,
+                            onValueChange = { viewModel.updateConfirmPassword(it) },
+                            placeholder = { Text("\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022") },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Lock,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            visualTransformation = PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Done
+                            ),
+                            singleLine = true
+                        )
+                    }
+
+                    // Forgot password link — sign-in mode only
+                    if (!isSignUpMode) {
+                        TextButton(
+                            onClick = { /* TODO: forgot password flow */ },
+                            modifier = Modifier.align(Alignment.End)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.auth_forgot_password),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
 
                     // Error banner
@@ -306,9 +344,11 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Sign In button (outlined)
+                    // Sign In / Create Account button (outlined)
                     OutlinedButton(
-                        onClick = { viewModel.signIn() },
+                        onClick = {
+                            if (isSignUpMode) viewModel.signUp() else viewModel.signIn()
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .defaultMinSize(minHeight = 48.dp),
@@ -319,7 +359,10 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         } else {
                             Text(
-                                text = stringResource(R.string.auth_sign_in_button),
+                                text = stringResource(
+                                    if (isSignUpMode) R.string.auth_sign_up_button
+                                    else R.string.auth_sign_in_button
+                                ),
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
@@ -327,20 +370,43 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // "Don't have an account? Create account"
+                    // Continue as Guest
+                    TextButton(
+                        onClick = { viewModel.continueAsGuest() },
+                        modifier = Modifier.defaultMinSize(minHeight = 44.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.auth_continue_as_guest),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Toggle between sign-in and sign-up
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = stringResource(R.string.auth_no_account_prompt),
+                            text = stringResource(
+                                if (isSignUpMode) R.string.auth_have_account_prompt
+                                else R.string.auth_no_account_prompt
+                            ),
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        TextButton(onClick = { /* TODO: navigate to create account */ }) {
+                        TextButton(onClick = {
+                            isSignUpMode = !isSignUpMode
+                            viewModel.clearError()
+                        }) {
                             Text(
-                                text = stringResource(R.string.auth_sign_up_title),
+                                text = stringResource(
+                                    if (isSignUpMode) R.string.auth_sign_in_title
+                                    else R.string.auth_sign_up_title
+                                ),
                                 style = MaterialTheme.typography.labelLarge.copy(
                                     fontWeight = FontWeight.Bold
                                 ),

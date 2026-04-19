@@ -51,7 +51,9 @@ class ItemRepositoryImpl @Inject constructor(
             OgMetadata(
                 title = data["title"] as? String,
                 imageUrl = data["imageUrl"] as? String,
-                price = data["price"] as? String
+                price = data["price"] as? String,
+                priceAmount = data["priceAmount"] as? String,
+                priceCurrency = data["priceCurrency"] as? String,
             )
         }
 

@@ -1,5 +1,6 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
+import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { CloudTasksClient } from "@google-cloud/tasks";
 
 interface CreateReservationRequest {
@@ -33,7 +34,7 @@ export const createReservation = onCall<CreateReservationRequest>(
 
     const db = admin.firestore();
     const expiresAtMs = Date.now() + RESERVATION_DURATION_MS;
-    const expiresAt = admin.firestore.Timestamp.fromMillis(expiresAtMs);
+    const expiresAt = Timestamp.fromMillis(expiresAtMs);
 
     let reservationId = "";
     let affiliateUrl = "";
@@ -60,7 +61,7 @@ export const createReservation = onCall<CreateReservationRequest>(
       tx.update(itemRef, {
         status: "reserved",
         reservedBy: giverEmail,
-        reservedAt: admin.firestore.FieldValue.serverTimestamp(),
+        reservedAt: FieldValue.serverTimestamp(),
         expiresAt,
       });
 
@@ -72,7 +73,7 @@ export const createReservation = onCall<CreateReservationRequest>(
         giverEmail,
         affiliateUrl,
         status: "active",
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: FieldValue.serverTimestamp(),
         expiresAt,
         cloudTaskName: "",
       });

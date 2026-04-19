@@ -30,6 +30,7 @@
     <string name="auth_email_placeholder">your@email.com</string>
     <string name="auth_forgot_password">Forgot password?</string>
     <string name="auth_no_account_prompt">Don\'t have an account?</string>
+    <string name="auth_have_account_prompt">Already have an account?</string>
     <string name="auth_or_email_divider">or sign in with email</string>
     <string name="auth_terms_of_service">Terms of Service</string>
     <string name="auth_privacy_policy">Privacy Policy</string>

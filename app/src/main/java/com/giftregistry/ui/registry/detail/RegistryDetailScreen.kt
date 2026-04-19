@@ -57,9 +57,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.giftregistry.R
+import com.giftregistry.ui.navigation.hiltViewModelWithNavArgs
 import com.giftregistry.domain.model.Item
 import com.giftregistry.domain.model.ItemStatus
 import java.text.SimpleDateFormat
@@ -75,7 +75,10 @@ fun RegistryDetailScreen(
     onNavigateToEditItem: (String) -> Unit,
     onNavigateToEditRegistry: () -> Unit,
     onNavigateToInvite: () -> Unit,
-    viewModel: RegistryDetailViewModel = hiltViewModel()
+    viewModel: RegistryDetailViewModel = hiltViewModelWithNavArgs(
+        key = registryId,
+        "registryId" to registryId,
+    )
 ) {
     val registry by viewModel.registry.collectAsStateWithLifecycle()
     val items by viewModel.items.collectAsStateWithLifecycle()
@@ -563,3 +566,4 @@ private fun ItemStatusChip(status: ItemStatus) {
         )
     )
 }
+

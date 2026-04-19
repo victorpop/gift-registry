@@ -34,7 +34,10 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirebaseFunctions(): FirebaseFunctions =
-        FirebaseFunctions.getInstance().also { fns ->
+        // Functions are deployed to europe-west3 (see functions/src/**). The Android
+        // SDK defaults to us-central1 when no region is specified, which yields 404
+        // NOT_FOUND on every callable — always pin the region to match deployment.
+        FirebaseFunctions.getInstance("europe-west3").also { fns ->
             if (BuildConfig.DEBUG) {
                 fns.useEmulator("10.0.2.2", 5001)
             }

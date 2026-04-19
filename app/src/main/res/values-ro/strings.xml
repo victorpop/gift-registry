@@ -30,6 +30,7 @@
     <string name="auth_email_placeholder">email@exemplu.com</string>
     <string name="auth_forgot_password">Ai uitat parola?</string>
     <string name="auth_no_account_prompt">Nu ai cont?</string>
+    <string name="auth_have_account_prompt">Ai deja cont?</string>
     <string name="auth_or_email_divider">sau autentific&#259;-te cu email</string>
     <string name="auth_terms_of_service">Termeni &#537;i Condi&#539;ii</string>
     <string name="auth_privacy_policy">Politic&#259; de Confiden&#539;ialitate</string>

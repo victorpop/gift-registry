@@ -1,5 +1,6 @@
 package com.giftregistry.ui.item.add
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -59,13 +60,19 @@ class AddItemViewModel @Inject constructor(
 
             fetchOgMetadata(currentUrl)
                 .onSuccess { og ->
+                    Log.d(
+                        "AddItemVM",
+                        "fetchOgMetadata OK url=$currentUrl title=${og.title} image=${og.imageUrl} " +
+                            "price=${og.price} priceAmount=${og.priceAmount} priceCurrency=${og.priceCurrency}"
+                    )
                     // Auto-fill form fields — user can edit before saving
                     if (!og.title.isNullOrBlank()) title.value = og.title
                     if (!og.imageUrl.isNullOrBlank()) imageUrl.value = og.imageUrl
                     if (!og.price.isNullOrBlank()) price.value = og.price
                 }
-                .onFailure {
+                .onFailure { e ->
                     // Fallback to manual entry
+                    Log.e("AddItemVM", "fetchOgMetadata failed for url=$currentUrl", e)
                     _ogFetchFailed.value = true
                 }
 
