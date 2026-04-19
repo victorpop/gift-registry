@@ -9,7 +9,17 @@ functions/lib/
 functions/node_modules/
 
 # Hosting
-hosting/public/node_modules/
+# hosting/public/ is the Vite build output root (written by `cd web && npm run build`)
+# All contents are generated; source of truth lives in web/src/ and web/public/
+hosting/public/assets/
+hosting/public/index.html
+hosting/public/vite.svg
+hosting/public/.well-known/
+
+# Web node_modules and build artifacts
+web/node_modules/
+web/package-lock.json
+web/tsconfig.*.tsbuildinfo
 
 # Environment
 .env
