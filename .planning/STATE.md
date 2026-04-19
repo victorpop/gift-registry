@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 07-romanian-store-browser 07-00-PLAN.md
-last_updated: "2026-04-19T21:08:45.345Z"
+stopped_at: Completed 07-romanian-store-browser 07-01-PLAN.md
+last_updated: "2026-04-19T21:13:19.050Z"
 last_activity: 2026-04-19
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 36
-  completed_plans: 33
+  completed_plans: 34
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 ## Current Position
 
 Phase: 07 (romanian-store-browser) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-04-19
 
@@ -83,6 +83,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06 P05 | 4min | 3 tasks | 9 files |
 | Phase 06-notifications-email-flows P04 | 12min | 3 tasks | 15 files |
 | Phase 07-romanian-store-browser P00 | 7min | 3 tasks | 13 files |
+| Phase 07-romanian-store-browser P01 | 8min | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -172,6 +173,9 @@ Recent decisions affecting current work:
 - [Phase 06-notifications-email-flows]: hasActiveReservation derived from combine(items, observeGuestIdentity) — no new DataStore reservation ID key needed for banner visibility
 - [Phase 07-romanian-store-browser]: tsconfig include expanded to ['src', 'scripts'] — seed script in functions/scripts/ was excluded from compilation scope; build would fail without this change
 - [Phase 07-romanian-store-browser]: Placeholder 1x1 transparent WebP files (34 bytes each) committed for all 9 store logos — real retailer logos must be supplied before v1.0 production release
+- [Phase 07-romanian-store-browser]: StoresModule created as separate @Module (not added to DataModule) — keeps Phase 7 bindings discoverable and avoids touching DataModule which other phases may also modify
+- [Phase 07-romanian-store-browser]: Manual snapshot.get('stores') cast over toObject — Firestore POJO mapper does not reliably map top-level arrays; confirmed by Research Pattern 2
+- [Phase 07-romanian-store-browser]: DataStore name 'last_registry_prefs' verified unique against existing names (guest_prefs, language_prefs, onboarding_prefs) per Research Pitfall 3
 
 ### Pending Todos
 
@@ -190,6 +194,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-19T21:08:45.336Z
-Stopped at: Completed 07-romanian-store-browser 07-00-PLAN.md
+Last session: 2026-04-19T21:13:19.047Z
+Stopped at: Completed 07-romanian-store-browser 07-01-PLAN.md
 Resume file: None
