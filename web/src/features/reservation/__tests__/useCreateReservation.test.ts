@@ -18,7 +18,8 @@ function wrapper(client: QueryClient) {
 
 describe('useCreateReservation', () => {
   let client: QueryClient
-  let windowOpenSpy: ReturnType<typeof vi.spyOn>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let windowOpenSpy: ReturnType<typeof vi.spyOn<any, any>>
 
   beforeEach(() => {
     client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } })
