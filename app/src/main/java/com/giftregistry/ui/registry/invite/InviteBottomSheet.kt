@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.giftregistry.R
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,8 +42,12 @@ fun InviteBottomSheet(
 
     LaunchedEffect(inviteSent) {
         if (inviteSent) {
-            // Reset and allow sending another invite or dismiss
+            // Hold the success confirmation on screen long enough for the user to register it,
+            // then auto-dismiss so they don't have to tap away. 1500ms is the established
+            // "show & go" window — long enough to read "Invitation sent", short enough to feel snappy.
+            delay(1500L)
             viewModel.resetInviteSent()
+            onDismiss()
         }
     }
 
@@ -69,6 +74,7 @@ fun InviteBottomSheet(
                 onValueChange = { viewModel.email.value = it },
                 label = { Text(stringResource(R.string.registry_invite_email_label)) },
                 modifier = Modifier.fillMaxWidth(),
+                enabled = !isSending && !inviteSent,
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
@@ -91,10 +97,10 @@ fun InviteBottomSheet(
 
             Button(
                 onClick = { viewModel.onSendInvite(registryId) },
-                enabled = !isSending && email.isNotBlank(),
+                enabled = !isSending && !inviteSent && email.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (isSending) {
+                if (isSending && !inviteSent) {
                     CircularProgressIndicator(modifier = Modifier.padding(end = 8.dp))
                 }
                 Text(stringResource(R.string.registry_invite_send_button))
