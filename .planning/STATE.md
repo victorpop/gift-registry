@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 Phase: 07
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-04-20 - Completed quick task 260420-hua: Bottom nav (Home, Add list, Browse stores, Preferences) + direct-create FAB on home
+Last activity: 2026-04-20 - Completed quick task 260420-iic: Fix stale-UID bug — make RegistryListViewModel reactive to authState
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -203,6 +203,7 @@ None yet.
 | 260420-hcw | Wire Coil image rendering — preview in AddItemScreen + thumbnails in item list | 2026-04-20 | 75d4e61 | [260420-hcw-wire-coil-image-rendering-preview-in-add](./quick/260420-hcw-wire-coil-image-rendering-preview-in-add/) |
 | 260420-hgb | Collapse two language pickers into one — single picker drives both app UI locale and Firestore preferredLocale for emails | 2026-04-20 | f069c8e | [260420-hgb-remove-the-email-language-setting-from-s](./quick/260420-hgb-remove-the-email-language-setting-from-s/) |
 | 260420-hua | Bottom nav (Home, Add list, Browse stores, Preferences) + direct-create FAB on home | 2026-04-20 | be2f66b | [260420-hua-bottom-nav-home-add-list-browse-stores-p](./quick/260420-hua-bottom-nav-home-add-list-browse-stores-p/) |
+| 260420-iic | Fix stale-UID bug — make RegistryListViewModel reactive to authState | 2026-04-20 | 4ff3973 | [260420-iic-fix-stale-uid-bug-make-registrylistviewm](./quick/260420-iic-fix-stale-uid-bug-make-registrylistviewm/) |
 
 ## Session Continuity
 
