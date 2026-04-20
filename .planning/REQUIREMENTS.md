@@ -15,12 +15,6 @@ Requirements for the v1.1 milestone. Owner-facing Android redesign per `design_h
 - [ ] **DES-04**: Spacing, radii (8/10/12/14/16/22/999), and shadow specs (FAB, Google banner, bottom sheet) applied consistently per handoff
 - [ ] **DES-05**: "GiftMaison" wordmark component (Instrument Serif italic + terracotta accent period) reusable across top bars
 
-### Occasion Theming
-
-- [ ] **THEME-01**: Four occasion themes (Housewarming, Wedding, Baby, Birthday) ship with handoff-specified values for accent, accentInk, accentSoft, second, secondSoft
-- [ ] **THEME-02**: Per-registry occasion theme applies at runtime on Registry detail, Create registry, and Add item — tokens cascade from `registry.occasion`
-- [ ] **THEME-03**: Greyscale tokens (paper → line) shift hue subtly per theme per `theme.jsx`
-
 ### Shared Chrome
 
 - [ ] **CHROME-01**: Bottom nav shows 5 slots (Home · Stores · +FAB · Lists · You) with stroked icons and mono caps labels; selected state uses accentSoft pill + accent stroke; hidden on screens 06, 09, 10
@@ -46,6 +40,8 @@ Requirements for the v1.1 milestone. Owner-facing Android redesign per `design_h
 - Countdown re-render cadence (handoff suggests minute, display-only on owner screens)
 - `isPrimary` card selection rule on Home (most-recent vs. pinned)
 - Designs for Stores and You bottom-nav tabs (only Home and Lists are built out in handoff)
+
+**v1.1 scope note — themes:** v1.1 ships Housewarming only. The four-theme occasion system (Wedding / Baby / Birthday palettes + per-registry runtime cascade) is deferred to v1.2. DES-03 above locks in the Housewarming colour palette, which is the only palette v1.1 needs.
 
 ## v1.0 Requirements (shipped)
 
@@ -131,6 +127,12 @@ Requirements for initial release — all shipped in v1.0. Each maps to a roadmap
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
+
+### Occasion Themes (deferred from v1.1)
+
+- **THEME-01**: Four occasion themes (Housewarming, Wedding, Baby, Birthday) ship with handoff-specified values for accent, accentInk, accentSoft, second, secondSoft — v1.1 ships Housewarming only
+- **THEME-02**: Per-registry occasion theme applies at runtime on Registry detail, Create registry, and Add item — tokens cascade from `registry.occasion`
+- **THEME-03**: Greyscale tokens (paper → line) shift hue subtly per theme per `theme.jsx`
 
 ### Additional Merchants
 
@@ -226,6 +228,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 | I18N-01 | Phase 2 | Complete |
 | I18N-02 | Phase 1 | Complete |
 | I18N-03 | Phase 2 | Complete |
+| DES-01 | Phase 8 | Pending |
+| DES-02 | Phase 8 | Pending |
+| DES-03 | Phase 8 | Pending |
+| DES-04 | Phase 8 | Pending |
+| DES-05 | Phase 8 | Pending |
+| THEME-01 | — | Deferred to v1.2 |
+| THEME-02 | — | Deferred to v1.2 |
+| THEME-03 | — | Deferred to v1.2 |
+| CHROME-01 | Phase 9 | Pending |
+| CHROME-02 | Phase 9 | Pending |
+| CHROME-03 | Phase 9 | Pending |
+| SCR-06 | Phase 10 | Pending |
+| SCR-07 | Phase 10 | Pending |
+| SCR-08 | Phase 11 | Pending |
+| SCR-09 | Phase 11 | Pending |
+| SCR-10 | Phase 11 | Pending |
+| STAT-01 | Phase 9 | Pending |
+| STAT-02 | Phase 9 | Pending |
+| STAT-03 | Phase 9 | Pending |
+| STAT-04 | Phase 9 | Pending |
 
 **v1.0 Coverage:**
 - v1.0 requirements: 45 total (ITEM-03 and ITEM-04 retired — 43 active + 4 STORE-* added = 47 mapped)
@@ -233,10 +255,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Unmapped: 0 ✓
 
 **v1.1 Coverage:**
-- v1.1 requirements: 18 total (DES-05, THEME-03, CHROME-03, SCR-06..10, STAT-01..04, DES-01..04, THEME-01..02, CHROME-01..02)
-- Mapped to phases: _(pending roadmap)_
-- Unmapped: _(pending roadmap)_
+- v1.1 requirements: 17 total (DES-01..05, CHROME-01..03, SCR-06..10, STAT-01..04)
+- Mapped to phases: 17 (Phase 8: 5 · Phase 9: 7 · Phase 10: 2 · Phase 11: 3)
+- Unmapped: 0 ✓
+- Deferred to v1.2: THEME-01, THEME-02, THEME-03 (Housewarming-only scope for v1.1)
 
 ---
 *Requirements defined: 2026-04-04*
-*Last updated: 2026-04-20 — v1.1 GiftMaison visual refresh requirements added (18 new)*
+*Last updated: 2026-04-20 — v1.1 scope narrowed to Housewarming only; THEME-01/02/03 deferred to v1.2*

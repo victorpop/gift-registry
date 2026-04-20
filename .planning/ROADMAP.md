@@ -19,6 +19,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: Web Fallback** - Gift givers can view and reserve from a browser without installing the Android app (completed 2026-04-19)
 - [x] **Phase 6: Notifications + Email Flows** - Expiry emails, re-reserve flow, owner push notifications, and private registry invites (completed 2026-04-19)
 - [x] **Phase 7: Romanian Store Browser** - Owners can browse popular Romanian retailers in an in-app WebView with a persistent "Add to list" CTA that funnels products into the existing URL-based add flow (replaces original EMAG Catalog scope — no confirmed public EMAG catalog API) (completed 2026-04-20)
+- [ ] **Phase 8: GiftMaison Design Foundation** - Ship fonts, type scale, colour tokens, spacing/radii/shadows, and the reusable "GiftMaison" wordmark as the design system every v1.1 screen builds on
+- [ ] **Phase 9: Shared Chrome + Status UI** - Bottom nav, centre FAB, Add-action bottom sheet, and the Reserved/Given/Open/Purchased status treatments shipped as shared UI the owner screens assemble from
+- [ ] **Phase 10: Onboarding + Home Redesign** - Owner-facing Onboarding/sign up (06) and Home/all-registries (07) screens match the handoff pixel-accurately with the new design system
+- [ ] **Phase 11: Registry Detail + Create + Add Item Redesign** - Registry detail (08), Create registry (09), and Add item via URL (10) screens match the handoff pixel-accurately
 
 ## Phase Details
 
@@ -147,10 +151,67 @@ Plans:
 - [x] 07-03-PLAN.md -- Wave 4: StoreBrowserScreen (AndroidView-wrapped WebView) + AddItemKey extension + end-to-end UAT (human checkpoint)
 **UI hint**: yes
 
+## v1.1 Milestone: GiftMaison visual refresh
+
+**Milestone goal:** Replace the current owner-facing Android UI with the GiftMaison design system — pixel-accurate to the 2026-04-20 `design_handoff_android_owner_flow/` package — across all 5 owner screens plus shared chrome, without reworking navigation, repositories, ViewModels, or Cloud Functions. This is a re-skin, not a rebuild: every phase must preserve existing behaviour.
+
+The four v1.1 phases are ordered by dependency. Phase 8 ships the design primitives every other phase consumes. Phase 9 ships the bottom nav, centre FAB, Add-action bottom sheet, and status chip treatments — the cross-cutting UI visible on multiple screens. Phase 10 rebuilds the two screens that stand on their own (Onboarding, Home). Phase 11 rebuilds the three remaining owner screens (Registry detail, Create registry, Add item).
+
+**v1.1 scope note — themes:** the handoff defines four occasion themes (Housewarming / Wedding / Baby / Birthday) with per-registry runtime cascade. v1.1 ships **Housewarming only**. THEME-01, THEME-02, and THEME-03 are deferred to v1.2. DES-03 (Phase 8) locks in the Housewarming palette, which is all v1.1 needs.
+
+Out of scope for v1.1 (per handoff): giver-facing web fallback, Settings / profile, notifications inbox, dark mode, empty states, store-browser WebView chrome, email templates.
+
+### Phase 8: GiftMaison Design Foundation
+**Goal**: The GiftMaison design primitives — fonts, type scale, colour tokens, spacing/radii/shadows, and the reusable wordmark — are shipped as Compose-native values so every subsequent v1.1 screen can consume them without duplication
+**Depends on**: Phase 7 (v1.0 complete — no functional dependency, but v1.0 owner screens remain the baseline being replaced)
+**Requirements**: DES-01, DES-02, DES-03, DES-04, DES-05
+**Success Criteria** (what must be TRUE):
+  1. Instrument Serif, Inter, and JetBrains Mono render correctly on-device via Compose `FontFamily` values exposed through the app's theme
+  2. A Compose preview or debug harness shows the full GiftMaison type scale (Display XL/L/M/S, Body L/M/S/XS, Mono caps) with the handoff-specified sizes, weights, letter-spacing, and line-heights
+  3. A Compose preview or debug harness shows the full Housewarming colour palette (paper, paperDeep, ink, inkSoft, inkFaint, line, accent, accentInk, accentSoft, second, secondSoft, ok, warn) rendered as sRGB swatches matching the handoff values
+  4. Handoff-specified spacing units, radii (8/10/12/14/16/22/999), and shadows (FAB, Google banner, bottom sheet) are available as named design-system values referenced consistently by sample previews
+  5. The "GiftMaison" wordmark (Instrument Serif italic with a terracotta-accent period) renders as a single reusable composable that can be dropped into any top bar
+**Plans**: TBD
+
+### Phase 9: Shared Chrome + Status UI
+**Goal**: The bottom nav / centre FAB / Add-action bottom sheet, and the Reserved/Given/Open/Purchased status treatments are shipped as shared UI the owner screens can assemble from
+**Depends on**: Phase 8
+**Requirements**: CHROME-01, CHROME-02, CHROME-03, STAT-01, STAT-02, STAT-03, STAT-04
+**Success Criteria** (what must be TRUE):
+  1. The bottom nav renders 5 slots (Home · Stores · +FAB · Lists · You) with stroked icons and mono-caps labels; the selected slot shows the accentSoft pill + accent stroke, and the nav is hidden on screens 06/09/10 while visible on 07/08
+  2. The centre FAB is a 54 px accent circle lifted 22 px above the bar with accent shadow and paper ring; tapping it opens the Add-action bottom sheet over a scrim/blurred home with drag handle, title, and 4 action rows (New registry / Item from URL / Browse stores / Add manually)
+  3. Reserved, Given, and Open status chips render with the handoff-specified pill styles, and the Reserved chip's 4 px dot pulses at the 1.4 s cadence with an "Nm" countdown that updates once per minute
+  4. A purchased item row renders at 55 % opacity with a grayscale + ink-tinted image, a centred ✓ mark, and a strikethrough title while remaining visible in the list
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 10: Onboarding + Home Redesign
+**Goal**: The Onboarding/sign up screen (06) and the Home/all-registries screen (07) match the handoff pixel-accurately, preserving existing auth and registry-list behaviour
+**Depends on**: Phase 9
+**Requirements**: SCR-06, SCR-07
+**Success Criteria** (what must be TRUE):
+  1. The Onboarding screen renders the wordmark top bar, "Start your / first registry." italic-accent headline, Google banner with concentric rings, "or sign up with email" divider, first-name/last-name/email/password fields with accent focus ring, primary ink pill CTA, Terms line, and "Log in" footer pill — and the existing sign-up / sign-in / Google OAuth flows continue to work unchanged
+  2. Switching between sign-up and sign-in modes on the Onboarding screen is reachable via the footer "Log in" pill and the same ViewModel logic drives both modes
+  3. The Home screen renders the wordmark + avatar top bar, "Your registries" display-serif headline with mono-caps caption, 3-tab Active / Drafts / Past segmented control, and a scrolling list of registry cards (16:9 hero + occasion pill + date + title + stats) with exactly one dark "primary" card at a time — backed by the existing registries query
+  4. The bottom nav and centre FAB from Phase 9 appear on Home; tapping a registry card navigates to the existing Registry detail route
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 11: Registry Detail + Create + Add Item Redesign
+**Goal**: The Registry detail (08), Create registry (09), and Add item via URL (10) screens match the handoff pixel-accurately
+**Depends on**: Phase 10
+**Requirements**: SCR-08, SCR-09, SCR-10
+**Success Criteria** (what must be TRUE):
+  1. The Registry detail screen renders the 180 px hero with gradient + pinned toolbar, the 4-stat strip, the accentSoft share banner pill, horizontally scrolling filter chips (All / Open / Reserved / Completed), and full-width item rows with 58 px thumbnail + status chip + overflow button — backed by the existing items query and status from the reservation system
+  2. The Create registry screen renders the "Step 1 of 2" app bar with Skip, the italic-accent "What's the occasion?" headline, the 2×3 occasion tile grid with selected/unselected states, name/date/time/place fields, the visibility radio card, and the bottom CTA bar — and submitting the form creates a registry through the existing repository path
+  3. The Add item (paste URL) screen renders the × close app bar, the 3-tab segmented control (Paste URL / Browse stores / Manual), the URL field with "Fetching from {domain}" pulsing-dot status and affiliate confirmation row, the preview card, optional note field, info pill, and dual CTA bar — and pasting a URL drives the existing Open Graph + affiliate-tagging add-item flow
+**Plans**: TBD
+**UI hint**: yes
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -161,3 +222,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 5. Web Fallback | 7/7 | Complete   | 2026-04-19 |
 | 6. Notifications + Email Flows | 6/6 | Complete   | 2026-04-19 |
 | 7. Romanian Store Browser | 4/4 | Complete   | 2026-04-20 |
+| 8. GiftMaison Design Foundation | 0/0 | Not started | - |
+| 9. Shared Chrome + Status UI | 0/0 | Not started | - |
+| 10. Onboarding + Home Redesign | 0/0 | Not started | - |
+| 11. Registry Detail + Create + Add Item Redesign | 0/0 | Not started | - |
