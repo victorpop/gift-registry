@@ -173,4 +173,19 @@
 
     <!-- Faza 7: Selector registru (extensie ecran adăugare articol) -->
     <string name="stores_registry_picker_label">Adaug\u0103 \u00een lista:</string>
+
+    <!-- quick-260420-ozb: C\u0103su\u021b\u0103 de notific\u0103ri -->
+    <string name="notifications_bell_cd">Notific\u0103ri</string>
+    <string name="notifications_screen_title">Notific\u0103ri</string>
+    <string name="notifications_empty">Nicio notificare \u00eenc\u0103.</string>
+    <string name="notification_invite_title">%1$s te-a invitat la \"%2$s\"</string>
+    <string name="notification_invite_body">Apas\u0103 pentru a vedea lista</string>
+    <string name="notification_reservation_created_title">Cineva a rezervat \"%1$s\"</string>
+    <string name="notification_reservation_created_body">%1$s a rezervat \"%2$s\" pe \"%3$s\"</string>
+    <string name="notification_item_purchased_title">\"%1$s\" a fost cump\u0103rat</string>
+    <string name="notification_item_purchased_body">Cineva a cump\u0103rat \"%1$s\" din \"%2$s\"</string>
+    <string name="notification_reservation_expired_title">Rezervarea pe \"%1$s\" a expirat</string>
+    <string name="notification_reservation_expired_body">Rezervarea de 30 de minute pe \"%1$s\" din \"%2$s\" a expirat</string>
+    <string name="notification_re_reserve_window_title">\"%1$s\" este disponibil din nou</string>
+    <string name="notification_re_reserve_window_body">Rezervarea ta a expirat \u2014 \"%1$s\" poate fi re-rezervat \u00een \"%2$s\"</string>
 </resources>

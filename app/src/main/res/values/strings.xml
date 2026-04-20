@@ -172,4 +172,19 @@
 
     <!-- Phase 7: Registry picker (add-item screen extension) -->
     <string name="stores_registry_picker_label">Add to registry:</string>
+
+    <!-- quick-260420-ozb: Notifications inbox -->
+    <string name="notifications_bell_cd">Notifications</string>
+    <string name="notifications_screen_title">Notifications</string>
+    <string name="notifications_empty">No notifications yet.</string>
+    <string name="notification_invite_title">%1$s invited you to \"%2$s\"</string>
+    <string name="notification_invite_body">Tap to view the registry</string>
+    <string name="notification_reservation_created_title">Someone reserved \"%1$s\"</string>
+    <string name="notification_reservation_created_body">%1$s reserved \"%2$s\" on \"%3$s\"</string>
+    <string name="notification_item_purchased_title">\"%1$s\" was purchased</string>
+    <string name="notification_item_purchased_body">Someone bought \"%1$s\" from \"%2$s\"</string>
+    <string name="notification_reservation_expired_title">Reservation on \"%1$s\" expired</string>
+    <string name="notification_reservation_expired_body">The 30-minute reservation on \"%1$s\" in \"%2$s\" expired</string>
+    <string name="notification_re_reserve_window_title">\"%1$s\" is available again</string>
+    <string name="notification_re_reserve_window_body">Your reservation expired — \"%1$s\" can be re-reserved in \"%2$s\"</string>
 </resources>

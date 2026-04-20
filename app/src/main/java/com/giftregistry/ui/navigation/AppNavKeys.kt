@@ -18,3 +18,4 @@ import kotlinx.serialization.Serializable
 @Serializable data class ReReserveDeepLink(val reservationId: String)
 @Serializable data class StoreListKey(val preSelectedRegistryId: String? = null)
 @Serializable data class StoreBrowserKey(val storeId: String, val registryId: String?)
+@Serializable data object NotificationsKey

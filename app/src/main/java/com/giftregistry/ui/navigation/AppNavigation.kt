@@ -46,6 +46,7 @@ import com.giftregistry.ui.onboarding.OnboardingViewModel
 import com.giftregistry.ui.registry.create.CreateRegistryScreen
 import com.giftregistry.ui.registry.detail.RegistryDetailScreen
 import com.giftregistry.ui.registry.invite.InviteBottomSheet
+import com.giftregistry.ui.notifications.NotificationsScreen
 import com.giftregistry.ui.registry.list.RegistryListScreen
 import com.giftregistry.ui.settings.SettingsScreen
 import com.giftregistry.ui.store.browser.StoreBrowserScreen
@@ -185,6 +186,7 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                         onNavigateToCreate = { backStack.add(CreateRegistryKey) },
                         onNavigateToDetail = { registryId -> backStack.add(RegistryDetailKey(registryId)) },
                         onNavigateToEdit = { registryId -> backStack.add(EditRegistryKey(registryId)) },
+                        onNavigateToNotifications = { backStack.add(NotificationsKey) },
                     )
                 }
 
@@ -289,6 +291,15 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                     onError = {
                         backStack.clear()
                         backStack.add(HomeKey)
+                    },
+                )
+            }
+
+            entry<NotificationsKey> {
+                NotificationsScreen(
+                    onBack = { backStack.removeLast() },
+                    onNavigateToRegistry = { registryId ->
+                        backStack.add(RegistryDetailKey(registryId))
                     },
                 )
             }

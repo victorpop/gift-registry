@@ -54,6 +54,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.giftregistry.R
 import com.giftregistry.domain.model.Registry
+import com.giftregistry.ui.notifications.NotificationsInboxBell
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -64,6 +65,7 @@ fun RegistryListScreen(
     onNavigateToCreate: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
     onNavigateToEdit: (String) -> Unit,
+    onNavigateToNotifications: () -> Unit = {},
     viewModel: RegistryListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -82,7 +84,10 @@ fun RegistryListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.registry_list_title)) }
+                title = { Text(stringResource(R.string.registry_list_title)) },
+                actions = {
+                    NotificationsInboxBell(onClick = onNavigateToNotifications)
+                },
             )
         },
         floatingActionButton = {
