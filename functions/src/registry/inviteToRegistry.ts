@@ -4,6 +4,7 @@ import { FieldPath } from "firebase-admin/firestore";
 import { inviteTemplate } from "../email/templates/invite";
 import { sendEmail } from "../email/send";
 import { sendInvitePush } from "../notifications/invitePush";
+import { writeNotification } from "../notifications/writeNotification";
 import { buildRegistryUrl } from "../config/publicUrls";
 
 interface InviteRequest {
@@ -120,6 +121,23 @@ export const inviteToRegistry = onCall(
           registryId,
           registryName,
           locale,
+        });
+
+        // Write persistent in-app notification for the invited user (existing users only;
+        // non-user invites have no account to write to — email-only per CONTEXT D-18).
+        await writeNotification({
+          userId: invitedUid,
+          type: "invite",
+          titleKey: "notification_invite_title",
+          bodyKey: "notification_invite_body",
+          titleFallback: `${ownerName} invited you to "${registryName}"`,
+          bodyFallback: `Tap to view ${registryName}`,
+          payload: {
+            registryId,
+            registryName,
+            actorName: ownerName,
+            actorUid: request.auth.uid,
+          },
         });
       }
 

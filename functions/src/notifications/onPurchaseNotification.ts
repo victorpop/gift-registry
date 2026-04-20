@@ -24,6 +24,7 @@ import { getMessaging } from "firebase-admin/messaging";
 import { sendEmail } from "../email/send";
 import { purchaseTemplate } from "../email/templates/purchase";
 import { buildRegistryUrl } from "../config/publicUrls";
+import { writeNotification } from "./writeNotification";
 
 const REGION = "europe-west3";
 
@@ -254,5 +255,24 @@ export const onPurchaseNotification = onDocumentUpdated(
         });
       }
     }
+
+    // Persistent inbox notification — owner-side item_purchased (best-effort, after email).
+    const giverDisplayName =
+      [giverFirstName, giverLastName].filter(Boolean).join(" ") || null;
+    await writeNotification({
+      userId: ownerUid,
+      type: "item_purchased",
+      titleKey: "notification_item_purchased_title",
+      bodyKey: "notification_item_purchased_body",
+      titleFallback: `"${itemName}" was purchased`,
+      bodyFallback: `Someone bought "${itemName}" from "${registryName}"`,
+      payload: {
+        registryId,
+        itemId,
+        registryName,
+        itemName,
+        actorName: giverDisplayName,
+      },
+    });
   }
 );

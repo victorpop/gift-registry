@@ -4,6 +4,7 @@ import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { expiryTemplate } from "../email/templates/expiry";
 import { sendEmail } from "../email/send";
 import { buildReReserveUrl } from "../config/publicUrls";
+import { writeNotification } from "../notifications/writeNotification";
 
 interface ReleasePayload { reservationId: string; }
 
@@ -32,6 +33,10 @@ export const releaseReservation = onTaskDispatched<ReleasePayload>(
       reservationId: string;
       itemName: string;
       registryName: string;
+      registryId: string;
+      itemId: string;
+      giverId: string | null;
+      ownerId: string | null;
     } | null = null;
 
     await db.runTransaction(async (tx) => {
@@ -54,17 +59,21 @@ export const releaseReservation = onTaskDispatched<ReleasePayload>(
         return;
       }
 
+      const txRegistryId = data.registryId as string;
+      const txItemId = data.itemId as string;
+
       const itemRef = db
-        .collection("registries").doc(data.registryId as string)
-        .collection("items").doc(data.itemId as string);
+        .collection("registries").doc(txRegistryId)
+        .collection("items").doc(txItemId);
 
       // Read item and registry inside transaction to capture names for email
       const itemSnap = await tx.get(itemRef);
       const itemName = (itemSnap.data()?.title as string) ?? "your gift";
 
-      const registryRef = db.collection("registries").doc(data.registryId as string);
+      const registryRef = db.collection("registries").doc(txRegistryId);
       const registrySnap = await tx.get(registryRef);
       const registryName = (registrySnap.data()?.title as string) ?? "a registry";
+      const ownerId = (registrySnap.data()?.ownerId as string) ?? null;
 
       tx.update(itemRef, {
         status: "available",
@@ -79,11 +88,18 @@ export const releaseReservation = onTaskDispatched<ReleasePayload>(
         reservationId,
         itemName,
         registryName,
+        registryId: txRegistryId,
+        itemId: txItemId,
+        giverId: (data.giverId as string) ?? null,
+        ownerId,
       };
     });
 
     if (emailData) {
-      const { giverEmail, reservationId: rid, itemName, registryName } = emailData;
+      const {
+        giverEmail, reservationId: rid, itemName, registryName,
+        registryId, itemId, giverId, ownerId,
+      } = emailData;
       const reReserveUrl = buildReReserveUrl(rid);
       const { subject, html, text } = expiryTemplate(
         { itemName, registryName, reReserveUrl },
@@ -93,6 +109,33 @@ export const releaseReservation = onTaskDispatched<ReleasePayload>(
         await sendEmail({ to: giverEmail, subject, html, text });
       } catch (err) {
         console.error(`[releaseReservation] sendEmail failed for reservation ${rid}:`, err);
+      }
+
+      // Owner-side reservation_expired notification
+      if (ownerId) {
+        await writeNotification({
+          userId: ownerId,
+          type: "reservation_expired",
+          titleKey: "notification_reservation_expired_title",
+          bodyKey: "notification_reservation_expired_body",
+          titleFallback: `Reservation on "${itemName}" expired`,
+          bodyFallback: `The 30-minute reservation on "${itemName}" in "${registryName}" expired`,
+          payload: { registryId, itemId, reservationId: rid, registryName, itemName },
+        });
+      }
+
+      // Giver-side re_reserve_window notification — only for signed-in givers.
+      // Guest givers (giverId == null) have no account so no inbox entry.
+      if (giverId) {
+        await writeNotification({
+          userId: giverId,
+          type: "re_reserve_window",
+          titleKey: "notification_re_reserve_window_title",
+          bodyKey: "notification_re_reserve_window_body",
+          titleFallback: `"${itemName}" is available again`,
+          bodyFallback: `Your reservation expired — "${itemName}" is available to re-reserve in "${registryName}"`,
+          payload: { registryId, itemId, reservationId: rid, registryName, itemName },
+        });
       }
     }
   }

@@ -100,6 +100,20 @@ service cloud.firestore {
       allow read, write, delete: if isSignedIn() && request.auth.uid == userId;
     }
 
+    // Quick task 260420-ozb: Persistent in-app notifications inbox — per-user subcollection.
+    // Admin SDK writes via writeNotification helper; clients can read their
+    // own entries and flip readAt, nothing else.
+    match /users/{userId}/notifications/{notificationId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create: if false;
+      // Client updates limited to readAt only — prevents tampering with type/payload.
+      allow update: if isSignedIn()
+                    && request.auth.uid == userId
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(["readAt"]);
+      allow delete: if false;  // v1: no user-initiated deletion
+    }
+
     // Phase 7 (STORE-01 / D-21): config collection — world-readable so the
     // Store Browser can load the store list even for unauthenticated
     // onboarding states. No client writes — admin only via seed script

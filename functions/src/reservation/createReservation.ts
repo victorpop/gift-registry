@@ -2,6 +2,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { CloudTasksClient } from "@google-cloud/tasks";
+import { writeNotification } from "../notifications/writeNotification";
 
 interface CreateReservationRequest {
   registryId: string;
@@ -107,6 +108,45 @@ export const createReservation = onCall<CreateReservationRequest>(
 
     await db.collection("reservations").doc(reservationId)
       .update({ cloudTaskName });
+
+    // Write owner-side reservation_created notification.
+    // Two extra reads (registry + item) happen AFTER transaction commit — best-effort;
+    // a failure here must never prevent the caller from receiving the reservation response.
+    try {
+      const registrySnap = await db.collection("registries").doc(registryId).get();
+      const itemSnap = await db
+        .collection("registries").doc(registryId)
+        .collection("items").doc(itemId).get();
+      const ownerId = registrySnap.data()?.ownerId as string | undefined;
+      const registryName = (registrySnap.data()?.title as string) ?? "your registry";
+      const itemName = (itemSnap.data()?.title as string) ?? "a gift";
+      if (ownerId) {
+        await writeNotification({
+          userId: ownerId,
+          type: "reservation_created",
+          titleKey: "notification_reservation_created_title",
+          bodyKey: "notification_reservation_created_body",
+          titleFallback: `Someone reserved "${itemName}"`,
+          bodyFallback: `${giverName} reserved "${itemName}" on "${registryName}"`,
+          payload: { registryId, itemId, reservationId, registryName, itemName, actorName: giverName },
+        });
+      }
+    } catch (err) {
+      // Best-effort: reservation already created, notification is supplementary.
+      console.error("[createReservation] Failed to write reservation_created notification:", err);
+      try {
+        await db.collection("notifications_failures").add({
+          type: "inbox_write",
+          notificationType: "reservation_created",
+          registryId,
+          itemId,
+          error: err instanceof Error ? err.message : String(err),
+          timestamp: FieldValue.serverTimestamp(),
+        });
+      } catch (loggingErr) {
+        console.error("[createReservation] Failed to log notification failure:", loggingErr);
+      }
+    }
 
     return { reservationId, affiliateUrl, expiresAtMs };
   }
