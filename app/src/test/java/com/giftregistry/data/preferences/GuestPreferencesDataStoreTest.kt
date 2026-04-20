@@ -19,10 +19,14 @@ class GuestPreferencesDataStoreTest {
 
     private class InMemoryGuestPrefs : GuestPreferencesRepository {
         private val state = MutableStateFlow<GuestUser?>(null)
+        private val reservationState = MutableStateFlow<String?>(null)
         override fun observeGuestIdentity(): Flow<GuestUser?> = state
         override suspend fun getGuestIdentity(): GuestUser? = state.value
         override suspend fun saveGuestIdentity(guest: GuestUser) { state.value = guest }
         override suspend fun clearGuestIdentity() { state.value = null }
+        override fun observeActiveReservationId(): Flow<String?> = reservationState
+        override suspend fun getActiveReservationId(): String? = reservationState.value
+        override suspend fun setActiveReservationId(reservationId: String?) { reservationState.value = reservationId }
     }
 
     @Test
@@ -45,5 +49,15 @@ class GuestPreferencesDataStoreTest {
         prefs.saveGuestIdentity(GuestUser("A", "B", "a@b.c"))
         prefs.clearGuestIdentity()
         assertNull(prefs.getGuestIdentity())
+    }
+
+    @Test
+    fun `setActiveReservationId persists and null clears`() = runTest {
+        val prefs = InMemoryGuestPrefs()
+        assertNull(prefs.getActiveReservationId())
+        prefs.setActiveReservationId("res-abc-123")
+        assertEquals("res-abc-123", prefs.getActiveReservationId())
+        prefs.setActiveReservationId(null)
+        assertNull(prefs.getActiveReservationId())
     }
 }

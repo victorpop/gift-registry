@@ -91,6 +91,21 @@ class ReserveItemViewModelTest {
     }
 
     @Test
+    fun `successful reserve persists reservationId via GuestPreferencesRepository`() = runTest(dispatcher) {
+        coEvery { guestPrefs.getGuestIdentity() } returns guest
+        coEvery { reserveItemUseCase("reg-1", "item-1", guest, null) } returns
+            Result.success(ReservationResult("res-server-42", "https://aff.example", 123L))
+
+        val vm = vm()
+        vm.onReserveClicked("item-1")
+        advanceUntilIdle()
+
+        // The server-returned reservationId (NOT the item id) must be persisted
+        // so ConfirmPurchaseBanner can pass it to confirmPurchase callable later.
+        coVerify(exactly = 1) { guestPrefs.setActiveReservationId("res-server-42") }
+    }
+
+    @Test
     fun `onReserveClicked with no guest identity emits ShowGuestSheet`() = runTest(dispatcher) {
         coEvery { guestPrefs.getGuestIdentity() } returns null
 

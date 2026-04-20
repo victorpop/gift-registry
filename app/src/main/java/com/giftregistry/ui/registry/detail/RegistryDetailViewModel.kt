@@ -106,6 +106,18 @@ class RegistryDetailViewModel @Inject constructor(
         .catch { emit(false) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
+    /**
+     * The reservationId returned by `createReservation` is persisted in DataStore on
+     * reservation success so it survives process death. Used by ConfirmPurchaseBanner
+     * to pass the correct ID to `confirmPurchase` (NOT the item ID — the Cloud Function
+     * looks up `reservations/{reservationId}` which is a separate collection from items).
+     * Cleared after a successful confirm-purchase call.
+     */
+    val activeReservationId: StateFlow<String?> = guestPreferencesRepository
+        .observeActiveReservationId()
+        .catch { emit(null) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     private val _deleteError = MutableStateFlow<String?>(null)
     val deleteError: StateFlow<String?> = _deleteError
 
@@ -175,6 +187,10 @@ class RegistryDetailViewModel @Inject constructor(
         try {
             reserveItemUseCase(registryId, itemId, guest, giverId = null)
                 .onSuccess { result ->
+                    // Persist reservationId so ConfirmPurchaseBanner can pass the correct
+                    // server-side ID to `confirmPurchase` (items/{id} and reservations/{id}
+                    // are different Firestore collections). Survives process death.
+                    guestPreferencesRepository.setActiveReservationId(result.reservationId)
                     _reservationEvents.send(ReservationEvent.OpenRetailer(result.affiliateUrl))
                 }
                 .onFailure { err ->
@@ -198,7 +214,10 @@ class RegistryDetailViewModel @Inject constructor(
             val result = confirmPurchaseUseCase(reservationId)
             _confirmingPurchase.value = false
             result.fold(
-                onSuccess = { _snackbarMessages.emit(SnackbarMessage.Resource(R.string.reservation_confirm_purchase_success)) },
+                onSuccess = {
+                    guestPreferencesRepository.setActiveReservationId(null)
+                    _snackbarMessages.emit(SnackbarMessage.Resource(R.string.reservation_confirm_purchase_success))
+                },
                 onFailure = { _snackbarMessages.emit(SnackbarMessage.Resource(R.string.reservation_confirm_purchase_error)) },
             )
         }

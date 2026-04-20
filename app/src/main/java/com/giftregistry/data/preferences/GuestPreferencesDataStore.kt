@@ -27,6 +27,7 @@ class GuestPreferencesDataStore @Inject constructor(
     private val firstNameKey = stringPreferencesKey("guest_first_name")
     private val lastNameKey = stringPreferencesKey("guest_last_name")
     private val emailKey = stringPreferencesKey("guest_email")
+    private val activeReservationIdKey = stringPreferencesKey("active_reservation_id")
 
     override fun observeGuestIdentity(): Flow<GuestUser?> =
         context.guestDataStore.data.map { prefs ->
@@ -58,5 +59,18 @@ class GuestPreferencesDataStore @Inject constructor(
 
     override suspend fun clearGuestIdentity() {
         context.guestDataStore.edit { it.clear() }
+    }
+
+    override fun observeActiveReservationId(): Flow<String?> =
+        context.guestDataStore.data.map { prefs -> prefs[activeReservationIdKey] }
+
+    override suspend fun getActiveReservationId(): String? =
+        context.guestDataStore.data.first()[activeReservationIdKey]
+
+    override suspend fun setActiveReservationId(reservationId: String?) {
+        context.guestDataStore.edit { prefs ->
+            if (reservationId == null) prefs.remove(activeReservationIdKey)
+            else prefs[activeReservationIdKey] = reservationId
+        }
     }
 }

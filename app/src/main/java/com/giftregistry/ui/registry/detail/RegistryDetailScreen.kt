@@ -91,6 +91,7 @@ fun RegistryDetailScreen(
     val registryDeleted by viewModel.registryDeleted.collectAsStateWithLifecycle()
     val isReserving by viewModel.isReserving.collectAsStateWithLifecycle()
     val hasActiveReservation by viewModel.hasActiveReservation.collectAsStateWithLifecycle()
+    val activeReservationId by viewModel.activeReservationId.collectAsStateWithLifecycle()
     val confirmingPurchase by viewModel.confirmingPurchase.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -300,20 +301,13 @@ fun RegistryDetailScreen(
                 }
 
                 // Phase 6 (UI-SPEC Contract 1): confirm-purchase banner for givers with active reservation
-                if (hasActiveReservation) {
+                val reservationId = activeReservationId
+                if (hasActiveReservation && reservationId != null) {
                     item(key = "confirm-purchase-banner") {
                         ConfirmPurchaseBanner(
                             isConfirming = confirmingPurchase,
                             onConfirm = {
-                                // Use first reserved item's id as the reservation proxy.
-                                // Full reservationId wiring requires Plan 06-03 server response
-                                // stored in GuestPreferencesDataStore — deferred to future plan.
-                                // For now, use the first RESERVED item id as the reservationId
-                                // (matches server-side lookup in confirmPurchase callable).
-                                val firstReservedItem = items.firstOrNull {
-                                    it.status == com.giftregistry.domain.model.ItemStatus.RESERVED
-                                }
-                                firstReservedItem?.let { viewModel.onConfirmPurchase(it.id) }
+                                viewModel.onConfirmPurchase(reservationId)
                             },
                         )
                     }

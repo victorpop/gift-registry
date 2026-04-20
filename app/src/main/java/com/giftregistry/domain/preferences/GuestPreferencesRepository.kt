@@ -8,4 +8,8 @@ interface GuestPreferencesRepository {
     suspend fun getGuestIdentity(): GuestUser?
     suspend fun saveGuestIdentity(guest: GuestUser)
     suspend fun clearGuestIdentity()
+
+    fun observeActiveReservationId(): Flow<String?>
+    suspend fun getActiveReservationId(): String?
+    suspend fun setActiveReservationId(reservationId: String?)
 }
