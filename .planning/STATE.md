@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.1
-milestone_name: giftmaison-visual-refresh
-status: roadmap_complete
-stopped_at: Milestone v1.1 roadmap complete — Phases 8–11 defined, ready for phase planning
-last_updated: "2026-04-20T08:00:00.000Z"
+milestone_name: "Milestone: GiftMaison visual refresh"
+status: executing
+stopped_at: Completed 08-01-PLAN.md — Wave 0 RED stubs landed; ready for Wave 1 (08-02, 08-03, 08-04 in parallel)
+last_updated: "2026-04-20T16:40:32.435Z"
 last_activity: 2026-04-20
 progress:
-  total_phases: 4
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 11
+  completed_phases: 7
+  total_plans: 41
+  completed_plans: 37
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
-**Current focus:** Milestone v1.1 — GiftMaison visual refresh (owner-facing Android redesign)
+**Current focus:** Phase 08 — giftmaison-design-foundation
 
 ## Current Position
 
-Phase: Not started (Phase 8 — GiftMaison Design Foundation is next)
-Plan: —
-Status: Roadmap complete — ready for phase planning
-Last activity: 2026-04-20 — v1.1 roadmap created (Phases 8–11)
+Phase: 08 (giftmaison-design-foundation) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-04-20
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -86,6 +86,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07-romanian-store-browser P01 | 8min | 2 tasks | 12 files |
 | Phase 07-romanian-store-browser P02 | 3min | 2 tasks | 9 files |
 | Phase 07-romanian-store-browser P03 | 12min | 3 tasks | 8 files |
+| Phase 08-giftmaison-design-foundation P01 | 5min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -183,6 +184,10 @@ Recent decisions affecting current work:
 - [Phase 07-romanian-store-browser]: WebView ref held in Composable (remember mutableStateOf) not ViewModel — prevents Activity context leak; LaunchedEffect(homepageUrl) triggers initial load to avoid recomposition reloads in update lambda
 - [Phase 07-romanian-store-browser]: External scheme blocking uses Toast inside shouldOverrideUrlLoading (MVP); Snackbar follow-up requires dedicated StateFlow — documented as known deviation
 - [Phase 07-romanian-store-browser]: Add-to-list button disabled when registryId is null (Home-FAB entry path) — guards AddItemKey dispatch; D-10 registry picker is the follow-up
+- [Phase 08-giftmaison-design-foundation]: Wave 0 TDD RED pattern: every phase requirement ships with an automated failing test before any implementation exists; Waves 1-2 must flip tests RED→GREEN to prove the handoff contract is satisfied
+- [Phase 08-giftmaison-design-foundation]: Compose Google Fonts BOM-pinning: compose-ui-text-google-fonts alias declared without version.ref so BOM 2026.03.00 resolves it to 1.10.5 alongside other androidx.compose.ui:* modules
+- [Phase 08-giftmaison-design-foundation]: Wordmark is unit-tested as a pure-Kotlin factory wordmarkAnnotatedString(ink, accent): AnnotatedString so Wave 2 must factor the @Composable GiftMaisonWordmark over this testable helper
+- [Phase 08-giftmaison-design-foundation]: TypographyTest includes an explicit Pitfall 2 guard (everyRole_disablesFontPadding_pitfall2) asserting PlatformTextStyle(includeFontPadding = false) on all 10 type roles — catches future em-lineHeight regressions
 
 ### Pending Todos
 
@@ -214,6 +219,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T08:00:00.000Z
-Stopped at: v1.1 roadmap complete — Phases 8–11 defined in ROADMAP.md, traceability updated, ready for `/gsd:plan-phase 8`
+Last session: 2026-04-20T16:40:18.297Z
+Stopped at: Completed 08-01-PLAN.md — Wave 0 RED stubs landed; ready for Wave 1 (08-02, 08-03, 08-04 in parallel)
 Resume file: None
