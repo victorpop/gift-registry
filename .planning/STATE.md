@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 Phase: 07
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-04-20 - Completed quick task 260420-gat: Harden firestore.rules against missing fields on legacy registry docs (deployed to gift-registry-ro)
+Last activity: 2026-04-20 - Completed quick task 260420-gv2: Gate Firebase emulator wiring on -Puse_emulator Gradle property
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -199,6 +199,7 @@ None yet.
 |---|-------------|------|--------|-----------|
 | 260419-ubj | Onboarding carousel (3 slides) before auth screen | 2026-04-19 | e1aeb0f | [260419-ubj-onboarding-carousel-3-slides-before-auth](./quick/260419-ubj-onboarding-carousel-3-slides-before-auth/) |
 | 260420-gat | Harden firestore.rules against missing fields on legacy registry docs | 2026-04-20 | 05207a6 | [260420-gat-harden-firestore-rules-against-missing-f](./quick/260420-gat-harden-firestore-rules-against-missing-f/) |
+| 260420-gv2 | Gate Firebase emulator wiring on `-Puse_emulator` Gradle property | 2026-04-20 | 9c96e55 | [260420-gv2-gate-firebase-emulator-wiring-on-puse-em](./quick/260420-gv2-gate-firebase-emulator-wiring-on-puse-em/) |
 
 ## Session Continuity
 
