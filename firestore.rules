@@ -7,23 +7,41 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Helper functions use `resource.data.get(key, default)` for every optional
+    // field. Firestore 'list' rule evaluation is strict on undefined field
+    // access and throws PERMISSION_DENIED instead of treating missing fields as
+    // null (production error: "Property visibility is undefined on object.
+    // for 'list' @ L32"). Defaults match RegistryDto defaults so new-doc
+    // semantics are unchanged; legacy docs predating the visibility /
+    // invitedUsers fields (Phase 03) are handled via the defaults.
     function isOwner(registryData) {
-      return isSignedIn() && request.auth.uid == registryData.ownerId;
+      // Empty-string default fails closed — no client has auth.uid == '' so a
+      // doc missing ownerId is unreadable/unwritable by every caller.
+      return isSignedIn() && request.auth.uid == registryData.get('ownerId', '');
     }
 
     function isPublicRegistry(registryData) {
-      return registryData.visibility == 'public';
+      // Legacy docs predate `visibility` (added in Phase 03). Default to
+      // 'public' to match RegistryDto.visibility = "public" — avoids the
+      // PERMISSION_DENIED throw on undefined field access in list evaluation.
+      return registryData.get('visibility', 'public') == 'public';
     }
 
     function isInvited(registryData) {
+      // Defensive .get() for both fields. Legacy docs predate `invitedUsers`;
+      // empty-map default means no one is invited, which is safe.
       return isSignedIn() &&
-             registryData.visibility == 'private' &&
-             registryData.invitedUsers[request.auth.uid] == true;
+             registryData.get('visibility', 'public') == 'private' &&
+             registryData.get('invitedUsers', {})[request.auth.uid] == true;
     }
 
     function canReadRegistry(registryData) {
-      return isPublicRegistry(registryData) ||
-             isOwner(registryData) ||
+      // isOwner first: belt-and-suspenders defense. For owner-filtered list
+      // queries (whereEqualTo('ownerId', uid)) isOwner short-circuits true
+      // and the visibility/invitedUsers checks are skipped entirely — no
+      // field-access path can throw on legacy docs even if .get() were wrong.
+      return isOwner(registryData) ||
+             isPublicRegistry(registryData) ||
              isInvited(registryData);
     }
 
