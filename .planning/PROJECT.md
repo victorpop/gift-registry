@@ -28,13 +28,15 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 - ✓ 30-minute reservation timer with auto-release on expiry — Phase 4
 - ✓ Givers are redirected to retailer immediately upon reservation — Phase 4
 - ✓ URL transformer identifies merchant and appends correct affiliate tag — Phase 3
+- ✓ Owners can browse popular Romanian retailers in an in-app WebView and add products via persistent "Add to list" CTA — Phase 7 (automated; 8 items pending real-device UAT). Replaces the retired EMAG catalog API scope (no public catalog API available)
 
 ### Active
 
-- [ ] Owners can browse and add items from EMAG product catalog via API
+_(All v1 active requirements complete — milestone v1.0 ready for audit)_
 
 ### Out of Scope
 
+- EMAG public product catalog API — no confirmed public API; replaced by WebView store browser in Phase 7
 - In-app purchasing — users buy at the retailer, not in the app
 - iOS app — Android only for v1
 - Multiple persistence layers — Firebase only, no SQLite
@@ -86,4 +88,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-19 after Phase 6 completion*
+*Last updated: 2026-04-20 after Phase 7 completion — milestone v1.0 all phases done*
