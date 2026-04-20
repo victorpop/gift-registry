@@ -3,9 +3,53 @@
 **Defined:** 2026-04-04
 **Core Value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
 
-## v1 Requirements
+## v1.1 Requirements — GiftMaison visual refresh
 
-Requirements for initial release. Each maps to roadmap phases.
+Requirements for the v1.1 milestone. Owner-facing Android redesign per `design_handoff_android_owner_flow/README.md`. Each maps to a roadmap phase.
+
+### Design Foundation
+
+- [ ] **DES-01**: Instrument Serif, Inter, and JetBrains Mono fonts integrated via Google Fonts and available as Compose `FontFamily` values across all screens
+- [ ] **DES-02**: Type scale defined (Display XL/L/M/S, Body L/M/S/XS, Mono caps) with handoff-specified sizes, weights, letter-spacing, and line-heights
+- [ ] **DES-03**: Colour token palette defined (paper, paperDeep, ink, inkSoft, inkFaint, line, accent, accentInk, accentSoft, second, secondSoft, ok, warn) as sRGB hex matching handoff Housewarming table
+- [ ] **DES-04**: Spacing, radii (8/10/12/14/16/22/999), and shadow specs (FAB, Google banner, bottom sheet) applied consistently per handoff
+- [ ] **DES-05**: "GiftMaison" wordmark component (Instrument Serif italic + terracotta accent period) reusable across top bars
+
+### Occasion Theming
+
+- [ ] **THEME-01**: Four occasion themes (Housewarming, Wedding, Baby, Birthday) ship with handoff-specified values for accent, accentInk, accentSoft, second, secondSoft
+- [ ] **THEME-02**: Per-registry occasion theme applies at runtime on Registry detail, Create registry, and Add item — tokens cascade from `registry.occasion`
+- [ ] **THEME-03**: Greyscale tokens (paper → line) shift hue subtly per theme per `theme.jsx`
+
+### Shared Chrome
+
+- [ ] **CHROME-01**: Bottom nav shows 5 slots (Home · Stores · +FAB · Lists · You) with stroked icons and mono caps labels; selected state uses accentSoft pill + accent stroke; hidden on screens 06, 09, 10
+- [ ] **CHROME-02**: Centre FAB is a 54 px accent circle lifted 22 px above the bar with accent shadow and 4 px paper ring; tapping opens the Add action bottom sheet
+- [ ] **CHROME-03**: Add action bottom sheet (22-radius top, drag handle, scrim over blurred home) offers 4 actions: New registry (primary), Item from URL, Browse stores, Add manually
+
+### Screens
+
+- [ ] **SCR-06**: Onboarding + sign up screen matches handoff (wordmark top bar, italic-accent headline, Google banner with concentric rings, divider, name/email/password fields with focus ring, primary pill CTA, Terms line, "Log in" footer pill)
+- [ ] **SCR-07**: Home / all registries screen matches handoff (wordmark + avatar top bar, "Your registries" headline, 3-tab segmented Active/Drafts/Past, card list with 16:9 hero + occasion pill + date + title + stats; single dark "primary" card)
+- [ ] **SCR-08**: Registry detail screen matches handoff (180 px hero with gradient + pinned toolbar, 4-stat strip, share banner pill, filter chips, full-width item rows with 58 px thumbnail + status chip + ⋯)
+- [ ] **SCR-09**: Create registry screen matches handoff (Step 1 of 2 app bar with Skip, italic-accent headline, 2×3 occasion tile grid, form fields, visibility radio card, bottom CTA bar)
+- [ ] **SCR-10**: Add item (paste URL) screen matches handoff (× close app bar, 3-tab segmented, URL field with "Fetching from {domain}" + affiliate confirmation row, preview card, auto-fill tag, optional note, info pill, dual CTA bar)
+
+### Status UI
+
+- [ ] **STAT-01**: Reserved chip uses filled accent pill with pulsing 4 px dot (1.4 s interval) and "Nm" countdown updated once per minute
+- [ ] **STAT-02**: Given chip uses secondSoft fill with "✓ given" label
+- [ ] **STAT-03**: Open chip uses outlined pill with line border and inkFaint text
+- [ ] **STAT-04**: Purchased item row renders at 55 % opacity with grayscale image, ink tint, centred ✓, and strikethrough title — remains visible to viewers per handoff trust pattern
+
+**v1.1 Open questions (deferred to phase planning):**
+- Countdown re-render cadence (handoff suggests minute, display-only on owner screens)
+- `isPrimary` card selection rule on Home (most-recent vs. pinned)
+- Designs for Stores and You bottom-nav tabs (only Home and Lists are built out in handoff)
+
+## v1.0 Requirements (shipped)
+
+Requirements for initial release — all shipped in v1.0. Each maps to a roadmap phase.
 
 ### Authentication
 
@@ -118,6 +162,13 @@ Explicitly excluded. Documented to prevent scope creep.
 | Multiple persistence layers (SQLite + Firebase) | Firebase offline persistence handles caching; dual persistence adds sync complexity |
 | Ads or premium tiers | Affiliate commissions are the sole revenue model; ads damage UX |
 | Browser extension | Android-first; adds separate release channel to maintain |
+| v1.1: Web fallback visual refresh | Handoff explicitly scopes design to Android owner flow only |
+| v1.1: Settings / profile screen redesign | Deferred — not in handoff |
+| v1.1: Notifications inbox redesign | Deferred — not in handoff |
+| v1.1: Dark mode | Deferred — not in handoff |
+| v1.1: Empty states (new user, empty registry, no results) | Deferred — flagged by handoff as out of scope |
+| v1.1: Store browser WebView chrome redesign | Deferred — handoff covers only owner flow screens 06-10 |
+| v1.1: Email template redesign | Deferred — not in handoff |
 
 ## Traceability
 
@@ -176,11 +227,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | I18N-02 | Phase 1 | Complete |
 | I18N-03 | Phase 2 | Complete |
 
-**Coverage:**
-- v1 requirements: 45 total (ITEM-03 and ITEM-04 retired — 43 active + 4 STORE-* added = 47 mapped)
+**v1.0 Coverage:**
+- v1.0 requirements: 45 total (ITEM-03 and ITEM-04 retired — 43 active + 4 STORE-* added = 47 mapped)
 - Mapped to phases: 47
 - Unmapped: 0 ✓
 
+**v1.1 Coverage:**
+- v1.1 requirements: 18 total (DES-05, THEME-03, CHROME-03, SCR-06..10, STAT-01..04, DES-01..04, THEME-01..02, CHROME-01..02)
+- Mapped to phases: _(pending roadmap)_
+- Unmapped: _(pending roadmap)_
+
 ---
 *Requirements defined: 2026-04-04*
-*Last updated: 2026-04-19 — Phase 7 rescoped from EMAG API to Romanian Store Browser*
+*Last updated: 2026-04-20 — v1.1 GiftMaison visual refresh requirements added (18 new)*
