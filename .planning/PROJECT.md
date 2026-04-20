@@ -8,6 +8,26 @@ A general-purpose gift registry Android application with a web fallback for gift
 
 Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
 
+## Current Milestone: v1.1 GiftMaison visual refresh
+
+**Goal:** Replace the current owner-facing Android UI with the GiftMaison design system — pixel-accurate to the 2026-04-20 design handoff — across all 5 owner screens and supporting chrome, without reworking navigation, repositories, or Cloud Functions.
+
+**Target features:**
+- Brand: "GiftMaison" wordmark (Instrument Serif italic with terracotta accent period) and associated copy
+- Design tokens: oklch→sRGB colour palette, 4 occasion themes (Housewarming / Wedding / Baby / Birthday), full type scale (Instrument Serif + Inter + JetBrains Mono), spacing / radii / shadows
+- Owner screens redesigned: 06 Onboarding + sign up, 07 Home (all registries), 08 Registry detail, 09 Create registry, 10 Add item via URL
+- Chrome: bottom nav with centre FAB, Add-action bottom sheet, reservation status chips with pulsing-dot animation, given-item treatment
+- Per-registry occasion theming at runtime (accent / accentSoft / accentInk / second / secondSoft switch per occasion)
+
+**Scope boundaries:**
+- Giver-facing web fallback is **out of scope** for v1.1 (handoff explicitly scopes to Android owner flow)
+- Settings / profile / notifications inbox / dark mode / empty states / store-browser WebView / email templates deferred to later milestone(s)
+
+**Key context:**
+- Handoff `design_handoff_android_owner_flow/` is the design contract; no external research needed — open questions (countdown cadence, isPrimary rule, Stores/You nav designs) deferred to phase planning.
+- Re-skin, not rebuild: navigation graph, ViewModels, repositories, Firestore schema, and Cloud Functions stay as-is.
+- v1.0 tech debt items (placeholder affiliate IDs, placeholder store logos, HUMAN-UAT items) remain tracked separately — not rolled into v1.1.
+
 ## Requirements
 
 ### Validated
@@ -32,7 +52,13 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 
 ### Active
 
-_(All v1 active requirements complete — milestone v1.0 ready for audit)_
+_v1.1 active requirements are tracked in `.planning/REQUIREMENTS.md`. Summary:_
+- [ ] Ship GiftMaison design tokens + typography + occasion theming
+- [ ] Redesign 5 owner-facing Android screens pixel-accurate to handoff
+- [ ] Redesign bottom nav + FAB + Add-action bottom sheet
+- [ ] Preserve existing behaviour (navigation, reservation logic, repositories) while changing visual layer
+
+_All v1.0 active requirements complete — milestone v1.0 ready for audit._
 
 ### Out of Scope
 
@@ -88,4 +114,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-20 after Phase 7 completion — milestone v1.0 all phases done*
+*Last updated: 2026-04-20 after starting milestone v1.1 GiftMaison visual refresh*

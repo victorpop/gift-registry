@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: verifying
-stopped_at: Completed 07-romanian-store-browser 07-03-PLAN.md
-last_updated: "2026-04-20T05:37:06.238Z"
+milestone: v1.1
+milestone_name: giftmaison-visual-refresh
+status: defining_requirements
+stopped_at: Milestone v1.1 started — defining requirements
+last_updated: "2026-04-20T07:00:00.000Z"
 last_activity: 2026-04-20
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 36
-  completed_plans: 36
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-04)
+See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
-**Current focus:** Phase 07 — romanian-store-browser
+**Current focus:** Milestone v1.1 — GiftMaison visual refresh (owner-facing Android redesign)
 
 ## Current Position
 
-Phase: 07
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-20 - Completed quick task 260420-o6w: Show shared-with-me registries
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-20 — Milestone v1.1 started
 
 Progress: [░░░░░░░░░░] 0%
 
