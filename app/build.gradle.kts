@@ -31,6 +31,20 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    buildTypes {
+        debug {
+            // Default to "true" so the dev loop (./gradlew :app:assembleDebug) keeps hitting the emulator.
+            // Opt out for on-device testing with: ./gradlew :app:assembleDebug -Puse_emulator=false
+            val useEmulator = providers.gradleProperty("use_emulator").getOrElse("true")
+            buildConfigField("boolean", "USE_FIREBASE_EMULATOR", useEmulator)
+        }
+        release {
+            // Hardcoded false — release builds MUST NEVER point at the emulator,
+            // regardless of whether -Puse_emulator is passed. This is a safety gate.
+            buildConfigField("boolean", "USE_FIREBASE_EMULATOR", "false")
+        }
+    }
+
 }
 
 kotlin {
