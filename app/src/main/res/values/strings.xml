@@ -3,6 +3,11 @@
     <!-- App-level -->
     <string name="app_name">Gift Registry</string>
 
+    <!-- Bottom navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_add_list">Add list</string>
+    <string name="nav_preferences">Preferences</string>
+
     <!-- Common / shared -->
     <string name="common_ok">OK</string>
     <string name="common_cancel">Cancel</string>

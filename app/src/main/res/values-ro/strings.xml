@@ -3,6 +3,11 @@
     <!-- App-level -->
     <string name="app_name">Registru de Cadouri</string>
 
+    <!-- Navigare de jos -->
+    <string name="nav_home">Acas&#259;</string>
+    <string name="nav_add_list">Adaug&#259; list&#259;</string>
+    <string name="nav_preferences">Preferin&#539;e</string>
+
     <!-- Common / shared -->
     <string name="common_ok">OK</string>
     <string name="common_cancel">Anuleaz\u0103</string>

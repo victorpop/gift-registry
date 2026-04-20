@@ -2,8 +2,19 @@ package com.giftregistry.ui.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -13,9 +24,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
+import com.giftregistry.R
 import com.giftregistry.domain.usecase.ResolveReservationUseCase
 import com.giftregistry.ui.registry.detail.ReservationDeepLinkBus
 import kotlinx.coroutines.launch
@@ -37,6 +50,9 @@ import com.giftregistry.ui.registry.list.RegistryListScreen
 import com.giftregistry.ui.settings.SettingsScreen
 import com.giftregistry.ui.store.browser.StoreBrowserScreen
 import com.giftregistry.ui.store.list.StoreListScreen
+
+private fun Any?.isTopLevelDestination(): Boolean =
+    this is HomeKey || this is CreateRegistryKey || this is StoreListKey || this is SettingsKey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -95,24 +111,78 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
         return
     }
 
-    NavDisplay(
-        backStack = backStack,
-        onBack = { if (backStack.size > 1) backStack.removeLast() },
-        entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator()),
-        entryProvider = entryProvider {
-            entry<AuthKey> { AuthScreen() }
+    val currentKey = backStack.lastOrNull()
+    val showBottomBar = currentKey.isTopLevelDestination()
 
-            entry<OnboardingKey> { OnboardingScreen() }
-
-            entry<HomeKey> {
-                RegistryListScreen(
-                    onNavigateToCreate = { backStack.add(CreateRegistryKey) },
-                    onNavigateToDetail = { registryId -> backStack.add(RegistryDetailKey(registryId)) },
-                    onNavigateToEdit = { registryId -> backStack.add(EditRegistryKey(registryId)) },
-                    onNavigateToSettings = { backStack.add(SettingsKey) },
-                    onNavigateToBrowseStores = { backStack.add(StoreListKey(preSelectedRegistryId = null)) },
-                )
+    Scaffold(
+        bottomBar = {
+            if (showBottomBar) {
+                NavigationBar {
+                    NavigationBarItem(
+                        selected = currentKey is HomeKey,
+                        onClick = {
+                            if (currentKey !is HomeKey) {
+                                backStack.clear()
+                                backStack.add(HomeKey)
+                            }
+                        },
+                        icon = { Icon(Icons.Default.Home, contentDescription = null) },
+                        label = { Text(stringResource(R.string.nav_home)) },
+                    )
+                    NavigationBarItem(
+                        selected = currentKey is CreateRegistryKey,
+                        onClick = {
+                            if (currentKey !is CreateRegistryKey) {
+                                backStack.clear()
+                                backStack.add(CreateRegistryKey)
+                            }
+                        },
+                        icon = { Icon(Icons.Default.Add, contentDescription = null) },
+                        label = { Text(stringResource(R.string.nav_add_list)) },
+                    )
+                    NavigationBarItem(
+                        selected = currentKey is StoreListKey,
+                        onClick = {
+                            if (currentKey !is StoreListKey) {
+                                backStack.clear()
+                                backStack.add(StoreListKey(preSelectedRegistryId = null))
+                            }
+                        },
+                        icon = { Icon(Icons.Default.ShoppingBag, contentDescription = null) },
+                        label = { Text(stringResource(R.string.stores_browse_label)) },
+                    )
+                    NavigationBarItem(
+                        selected = currentKey is SettingsKey,
+                        onClick = {
+                            if (currentKey !is SettingsKey) {
+                                backStack.clear()
+                                backStack.add(SettingsKey)
+                            }
+                        },
+                        icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+                        label = { Text(stringResource(R.string.nav_preferences)) },
+                    )
+                }
             }
+        }
+    ) { innerPadding ->
+        NavDisplay(
+            backStack = backStack,
+            onBack = { if (backStack.size > 1) backStack.removeLast() },
+            entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator()),
+            modifier = Modifier.padding(innerPadding),
+            entryProvider = entryProvider {
+                entry<AuthKey> { AuthScreen() }
+
+                entry<OnboardingKey> { OnboardingScreen() }
+
+                entry<HomeKey> {
+                    RegistryListScreen(
+                        onNavigateToCreate = { backStack.add(CreateRegistryKey) },
+                        onNavigateToDetail = { registryId -> backStack.add(RegistryDetailKey(registryId)) },
+                        onNavigateToEdit = { registryId -> backStack.add(EditRegistryKey(registryId)) },
+                    )
+                }
 
             entry<CreateRegistryKey> {
                 CreateRegistryScreen(
@@ -219,8 +289,9 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                     },
                 )
             }
-        }
-    )
+            }
+        )
+    }
 }
 
 @Composable
