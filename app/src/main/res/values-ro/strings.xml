@@ -107,6 +107,7 @@
     <string name="item_notes_label">Note</string>
     <string name="item_notes_hint">Note optionale pentru cei care ofera cadouri</string>
     <string name="item_image_label">URL imagine</string>
+    <string name="item_image_content_desc">Imagine produs</string>
     <string name="item_edit_title">Editeaza articolul</string>
     <string name="item_delete_confirm_title">Stergi articolul?</string>
     <string name="item_delete_confirm_body">Articolul va fi sters din registru.</string>

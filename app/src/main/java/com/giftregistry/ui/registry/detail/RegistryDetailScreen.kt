@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -55,12 +56,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
 import com.giftregistry.R
 import com.giftregistry.ui.navigation.hiltViewModelWithNavArgs
 import com.giftregistry.domain.model.Item
@@ -507,15 +512,20 @@ private fun ItemCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Placeholder icon for image (Coil deferred per plan spec)
-            Icon(
-                imageVector = Icons.Default.Add,
-                contentDescription = null,
+            // Product thumbnail. Falls back to the plus-icon placeholder when imageUrl is null or the load fails.
+            val placeholderPainter = rememberVectorPainter(Icons.Default.Add)
+            AsyncImage(
+                model = item.imageUrl,
+                contentDescription = stringResource(R.string.item_image_content_desc),
                 modifier = Modifier
                     .size(48.dp)
-                    .padding(end = 8.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    .clip(RoundedCornerShape(4.dp)),
+                contentScale = ContentScale.Crop,
+                placeholder = placeholderPainter,
+                error = placeholderPainter,
+                fallback = placeholderPainter,
             )
+            Spacer(modifier = Modifier.size(8.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
