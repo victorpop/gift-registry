@@ -42,6 +42,9 @@ web/tsconfig.*.tsbuildinfo
 .kotlin/
 build/
 local.properties
+# Firebase Android config — each dev downloads from Firebase Console and registers
+# their own debug SHA-1 (keeps per-machine OAuth client entries out of git)
+app/google-services.json
 
 # Claude local workspace (per-user; not shared)
 .claude/
