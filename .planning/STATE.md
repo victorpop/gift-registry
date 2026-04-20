@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 Phase: 07
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-04-20 - Completed quick task 260420-hcw: Wire Coil image rendering — preview in AddItemScreen + thumbnails in item list
+Last activity: 2026-04-20 - Completed quick task 260420-hgb: Collapse two language pickers into one — single picker drives both app UI locale and Firestore preferredLocale for emails
 
 Progress: [░░░░░░░░░░] 0%
 
