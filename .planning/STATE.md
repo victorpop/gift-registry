@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 Phase: 07
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-04-20
+Last activity: 2026-04-20 - Completed quick task 260420-gat: Harden firestore.rules against missing fields on legacy registry docs (deployed to gift-registry-ro)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -198,6 +198,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260419-ubj | Onboarding carousel (3 slides) before auth screen | 2026-04-19 | e1aeb0f | [260419-ubj-onboarding-carousel-3-slides-before-auth](./quick/260419-ubj-onboarding-carousel-3-slides-before-auth/) |
+| 260420-gat | Harden firestore.rules against missing fields on legacy registry docs | 2026-04-20 | 05207a6 | [260420-gat-harden-firestore-rules-against-missing-f](./quick/260420-gat-harden-firestore-rules-against-missing-f/) |
 
 ## Session Continuity
 
