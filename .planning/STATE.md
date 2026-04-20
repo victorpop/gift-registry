@@ -209,9 +209,10 @@ Recent decisions affecting current work:
 | 260420-jlg | Invite bottom sheet — show success confirmation and auto-dismiss instead of silent flip | 2026-04-20 | 2f17c7e | [260420-jlg-invite-bottom-sheet-show-success-confirm](./quick/260420-jlg-invite-bottom-sheet-show-success-confirm/) |
 | 260420-nh8 | Fix email invite URL + deploy hosting and 3 functions to gift-registry-ro | 2026-04-20 | 41ed064 | [260420-nh8-fix-email-invite-url-and-deploy-firebase](./quick/260420-nh8-fix-email-invite-url-and-deploy-firebase/) |
 | 260420-o6w | Show shared-with-me registries — add invitedUsers query + merge/dedupe/sort in repository | 2026-04-20 | d86577d | [260420-o6w-show-shared-with-me-registries-query-reg](./quick/260420-o6w-show-shared-with-me-registries-query-reg/) |
+| 260420-ozb | Persistent in-app notifications inbox — top-bar bell, 5 event sources via writeNotification helper, EN+RO strings | 2026-04-20 | cbc8b9a | [260420-ozb-add-persistent-in-app-notifications-inbo](./quick/260420-ozb-add-persistent-in-app-notifications-inbo/) |
 
 ## Session Continuity
 
 Last session: 2026-04-20T06:00:00.000Z
-Stopped at: Completed quick task 260420-o6w: Show shared-with-me registries
+Stopped at: Completed quick task 260420-ozb: Add persistent in-app notifications inbox
 Resume file: None
