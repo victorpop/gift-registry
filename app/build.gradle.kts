@@ -92,6 +92,12 @@ dependencies {
     // AppCompat (for locale switching)
     implementation(libs.appcompat)
 
+    // Coil 3 (image loading for Compose)
+    // coil-network-okhttp is REQUIRED — Coil 3 split networking into a separate module.
+    // Without it, HTTP image URLs silently fail to load.
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
     // Test
     testImplementation("junit:junit:4.13.2")
     testImplementation(libs.coroutines.test)
