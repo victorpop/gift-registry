@@ -23,6 +23,13 @@ class AddItemViewModel @Inject constructor(
 
     val registryId: String = savedStateHandle["registryId"] ?: ""
 
+    // Phase 7: Plan 03 — pre-fill support from Store Browser
+    val initialUrl: String = savedStateHandle["initialUrl"] ?: ""
+    val initialRegistryId: String = savedStateHandle["initialRegistryId"] ?: ""
+    // TODO(D-10 follow-up): When multi-registry picker ships, use initialRegistryId
+    // as the default selection. Currently unused because registry picker is
+    // deferred — the add is always committed to `registryId`.
+
     // Form fields
     val url = MutableStateFlow("")
     val title = MutableStateFlow("")
@@ -44,6 +51,16 @@ class AddItemViewModel @Inject constructor(
 
     private val _savedItemId = MutableStateFlow<String?>(null)
     val savedItemId: StateFlow<String?> = _savedItemId.asStateFlow()
+
+    init {
+        if (initialUrl.isNotBlank()) {
+            url.value = initialUrl
+            // Fire OG fetch automatically — user can still edit before saving. The
+            // existing affiliate transform (ItemRepositoryImpl) runs on save; no
+            // changes needed to the affiliate pipeline for Phase 7.
+            onFetchMetadata()
+        }
+    }
 
     fun onUrlChanged(newUrl: String) {
         url.value = newUrl

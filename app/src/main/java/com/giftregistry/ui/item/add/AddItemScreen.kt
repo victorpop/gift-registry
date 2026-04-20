@@ -39,10 +39,14 @@ import com.giftregistry.ui.navigation.hiltViewModelWithNavArgs
 @Composable
 fun AddItemScreen(
     registryId: String,
+    initialUrl: String? = null,
+    initialRegistryId: String? = null,
     onBack: () -> Unit,
     viewModel: AddItemViewModel = hiltViewModelWithNavArgs(
         key = registryId,
         "registryId" to registryId,
+        "initialUrl" to (initialUrl ?: ""),
+        "initialRegistryId" to (initialRegistryId ?: ""),
     )
 ) {
     val url by viewModel.url.collectAsStateWithLifecycle()
