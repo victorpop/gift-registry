@@ -4,7 +4,7 @@ import {
   initializeTestEnvironment,
   RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, setDoc, where } from "firebase/firestore";
 import * as fs from "fs";
 
 let testEnv: RulesTestEnvironment;
@@ -435,5 +435,76 @@ describe("config/stores rules", () => {
   it("denies authenticated write to config/stores", async () => {
     const authDb = testEnv.authenticatedContext("user1").firestore();
     await assertFails(setDoc(doc(authDb, "config", "stores"), { stores: [] }));
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// describe("Legacy registry docs (missing fields)")
+// Regression guard for production PERMISSION_DENIED on list evaluation:
+//   "Property visibility is undefined on object. for 'list' @ L32"
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("Legacy registry docs (missing fields)", () => {
+  it("allows owner to list legacy registry missing `visibility`", async () => {
+    await seedRegistry("legacy-no-vis", {
+      ownerId: "owner-legacy-1",
+      title: "Legacy",
+      invitedUsers: {},
+      // visibility intentionally absent
+    });
+    const db = testEnv.authenticatedContext("owner-legacy-1").firestore();
+    const q = query(
+      collection(db, "registries"),
+      where("ownerId", "==", "owner-legacy-1")
+    );
+    await assertSucceeds(getDocs(q));
+  });
+
+  it("allows owner to list legacy registry missing `invitedUsers`", async () => {
+    await seedRegistry("legacy-no-invites", {
+      ownerId: "owner-legacy-2",
+      visibility: "private",
+      title: "Legacy private",
+      // invitedUsers intentionally absent
+    });
+    const db = testEnv.authenticatedContext("owner-legacy-2").firestore();
+    const q = query(
+      collection(db, "registries"),
+      where("ownerId", "==", "owner-legacy-2")
+    );
+    await assertSucceeds(getDocs(q));
+  });
+
+  it("denies read of a doc missing `ownerId` (fail-closed)", async () => {
+    await seedRegistry("legacy-no-owner", {
+      visibility: "private",
+      title: "Orphan",
+      invitedUsers: {},
+      // ownerId intentionally absent
+    });
+    const db = testEnv.authenticatedContext("any-user").firestore();
+    await assertFails(getDoc(doc(db, "registries", "legacy-no-owner")));
+  });
+
+  it("regression: public registry remains readable by unauthenticated users", async () => {
+    await seedRegistry("pub-reg", {
+      ownerId: "owner-p",
+      visibility: "public",
+      title: "Public",
+      invitedUsers: {},
+    });
+    const unauthDb = testEnv.unauthenticatedContext().firestore();
+    await assertSucceeds(getDoc(doc(unauthDb, "registries", "pub-reg")));
+  });
+
+  it("regression: private registry remains readable by invited user", async () => {
+    await seedRegistry("priv-reg", {
+      ownerId: "owner-priv",
+      visibility: "private",
+      title: "Private",
+      invitedUsers: { "guest-user": true },
+    });
+    const db = testEnv.authenticatedContext("guest-user").firestore();
+    await assertSucceeds(getDoc(doc(db, "registries", "priv-reg")));
   });
 });
