@@ -4,6 +4,7 @@ import { FieldPath } from "firebase-admin/firestore";
 import { inviteTemplate } from "../email/templates/invite";
 import { sendEmail } from "../email/send";
 import { sendInvitePush } from "../notifications/invitePush";
+import { buildRegistryUrl } from "../config/publicUrls";
 
 interface InviteRequest {
   registryId: string;
@@ -90,7 +91,7 @@ export const inviteToRegistry = onCall(
       await registryRef.update(new FieldPath("invitedUsers", inviteKey), true);
 
       // D-16/D-18: Write invite email to mail collection (Trigger Email extension delivers)
-      const registryUrl = `https://giftregistry.app/registry/${registryId}`;
+      const registryUrl = buildRegistryUrl(registryId);
       // ownerName: best-effort lookup from auth record; fall back to "Someone" if unknown
       let ownerName = "Someone";
       try {

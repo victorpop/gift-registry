@@ -3,6 +3,7 @@ import * as admin from "firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { expiryTemplate } from "../email/templates/expiry";
 import { sendEmail } from "../email/send";
+import { buildReReserveUrl } from "../config/publicUrls";
 
 interface ReleasePayload { reservationId: string; }
 
@@ -83,7 +84,7 @@ export const releaseReservation = onTaskDispatched<ReleasePayload>(
 
     if (emailData) {
       const { giverEmail, reservationId: rid, itemName, registryName } = emailData;
-      const reReserveUrl = `https://giftregistry.app/reservation/${rid}/re-reserve`;
+      const reReserveUrl = buildReReserveUrl(rid);
       const { subject, html, text } = expiryTemplate(
         { itemName, registryName, reReserveUrl },
         "en" // givers don't have preferredLocale stored on reservation; default en per D-14 fallback

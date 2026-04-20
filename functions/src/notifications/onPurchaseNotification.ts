@@ -23,6 +23,7 @@ import { FieldValue } from "firebase-admin/firestore";
 import { getMessaging } from "firebase-admin/messaging";
 import { sendEmail } from "../email/send";
 import { purchaseTemplate } from "../email/templates/purchase";
+import { buildRegistryUrl } from "../config/publicUrls";
 
 const REGION = "europe-west3";
 
@@ -111,7 +112,7 @@ export const onPurchaseNotification = onDocumentUpdated(
 
     const registryName = (registry.title as string) ?? "your registry";
     const itemName = (after.title as string) ?? "a gift";
-    const registryUrl = `https://giftregistry.app/registry/${registryId}`;
+    const registryUrl = buildRegistryUrl(registryId);
 
     // Read owner preferredLocale + email (D-14)
     let locale: Locale = "en";

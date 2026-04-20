@@ -11,7 +11,7 @@ describe("expiryTemplate", () => {
   const vars = {
     itemName: "Coffee Machine",
     registryName: "Wedding Registry",
-    reReserveUrl: "https://giftregistry.app/reservation/res1/re-reserve",
+    reReserveUrl: "https://gift-registry-ro.web.app/reservation/res1/re-reserve",
   };
 
   it("en: returns non-empty subject, html, text", () => {
@@ -61,7 +61,7 @@ describe("inviteTemplate", () => {
   const vars = {
     ownerName: "Ana",
     registryName: "Baby Shower",
-    registryUrl: "https://giftregistry.app/registry/reg1",
+    registryUrl: "https://gift-registry-ro.web.app/registry/reg1",
   };
 
   it("en: returns non-empty subject, html, text", () => {
@@ -103,7 +103,7 @@ describe("purchaseTemplate", () => {
     giverLastName: "Doe",
     itemName: "Blender",
     registryName: "Birthday Gifts",
-    registryUrl: "https://giftregistry.app/registry/reg2",
+    registryUrl: "https://gift-registry-ro.web.app/registry/reg2",
   };
 
   it("en: returns non-empty subject, html, text", () => {
