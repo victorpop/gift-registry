@@ -1,14 +1,6 @@
 package com.giftregistry.ui.registry.list
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,19 +11,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,8 +27,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -77,8 +64,6 @@ fun RegistryListScreen(
     onNavigateToCreate: () -> Unit,
     onNavigateToDetail: (String) -> Unit,
     onNavigateToEdit: (String) -> Unit,
-    onNavigateToSettings: () -> Unit,
-    onNavigateToBrowseStores: () -> Unit,
     viewModel: RegistryListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -97,70 +82,15 @@ fun RegistryListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.registry_list_title)) },
-                actions = {
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = stringResource(R.string.auth_settings_title)
-                        )
-                    }
-                }
+                title = { Text(stringResource(R.string.registry_list_title)) }
             )
         },
         floatingActionButton = {
-            var menuExpanded by remember { mutableStateOf(false) }
-            Box(contentAlignment = Alignment.BottomEnd) {
-                if (menuExpanded) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() },
-                            ) { menuExpanded = false }
-                    )
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    AnimatedVisibility(
-                        visible = menuExpanded,
-                        enter = expandVertically(expandFrom = Alignment.Bottom) + fadeIn(),
-                        exit = shrinkVertically(shrinkTowards = Alignment.Bottom) + fadeOut(),
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.End,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            FabMenuRow(
-                                icon = Icons.Default.ShoppingBag,
-                                label = stringResource(R.string.stores_browse_label),
-                                onClick = { menuExpanded = false; onNavigateToBrowseStores() },
-                            )
-                            FabMenuRow(
-                                icon = Icons.Default.Edit,
-                                label = stringResource(R.string.stores_create_registry_label),
-                                onClick = { menuExpanded = false; onNavigateToCreate() },
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ExtendedFloatingActionButton(
-                        onClick = { menuExpanded = !menuExpanded },
-                        icon = {
-                            AnimatedContent(
-                                targetState = menuExpanded,
-                                contentAlignment = Alignment.Center,
-                                label = "fab-icon",
-                            ) { expanded ->
-                                Icon(
-                                    imageVector = if (expanded) Icons.Default.Close else Icons.Default.Add,
-                                    contentDescription = null,
-                                )
-                            }
-                        },
-                        text = { Text(stringResource(R.string.stores_fab_label)) },
-                    )
-                }
+            FloatingActionButton(onClick = onNavigateToCreate) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = stringResource(R.string.registry_create_button)
+                )
             }
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -358,24 +288,6 @@ private fun RegistryCard(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer
                 )
             )
-        }
-    }
-}
-
-@Composable
-private fun FabMenuRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String,
-    onClick: () -> Unit,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        FilledTonalButton(onClick = onClick) {
-            Icon(imageVector = icon, contentDescription = null, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(label)
         }
     }
 }
