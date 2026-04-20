@@ -11,14 +11,49 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class FirestoreDataSource @Inject constructor(
+open class FirestoreDataSource @Inject constructor(
     private val firestore: FirebaseFirestore
 ) {
     // --- Registries ---
 
-    fun observeRegistries(ownerId: String): Flow<List<RegistryDto>> = callbackFlow {
+    /**
+     * Observes all registries owned by [uid] (ownerId == uid).
+     *
+     * Previously named `observeRegistries`; renamed to distinguish from
+     * [observeInvitedRegistries]. All callers updated — only [RegistryRepositoryImpl]
+     * calls data-source methods directly.
+     */
+    open fun observeOwnedRegistries(uid: String): Flow<List<RegistryDto>> = callbackFlow {
         val listener = firestore.collection("registries")
-            .whereEqualTo("ownerId", ownerId)
+            .whereEqualTo("ownerId", uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) { close(error); return@addSnapshotListener }
+                val registries = snapshot?.documents?.mapNotNull { doc ->
+                    doc.toObject(RegistryDto::class.java)?.copy(id = doc.id)
+                } ?: emptyList()
+                trySend(registries)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    /**
+     * Observes all registries where [uid] appears as an invited user
+     * (`invitedUsers.{uid} == true`).
+     *
+     * The dotted-path field filter is a documented Firestore feature for map-keyed
+     * queries. Firebase UIDs are 28-char alphanumeric — no dot-escaping concern.
+     *
+     * Security rules: `isInvited()` already grants invited users read access on
+     * private registries; public registries are readable by any signed-in client.
+     * No rules change required.
+     *
+     * Index: single-field map-key equality does not require a composite index.
+     * If Firestore requests one at runtime, the console will print a click-to-create
+     * link — create it and retry. Expected: no index needed.
+     */
+    open fun observeInvitedRegistries(uid: String): Flow<List<RegistryDto>> = callbackFlow {
+        val listener = firestore.collection("registries")
+            .whereEqualTo("invitedUsers.$uid", true)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) { close(error); return@addSnapshotListener }
                 val registries = snapshot?.documents?.mapNotNull { doc ->

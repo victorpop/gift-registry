@@ -5,6 +5,7 @@ import com.giftregistry.domain.model.Registry
 import com.giftregistry.domain.registry.RegistryRepository
 import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -16,8 +17,22 @@ class RegistryRepositoryImpl @Inject constructor(
     private val functions: FirebaseFunctions
 ) : RegistryRepository {
 
-    override fun observeRegistries(ownerId: String): Flow<List<Registry>> =
-        dataSource.observeRegistries(ownerId).map { dtos -> dtos.map { it.toDomain() } }
+    override fun observeRegistries(ownerId: String): Flow<List<Registry>> {
+        // Parameter name kept as `ownerId` for interface stability; semantically
+        // this is the current user's UID. Result includes registries the user
+        // owns (ownerId == uid) AND registries where invitedUsers[uid] == true.
+        val owned = dataSource.observeOwnedRegistries(ownerId)
+        val invited = dataSource.observeInvitedRegistries(ownerId)
+        return combine(owned, invited) { ownedDtos, invitedDtos ->
+            // Dedupe by id — owner entry wins if a user is both owner and self-invited.
+            val byId = linkedMapOf<String, RegistryDto>()
+            for (dto in ownedDtos) byId[dto.id] = dto
+            for (dto in invitedDtos) byId.putIfAbsent(dto.id, dto)
+            byId.values
+                .map { it.toDomain() }
+                .sortedByDescending { it.updatedAt }
+        }
+    }
 
     override fun observeRegistry(registryId: String): Flow<Registry?> =
         dataSource.observeRegistry(registryId).map { it?.toDomain() }
