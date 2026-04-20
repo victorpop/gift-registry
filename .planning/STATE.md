@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-04)
 Phase: 07
 Plan: Not started
 Status: Phase complete — ready for verification
-Last activity: 2026-04-20 - Completed quick task 260420-iro: Persistent bottom nav across all screens + RegistryDetail FAB direct-opens Add Item form
+Last activity: 2026-04-20 - Completed quick task 260420-jlg: Invite bottom sheet — show success confirmation and auto-dismiss instead of silent flip
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -205,6 +205,7 @@ None yet.
 | 260420-hua | Bottom nav (Home, Add list, Browse stores, Preferences) + direct-create FAB on home | 2026-04-20 | be2f66b | [260420-hua-bottom-nav-home-add-list-browse-stores-p](./quick/260420-hua-bottom-nav-home-add-list-browse-stores-p/) |
 | 260420-iic | Fix stale-UID bug — make RegistryListViewModel reactive to authState | 2026-04-20 | 4ff3973 | [260420-iic-fix-stale-uid-bug-make-registrylistviewm](./quick/260420-iic-fix-stale-uid-bug-make-registrylistviewm/) |
 | 260420-iro | Persistent bottom nav across all screens + RegistryDetail FAB direct-opens Add Item form | 2026-04-20 | 9a842f4 | [260420-iro-persistent-bottom-nav-across-all-screens](./quick/260420-iro-persistent-bottom-nav-across-all-screens/) |
+| 260420-jlg | Invite bottom sheet — show success confirmation and auto-dismiss instead of silent flip | 2026-04-20 | 2f17c7e | [260420-jlg-invite-bottom-sheet-show-success-confirm](./quick/260420-jlg-invite-bottom-sheet-show-success-confirm/) |
 
 ## Session Continuity
 
