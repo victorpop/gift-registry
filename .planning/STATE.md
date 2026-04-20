@@ -201,9 +201,10 @@ None yet.
 | 260420-gat | Harden firestore.rules against missing fields on legacy registry docs | 2026-04-20 | 05207a6 | [260420-gat-harden-firestore-rules-against-missing-f](./quick/260420-gat-harden-firestore-rules-against-missing-f/) |
 | 260420-gv2 | Gate Firebase emulator wiring on `-Puse_emulator` Gradle property | 2026-04-20 | 9c96e55 | [260420-gv2-gate-firebase-emulator-wiring-on-puse-em](./quick/260420-gv2-gate-firebase-emulator-wiring-on-puse-em/) |
 | 260420-hcw | Wire Coil image rendering — preview in AddItemScreen + thumbnails in item list | 2026-04-20 | 75d4e61 | [260420-hcw-wire-coil-image-rendering-preview-in-add](./quick/260420-hcw-wire-coil-image-rendering-preview-in-add/) |
+| 260420-hgb | Collapse two language pickers into one — single picker drives both app UI locale and Firestore preferredLocale for emails | 2026-04-20 | f069c8e | [260420-hgb-remove-the-email-language-setting-from-s](./quick/260420-hgb-remove-the-email-language-setting-from-s/) |
 
 ## Session Continuity
 
-Last session: 2026-04-20T05:31:25.739Z
-Stopped at: Completed 07-romanian-store-browser 07-03-PLAN.md
+Last session: 2026-04-20T06:00:00.000Z
+Stopped at: Completed quick task 260420-hgb: Remove email language setting from Settings screen
 Resume file: None
