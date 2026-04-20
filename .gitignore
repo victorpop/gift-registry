@@ -30,6 +30,11 @@ web/tsconfig.*.tsbuildinfo
 .env
 .env.local
 
+# Firebase Extensions secrets — the extension CLI writes SMTP keys etc. to
+# .secret.local files per extension instance. Never commit these.
+extensions/*.secret.local
+*.secret.local
+
 # IDE
 .idea/
 *.iml
