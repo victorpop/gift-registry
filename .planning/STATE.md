@@ -186,7 +186,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+- [2026-04-20 general] Register Firebase Web app and deploy real web config — `https://gift-registry-ro.web.app` blank because no Web app registered + missing `web/.env.local` → `initializeApp({})` throws. See `.planning/todos/pending/2026-04-20-register-firebase-web-app-and-deploy-real-web-config.md`
 
 ### Blockers/Concerns
 
