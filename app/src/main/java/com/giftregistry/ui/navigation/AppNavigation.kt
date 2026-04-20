@@ -51,8 +51,12 @@ import com.giftregistry.ui.settings.SettingsScreen
 import com.giftregistry.ui.store.browser.StoreBrowserScreen
 import com.giftregistry.ui.store.list.StoreListScreen
 
-private fun Any?.isTopLevelDestination(): Boolean =
-    this is HomeKey || this is CreateRegistryKey || this is StoreListKey || this is SettingsKey
+// Bottom nav is hidden only where it would break UX:
+//   - AuthKey/OnboardingKey: pre-auth flows, no destinations available
+//   - ReReserveDeepLink: full-screen CircularProgressIndicator resolver
+// All other keys SHOW the bottom nav (persistent across the app).
+private fun Any?.showsBottomNav(): Boolean =
+    this !is AuthKey && this !is OnboardingKey && this !is ReReserveDeepLink
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,7 +116,7 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
     }
 
     val currentKey = backStack.lastOrNull()
-    val showBottomBar = currentKey.isTopLevelDestination()
+    val showBottomBar = currentKey.showsBottomNav()
 
     Scaffold(
         bottomBar = {
@@ -212,7 +216,6 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                     onNavigateToEditItem = { itemId -> backStack.add(EditItemKey(key.registryId, itemId)) },
                     onNavigateToEditRegistry = { backStack.add(EditRegistryKey(key.registryId)) },
                     onNavigateToInvite = { showInviteSheet = true },
-                    onNavigateToBrowseStores = { backStack.add(StoreListKey(preSelectedRegistryId = key.registryId)) },
                 )
 
                 if (showInviteSheet) {
