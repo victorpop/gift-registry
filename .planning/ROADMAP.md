@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 4: Reservation System** - Server-authoritative 30-minute reservation timer with race condition prevention and auto-expiry (completed 2026-04-11)
 - [x] **Phase 5: Web Fallback** - Gift givers can view and reserve from a browser without installing the Android app (completed 2026-04-19)
 - [x] **Phase 6: Notifications + Email Flows** - Expiry emails, re-reserve flow, owner push notifications, and private registry invites (completed 2026-04-19)
-- [ ] **Phase 7: Romanian Store Browser** - Owners can browse popular Romanian retailers in an in-app WebView with a persistent "Add to list" CTA that funnels products into the existing URL-based add flow (replaces original EMAG Catalog scope — no confirmed public EMAG catalog API)
+- [x] **Phase 7: Romanian Store Browser** - Owners can browse popular Romanian retailers in an in-app WebView with a persistent "Add to list" CTA that funnels products into the existing URL-based add flow (replaces original EMAG Catalog scope — no confirmed public EMAG catalog API) (completed 2026-04-20)
 
 ## Phase Details
 
@@ -144,7 +144,7 @@ Plans:
 - [x] 07-00-PLAN.md -- Wave 1 foundation: seed data/script, Firestore rules for config/stores, ProGuard keep rule, stores_* strings (en + ro), 9 bundled store logos (human checkpoint)
 - [x] 07-01-PLAN.md -- Wave 2: domain + data layer (Store model, StoreRepository, LastRegistryPreferencesDataStore, StoresModule, unit tests)
 - [x] 07-02-PLAN.md -- Wave 3: StoreListScreen + StoreListViewModel + Home FAB menu refactor + Registry Detail entry + AppNavigation wiring
-- [ ] 07-03-PLAN.md -- Wave 4: StoreBrowserScreen (AndroidView-wrapped WebView) + AddItemKey extension + end-to-end UAT (human checkpoint)
+- [x] 07-03-PLAN.md -- Wave 4: StoreBrowserScreen (AndroidView-wrapped WebView) + AddItemKey extension + end-to-end UAT (human checkpoint)
 **UI hint**: yes
 
 ## Progress
@@ -160,4 +160,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7
 | 4. Reservation System | 6/6 | Complete   | 2026-04-11 |
 | 5. Web Fallback | 7/7 | Complete   | 2026-04-19 |
 | 6. Notifications + Email Flows | 6/6 | Complete   | 2026-04-19 |
-| 7. Romanian Store Browser | 3/4 | In Progress|  |
+| 7. Romanian Store Browser | 4/4 | Complete   | 2026-04-20 |

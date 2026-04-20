@@ -61,8 +61,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Store Browser (replaces retired ITEM-03/04 EMAG API scope)
 
 - [x] **STORE-01**: Owner can open a "Browse stores" entry point and see a curated list of popular Romanian retailers (logo + name)
-- [ ] **STORE-02**: Tapping a store opens the retailer's homepage in an in-app WebView
-- [ ] **STORE-03**: A persistent bottom "Add to list" button opens the existing add-item sheet pre-filled with the current WebView URL; confirming adds the item with affiliate tag applied via the Phase 3 AffiliateUrlTransformer
+- [x] **STORE-02**: Tapping a store opens the retailer's homepage in an in-app WebView
+- [x] **STORE-03**: A persistent bottom "Add to list" button opens the existing add-item sheet pre-filled with the current WebView URL; confirming adds the item with affiliate tag applied via the Phase 3 AffiliateUrlTransformer
 - [x] **STORE-04**: If the store page fails to load, the WebView shows an error state and the "Add to list" button is disabled; retry available, nav stack intact
 
 ### Notifications
@@ -146,8 +146,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ITEM-03 | — | Retired (no EMAG API) |
 | ITEM-04 | — | Retired (superseded by STORE-03) |
 | STORE-01 | Phase 7 | Complete |
-| STORE-02 | Phase 7 | Pending |
-| STORE-03 | Phase 7 | Pending |
+| STORE-02 | Phase 7 | Complete |
+| STORE-03 | Phase 7 | Complete |
 | STORE-04 | Phase 7 | Complete |
 | ITEM-05 | Phase 3 | Complete |
 | ITEM-06 | Phase 3 | Complete |
