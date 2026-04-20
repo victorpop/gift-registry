@@ -147,9 +147,6 @@
     <string name="notifications_channel_purchase_name">Purchase alerts</string>
     <string name="notifications_channel_purchase_description">Notified when a gift is purchased from your registry</string>
 
-    <!-- Faza 6: Setare limba email -->
-    <string name="settings_email_language_label">Limba emailurilor</string>
-
     <!-- Faza 7: Puncte de intrare în Store Browser -->
     <string name="stores_fab_label">Nou</string>
     <string name="stores_browse_label">R\u0103sfoie\u015fte magazine</string>

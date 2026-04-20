@@ -146,9 +146,6 @@
     <string name="notifications_channel_purchase_name">Purchase alerts</string>
     <string name="notifications_channel_purchase_description">Notified when a gift is purchased from your registry</string>
 
-    <!-- Phase 6: Email language setting -->
-    <string name="settings_email_language_label">Email language</string>
-
     <!-- Phase 7: Store Browser entry points -->
     <string name="stores_fab_label">New</string>
     <string name="stores_browse_label">Browse stores</string>
