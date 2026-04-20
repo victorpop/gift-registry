@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "gift-registry-ro"
+  },
+  "targets": {},
+  "etags": {
+    "gift-registry-ro": {
+      "extensionInstances": {
+        "firestore-send-email": "3679a4893f3768a9f8b5f0124715500c6d69ef0b1ac3a0819f8297cc48857b23"
+      }
+    }
   }
 }
