@@ -124,13 +124,22 @@ None — plan executed exactly as written. The `open class` modifier was explici
 
 None — all wiring is live. The merge pipeline feeds directly into the existing `RegistryListViewModel.uiState` flow via `ObserveRegistriesUseCase` which is unchanged.
 
-## Pending Task
+## Task 2 (Live Test) — USER VERIFIED 2026-04-20
 
-**Task 2 (checkpoint:human-verify):** Two-account live test — requires Device A (Maria) and Device B (Victor) with debug APK installed. See plan for exact steps.
+Two-account live test performed by user on real devices:
+
+| Step | Result |
+|------|--------|
+| Maria creates private "Maria's Birthday 2026" + invites Victor's email | ✅ |
+| Victor signs in on Device B and lands on Home | ✅ "Maria's Birthday 2026" visible in Victor's list |
+| Victor opens the registry → views items → reserves a product → proceeds to purchase | ✅ full flow works |
+| Maria's own list unchanged | ✅ no regression |
+
+**User observation:** Victor described Maria's registry as appearing "under a separate category Shared lists". The codebase has no UI grouping logic for shared-vs-owned — the merged list is flat, sorted by `updatedAt`. Most likely explanation: Victor owned no registries, so his list contained only the one shared registry, which visually reads as a "shared only" view. If explicit grouping is desired, see Deferred Items #1 below.
 
 ## Deferred Items for Follow-Up Quick Tasks
 
-1. **"Shared with me" section header** — current UX mixes owned + invited sorted by updatedAt (no visual grouping). A follow-up quick task can add a section divider if desired.
+1. **"Shared with me" section header** — current UX mixes owned + invited sorted by updatedAt (no visual grouping). A follow-up quick task can add a section divider if desired. Recommended after the user's "Shared lists category" observation during live test.
 2. **Email-prefixed invite handling** — users who receive an invite before creating an account have `email:<addr>` keys in `invitedUsers`, not UID keys. After they sign up, a separate flow would need to migrate their key. Out of scope here.
 3. **Web fallback parity** — `useRegistryQuery` on the web only fetches a single registry by ID; if the web Home ever shows a list, it will need a similar `invitedUsers.$uid==true` query with the Firebase JS SDK.
 
@@ -139,6 +148,6 @@ None — all wiring is live. The merge pipeline feeds directly into the existing
 - [x] `app/src/test/java/com/giftregistry/data/registry/RegistryRepositoryImplObserveTest.kt` created
 - [x] `app/src/main/java/com/giftregistry/data/registry/FirestoreDataSource.kt` modified
 - [x] `app/src/main/java/com/giftregistry/data/registry/RegistryRepositoryImpl.kt` modified
-- [x] Commit `498bf43` exists in git log
+- [x] Commit `d86577d` exists in git log on main (cherry-picked from worktree `498bf43`)
 
 ## Self-Check: PASSED
