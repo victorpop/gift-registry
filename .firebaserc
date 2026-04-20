@@ -6,7 +6,7 @@
   "etags": {
     "gift-registry-ro": {
       "extensionInstances": {
-        "firestore-send-email": "3679a4893f3768a9f8b5f0124715500c6d69ef0b1ac3a0819f8297cc48857b23"
+        "firestore-send-email": "5bebd5d4e89cb0b7f27cfbb40a838b9df064d07eea87621f36863d276b4bc740"
       }
     }
   }
