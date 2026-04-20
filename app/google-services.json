@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "85980314822-16cbt3mh742td4cjcat9r6c2s7nv2i71.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.giftregistry",
+            "certificate_hash": "ef6c54896745c9aefeee65d7bc41f43c831cc0fa"
+          }
+        },
+        {
           "client_id": "85980314822-3dbfd4fe2uh0hngh2upro38hee4t0lj7.apps.googleusercontent.com",
           "client_type": 3
         }

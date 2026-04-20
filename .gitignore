@@ -1,12 +1,17 @@
 # Firebase
 firebase-debug.log
 firebase-debug.*.log
+firestore-debug.log
+firestore-debug.*.log
 ui-debug.log
 .firebase/
 
 # Functions
 functions/lib/
 functions/node_modules/
+
+# Rules test harness
+tests/rules/node_modules/
 
 # Hosting
 # hosting/public/ is the Vite build output root (written by `cd web && npm run build`)
@@ -34,5 +39,9 @@ web/tsconfig.*.tsbuildinfo
 *.apk
 *.aab
 .gradle/
+.kotlin/
 build/
 local.properties
+
+# Claude local workspace (per-user; not shared)
+.claude/
