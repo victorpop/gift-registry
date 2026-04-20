@@ -187,6 +187,7 @@ Recent decisions affecting current work:
 ### Pending Todos
 
 - [2026-04-20 general] Register Firebase Web app and deploy real web config — `https://gift-registry-ro.web.app` blank because no Web app registered + missing `web/.env.local` → `initializeApp({})` throws. See `.planning/todos/pending/2026-04-20-register-firebase-web-app-and-deploy-real-web-config.md`
+- [2026-04-20 ui] Group registries by ownership and clarify invitee permissions — after shared-with-me query shipped, add "Your lists" / "Shared with you" section headers on Home + audit Detail screen affordances (FAB, Invite, Edit, Delete) for invitee-aware hide/disable. See `.planning/todos/pending/2026-04-20-group-registries-by-ownership-and-clarify-invitee-permissions.md`
 
 ### Blockers/Concerns
 
