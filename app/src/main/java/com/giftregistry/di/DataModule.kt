@@ -2,6 +2,7 @@ package com.giftregistry.di
 
 import com.giftregistry.data.auth.AuthRepositoryImpl
 import com.giftregistry.data.fcm.FcmTokenRepositoryImpl
+import com.giftregistry.data.notifications.NotificationRepositoryImpl
 import com.giftregistry.data.preferences.GuestPreferencesDataStore
 import com.giftregistry.data.preferences.LanguagePreferencesDataStore
 import com.giftregistry.data.preferences.OnboardingPreferencesDataStore
@@ -11,6 +12,7 @@ import com.giftregistry.data.reservation.ReservationRepositoryImpl
 import com.giftregistry.domain.auth.AuthRepository
 import com.giftregistry.domain.fcm.FcmTokenRepository
 import com.giftregistry.domain.item.ItemRepository
+import com.giftregistry.domain.notifications.NotificationRepository
 import com.giftregistry.domain.preferences.GuestPreferencesRepository
 import com.giftregistry.domain.preferences.LanguagePreferencesRepository
 import com.giftregistry.domain.preferences.OnboardingPreferencesRepository
@@ -57,4 +59,8 @@ abstract class DataModule {
     @Binds
     @Singleton
     abstract fun bindFcmTokenRepository(impl: FcmTokenRepositoryImpl): FcmTokenRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindNotificationRepository(impl: NotificationRepositoryImpl): NotificationRepository
 }
