@@ -35,6 +35,7 @@ import com.giftregistry.ui.registry.detail.RegistryDetailScreen
 import com.giftregistry.ui.registry.invite.InviteBottomSheet
 import com.giftregistry.ui.registry.list.RegistryListScreen
 import com.giftregistry.ui.settings.SettingsScreen
+import com.giftregistry.ui.store.browser.StoreBrowserScreen
 import com.giftregistry.ui.store.list.StoreListScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -161,10 +162,34 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                 )
             }
 
+            entry<StoreBrowserKey> { key ->
+                StoreBrowserScreen(
+                    onBack = { backStack.removeLast() },
+                    onAddToList = { url, registryId ->
+                        val target = registryId ?: return@StoreBrowserScreen
+                        // registryId is nullable at the nav-key level; when null (entered from
+                        // Home FAB) we cannot dispatch to AddItemKey which requires a concrete
+                        // registryId. The Add-to-list button is already disabled when registryId
+                        // is null (guarded in StoreBrowserScreen with viewModel.registryId != null),
+                        // so this branch is defensive only. Follow-up: D-10 picker + auto-pick
+                        // last-used registry for Home-FAB entry path.
+                        backStack.add(
+                            AddItemKey(
+                                registryId = target,
+                                initialUrl = url,
+                                initialRegistryId = target,
+                            )
+                        )
+                    },
+                )
+            }
+
             entry<AddItemKey> { key ->
                 AddItemScreen(
                     registryId = key.registryId,
-                    onBack = { backStack.removeLast() }
+                    initialUrl = key.initialUrl,
+                    initialRegistryId = key.initialRegistryId,
+                    onBack = { backStack.removeLast() },
                 )
             }
 
