@@ -17,7 +17,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance().also { auth ->
-        if (BuildConfig.DEBUG) {
+        if (BuildConfig.USE_FIREBASE_EMULATOR) {
             auth.useEmulator("10.0.2.2", 9099)
         }
     }
@@ -26,7 +26,7 @@ object AppModule {
     @Singleton
     fun provideFirebaseFirestore(): FirebaseFirestore =
         FirebaseFirestore.getInstance().also { db ->
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.USE_FIREBASE_EMULATOR) {
                 db.useEmulator("10.0.2.2", 8080)
             }
         }
@@ -38,7 +38,7 @@ object AppModule {
         // SDK defaults to us-central1 when no region is specified, which yields 404
         // NOT_FOUND on every callable — always pin the region to match deployment.
         FirebaseFunctions.getInstance("europe-west3").also { fns ->
-            if (BuildConfig.DEBUG) {
+            if (BuildConfig.USE_FIREBASE_EMULATOR) {
                 fns.useEmulator("10.0.2.2", 5001)
             }
         }
