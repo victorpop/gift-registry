@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 11-01-PLAN.md
-last_updated: "2026-04-21T20:19:07.398Z"
+stopped_at: Completed 11-02-PLAN.md
+last_updated: "2026-04-21T20:25:18.872Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 11
   completed_phases: 10
   total_plans: 56
-  completed_plans: 51
+  completed_plans: 52
   percent: 0
 ---
 
@@ -95,6 +95,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 10 P03 | 4min | 2 tasks | 6 files |
 | Phase 10-onboarding-home-redesign P04 | 3min | 2 tasks | 8 files |
 | Phase 11-registry-detail-create-add-item-redesign P01 | 8min | 2 tasks | 7 files |
+| Phase 11-registry-detail-create-add-item-redesign P02 | 4min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -218,6 +219,8 @@ Recent decisions affecting current work:
 - [Phase 11]: HeroToolbarAlpha Pitfall 1 guard pinned: firstVisibleItemIndex >= 1 must short-circuit to 1f to prevent toolbar flash-to-transparent when hero scrolls off-screen
 - [Phase 11]: Legacy alias map pinned: Baby shower -> Baby, Anniversary -> Housewarming for backward compat with pre-Phase-11 Firestore docs
 - [Phase 11]: ADD_ITEM_MODE_DEFAULT_ORDINAL exposed as top-level const val per Phase 10 rememberSaveable Int-backed state pattern; ordinal=0 maps to PasteUrl
+- [Phase 11]: isAffiliateDomain inserted between extractDomain() and noMatch() in AffiliateUrlTransformer — additive, merchantRules stays private, transform() unchanged
+- [Phase 11]: OccasionCatalog legacy aliases use lowercase keys so storageKeyFor() normalises via .lowercase() — handles any casing variant from legacy Firestore docs
 
 ### Pending Todos
 
@@ -252,6 +255,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T20:19:07.395Z
-Stopped at: Completed 11-01-PLAN.md
+Last session: 2026-04-21T20:25:18.868Z
+Stopped at: Completed 11-02-PLAN.md
 Resume file: None
