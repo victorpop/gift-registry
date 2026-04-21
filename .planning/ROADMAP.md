@@ -174,10 +174,10 @@ Out of scope for v1.1 (per handoff): giver-facing web fallback, Settings / profi
 **Plans**: 5 plans
 Plans:
 - [x] 08-01-PLAN.md -- Wave 0: compose-ui-text-google-fonts dep + font_certs.xml + 5 failing theme unit test files (DES-01..05 RED)
-- [ ] 08-02-PLAN.md -- Housewarming colour tokens (DES-03): GiftMaisonColors data class + housewarmingColors() factory + LocalGiftMaisonColors CompositionLocal
-- [ ] 08-03-PLAN.md -- Fonts + Typography (DES-01 + DES-02): GoogleFont provider + 3 FontFamilys + 10 TextStyle roles with em-based letter-spacing/line-height
-- [ ] 08-04-PLAN.md -- Shapes + Spacing + Shadows (DES-04): 7 radii, 10 spacing values, 3 shadow Modifier extensions
-- [ ] 08-05-PLAN.md -- Integration (DES-05): wordmark composable + Theme/Color/Type rewire (42+ screens re-skin) + StyleGuidePreview harness
+- [x] 08-02-PLAN.md -- Housewarming colour tokens (DES-03): GiftMaisonColors data class + housewarmingColors() factory + LocalGiftMaisonColors CompositionLocal
+- [x] 08-03-PLAN.md -- Fonts + Typography (DES-01 + DES-02): GoogleFont provider + 3 FontFamilys + 10 TextStyle roles with em-based letter-spacing/line-height
+- [x] 08-04-PLAN.md -- Shapes + Spacing + Shadows (DES-04): 7 radii, 10 spacing values, 3 shadow Modifier extensions
+- [x] 08-05-PLAN.md -- Integration (DES-05): wordmark composable + Theme/Color/Type rewire (42+ screens re-skin) + StyleGuidePreview harness
 **UI hint**: yes
 
 ### Phase 9: Shared Chrome + Status UI
