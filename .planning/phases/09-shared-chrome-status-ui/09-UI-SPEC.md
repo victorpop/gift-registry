@@ -64,31 +64,50 @@ tokens are introduced. Named tokens and their Phase 9 usage:
 | `spacing.edgeWide` | 20 dp | Sheet top/bottom padding (matches handoff "20/18 padding") |
 | `spacing.gap20` | 20 dp | Sheet title-to-rows gap |
 
-Exceptions:
+### Phase 8 Inheritance Check
+
+The following `GiftMaisonSpacing` tokens are consumed by Phase 9 components. The executor must verify each token exists in the shipped Phase 8 `GiftMaisonSpacing.kt` before use. If any token is missing, add it to the Phase 8 spacing scale or escalate before proceeding.
+
+| Token | Expected dp Value |
+|-------|------------------|
+| `gap4` | 4 dp |
+| `gap6` | 6 dp |
+| `gap8` | 8 dp |
+| `gap10` | 10 dp |
+| `gap12` | 12 dp |
+| `gap14` | 14 dp |
+| `edge` | 16 dp |
+| `edgeWide` | 20 dp |
+| `gap20` | 20 dp |
+
+Exceptions (hardcoded pixel values — not spacing tokens, justified by handoff):
 - Bottom nav vertical padding: 4 dp top / 4 dp mid / 6 dp bottom (handoff "4/4/6 padding") — use `gap4` for top/mid, `gap6` for bottom.
-- Centre FAB lift: 22 dp above the nav bar baseline — this is an absolute offset value, not a spacing token. Hard-code as `offset(y = (-22).dp)` at the call site and comment the source.
+- Centre FAB lift: 22 dp above the nav bar baseline — absolute offset value, not a spacing token. Hard-code as `offset(y = (-22).dp)` at the call site and comment the source.
 - FAB paper ring: 4 dp border width — use `gap4`.
 - Nav bar border-top: 1 dp — not a spacing token; use `1.dp` directly.
+- FAB size: 54 dp circle — hardcoded per handoff.
+- Drag handle: 36 dp × 4 dp — hardcoded per handoff.
+- Touch target floor: 44 dp minimum on all interactive elements (accessibility). Nav items, FAB, action sheet rows, and status chip overflow buttons must all satisfy this.
 - Bottom padding on RegistryDetailScreen item list: 90 dp — already present in existing screen; no change.
-- Touch target minimum: 44 dp for all interactive elements (accessibility floor). Nav items, FAB, action sheet rows, and status chip overflow buttons must all satisfy this.
 
 ---
 
 ## Typography
 
-Phase 9 consumes the Phase 8 type scale exclusively. No new sizes or weights.
-The following roles are used in Phase 9 components:
+> **All size, weight, and line-height values are fixed in Phase 8 `GiftMaisonTypography.kt` and re-used unchanged. Phase 9 does not declare or override any typography scale values — this table only documents which existing Phase 8 roles each Phase 9 component consumes.**
 
-| Role | GiftMaisonTypography field | Size | Weight | Line Height | Phase 9 Usage |
-|------|---------------------------|------|--------|-------------|---------------|
-| Mono caps | `monoCaps` | 9.5 sp | W500 | 1.3 em | Nav tab labels; "ADD" caption under FAB; status chip text (Reserved/Given/Open) |
-| Body M emphasis | `bodyMEmphasis` | 13.5 sp | W500 | 1.45 em | Action sheet row primary label (e.g. "New registry") |
-| Body XS | `bodyXS` | 11.5 sp | W400 | 1.35 em | Action sheet row subtitle (e.g. "and invite friends to add gifts") |
-| Display M | `displayM` | 22 sp | W400 | 1.1 em | Add-action sheet title: "What are you adding?" |
-| Body S | `bodyS` | 12.5 sp | W400 | 1.4 em | Countdown "Nm" text inside Reserved chip |
+Phase 9 consumes the Phase 8 type scale exclusively. No new sizes or weights are introduced.
+
+| Role | GiftMaisonTypography field | Phase 9 Usage |
+|------|---------------------------|---------------|
+| Mono caps | `monoCaps` | Nav tab labels; "ADD" caption under FAB; status chip text (Reserved/Given/Open) |
+| Body M emphasis | `bodyMEmphasis` | Action sheet row primary label (e.g. "New registry") |
+| Body XS | `bodyXS` | Action sheet row subtitle (e.g. "and invite friends to add gifts") |
+| Display M | `displayM` | Add-action sheet title: "What are you adding?" |
+| Body S | `bodyS` | Countdown "Nm" text inside Reserved chip |
 
 Typography rules:
-- Nav tab labels: `monoCaps` (9.5 sp, W500, JetBrains Mono), `toUpperCase()` via string resource — all caps already. Selected: `colors.accent`, weight stays W500; handoff says 600 on selected — use `FontWeight.SemiBold` override for selected state only.
+- Nav tab labels: `monoCaps` (JetBrains Mono, all-caps via string resource). Colour: unselected = `colors.inkFaint`; selected = `colors.accent`. Selected-state weight override: see `GiftMaisonBottomNav` component entry below.
 - "ADD" caption under FAB slot: `monoCaps`, `colors.inkFaint`, centred below the FAB at the bar baseline.
 - Countdown label: `bodyS`, `colors.accentInk` (on filled accent chip). Format: `"%dm"` with trailing lowercase "m" — string resource `status_chip_countdown_template` = `"%dm"` (en) / `"%d min"` (ro).
 - Action sheet title: `displayM` (Instrument Serif italic style — use `FontStyle.Italic` on the composable). Colour: `colors.ink`.
@@ -118,7 +137,7 @@ All values from `GiftMaisonColors` (Housewarming). Phase 9 does not introduce an
 Accent reserved for (exhaustive list — not "all interactive elements"):
 1. Centre FAB background
 2. Selected bottom-nav icon stroke colour
-3. Selected bottom-nav label colour (W600 on selected only)
+3. Selected bottom-nav label colour (state-style override only — see `GiftMaisonBottomNav` entry)
 4. Selected bottom-nav pill fill (`accentSoft`) — accent itself is not used as pill fill
 5. Reserved status chip background
 6. Pulsing dot on Reserved chip
@@ -157,8 +176,9 @@ Bottom nav bar anatomy:
 - Container: `colors.paper` background, `1.dp` border-top `colors.line`, padding top 4 dp / mid irrelevant / bottom 6 dp (respect window insets for gesture nav bar via `NavigationBarItem` padding or `WindowInsets.navigationBars`).
 - Each non-FAB slot: `Column(horizontalAlignment = CenterHorizontally)` containing:
   - Icon: 22×22 dp, stroke weight 1.6 (Material Symbols Outlined variant satisfies this), linecap round. Wrapped in a `Box(modifier = Modifier.background(if selected accentSoft else transparent, shape = pill).size(44.dp))` for touch target + pill.
-  - Label: `monoCaps` (9.5 sp, W500 selected W600). One string, all-caps.
+  - Label: `monoCaps`. One string, all-caps.
 - Selected icon stroke colour: `colors.accent`. Unselected: `colors.inkFaint`.
+- Selected-state label weight override: apply `FontWeight.SemiBold` (W600) to the label `Text` composable when the slot is selected. This is a state-style override at the composable level — it is not a declared weight in the Phase 8 type scale. Unselected label weight inherits from `monoCaps` (`GiftMaisonTypography`).
 - FAB slot: `Box` that positions the FAB circle 22 dp above the bar baseline using `offset(y = (-22).dp)` and the "ADD" mono-caps label centred below it at the bar baseline.
 
 Nav visibility rule (replaces current `showsBottomNav()` function — full replacement):
@@ -225,8 +245,8 @@ Each action row anatomy:
 - Row height: minimum 56 dp (touch target).
 - Icon square: 36×36 dp, `shapes.radius10`, containing italic display-serif glyph (22 sp). Primary row ("New registry"): `colors.accentSoft` fill, `colors.accent` glyph. Secondary rows: `colors.paperDeep` fill, `colors.accent` glyph.
 - Row background: primary = `colors.accentSoft`; secondary = `colors.paperDeep`.
-- Heading: `bodyMEmphasis` (13.5 sp W500), `colors.ink`.
-- Subtitle: `bodyXS` (11.5 sp), `colors.inkSoft`.
+- Heading: `bodyMEmphasis`, `colors.ink`.
+- Subtitle: `bodyXS`, `colors.inkSoft`.
 - Trailing chevron: `Icons.AutoMirrored.Filled.ChevronRight`, `colors.inkFaint`, 18 dp.
 
 Action rows (in order):
@@ -255,8 +275,8 @@ StatusChip(status: ItemStatus, expiresAt: Instant?, modifier: Modifier = Modifie
 **ReservedChip anatomy:**
 - Pill shape (`shapes.pill`), `colors.accent` fill.
 - Row contents: `PulsingDot` (4 dp, `colors.accentInk`, 1400 ms period) + `gap4` + countdown label + `gap8` + chip label.
-- Countdown label: `bodyS` (12.5 sp), `colors.accentInk`. Derives `minutesLeft = max(0, (expiresAt - now).inWholeMinutes)`. Format: `stringResource(R.string.status_chip_countdown_template, minutesLeft)` → `"23m"`. When `minutesLeft == 0`: show `"<1m"` (string resource `status_chip_countdown_zero`).
-- Chip label: `monoCaps` (9.5 sp, W500), `colors.accentInk`, text = `stringResource(R.string.status_chip_reserved)` → `"RESERVED"`.
+- Countdown label: `bodyS`, `colors.accentInk`. Derives `minutesLeft = max(0, (expiresAt - now).inWholeMinutes)`. Format: `stringResource(R.string.status_chip_countdown_template, minutesLeft)` → `"23m"`. When `minutesLeft == 0`: show `"<1m"` (string resource `status_chip_countdown_zero`).
+- Chip label: `monoCaps`, `colors.accentInk`, text = `stringResource(R.string.status_chip_reserved)` → `"RESERVED"`.
 - Countdown is display-only on owner screens. No tap handler. `clickable = false`.
 - Countdown re-render: `LaunchedEffect(expiresAt)` loop with `delay(60_000L)` — no ViewModel changes, no shared StateFlow.
 - When `expiresAt` is null (legacy items predating the field): omit the countdown label; show chip label only.
@@ -338,30 +358,31 @@ All status chips are non-interactive (no tap handler) in Phase 9. The overflow `
 
 All strings must be added to `res/values/strings.xml` (English) and `res/values-ro/strings.xml` (Romanian). Romanian translations noted below where the pattern differs.
 
-| String resource key | English copy | Romanian copy | Usage |
-|--------------------|-------------|---------------|-------|
-| `nav_home_tab` | `HOME` | `ACASĂ` | Bottom nav Home label |
-| `nav_stores_tab` | `STORES` | `MAGAZINE` | Bottom nav Stores label |
-| `nav_fab_add` | `ADD` | `ADAUGĂ` | Caption under centre FAB |
-| `nav_lists_tab` | `LISTS` | `LISTE` | Bottom nav Lists label |
-| `nav_you_tab` | `YOU` | `TU` | Bottom nav You label |
-| `add_sheet_title` | `What are you adding?` | `Ce adaugi?` | Add-action sheet title |
-| `add_sheet_new_registry` | `New registry` | `Listă nouă` | Action row heading |
-| `add_sheet_new_registry_sub` | `Start a list for any occasion` | `Creează o listă pentru orice ocazie` | Action row subtitle |
-| `add_sheet_item_url` | `Item from URL` | `Produs din URL` | Action row heading |
-| `add_sheet_item_url_sub` | `Paste a link from any store` | `Lipește un link din orice magazin` | Action row subtitle |
-| `add_sheet_browse_stores` | `Browse stores` | `Caută în magazine` | Action row heading |
-| `add_sheet_browse_stores_sub` | `Open stores in the built-in browser` | `Deschide magazine în browser` | Action row subtitle |
-| `add_sheet_add_manually` | `Add manually` | `Adaugă manual` | Action row heading |
-| `add_sheet_add_manually_sub` | `Enter details yourself` | `Completează detaliile manual` | Action row subtitle |
-| `add_sheet_no_registry_hint` | `Create a registry first` | `Creează mai întâi o listă` | Zero-registry helper |
-| `status_chip_reserved` | `RESERVED` | `REZERVAT` | Reserved chip label |
-| `status_chip_given` | `✓ GIVEN` | `✓ OFERIT` | Given chip label |
-| `status_chip_open` | `OPEN` | `DISPONIBIL` | Open chip label |
-| `status_chip_countdown_template` | `%dm` | `%d min` | Countdown format (printf-style) |
-| `status_chip_countdown_zero` | `<1m` | `<1 min` | Countdown when minutesLeft == 0 |
-| `add_sheet_lists_empty_hint` | `No registries yet` | `Nicio listă încă` | Lists-tab empty state heading |
-| `add_sheet_lists_empty_cta` | `Create your first registry` | `Creează prima ta listă` | Lists-tab empty state CTA |
+| String resource key | English copy | Romanian copy | Usage | Phase 9 action |
+|--------------------|-------------|---------------|-------|----------------|
+| `nav_home_tab` | `HOME` | `ACASĂ` | Bottom nav Home label | New |
+| `nav_stores_tab` | `STORES` | `MAGAZINE` | Bottom nav Stores label | New |
+| `nav_fab_add` | `ADD` | `ADAUGĂ` | Caption under centre FAB | New |
+| `nav_lists_tab` | `LISTS` | `LISTE` | Bottom nav Lists label | New |
+| `nav_you_tab` | `YOU` | `TU` | Bottom nav You label | New |
+| `add_sheet_title` | `What are you adding?` | `Ce adaugi?` | Add-action sheet title | New |
+| `add_sheet_new_registry` | `New registry` | `Listă nouă` | Action row heading | New |
+| `add_sheet_new_registry_sub` | `Start a list for any occasion` | `Creează o listă pentru orice ocazie` | Action row subtitle | New |
+| `add_sheet_item_url` | `Item from URL` | `Produs din URL` | Action row heading | New |
+| `add_sheet_item_url_sub` | `Paste a link from any store` | `Lipește un link din orice magazin` | Action row subtitle | New |
+| `add_sheet_browse_stores` | `Browse stores` | `Caută în magazine` | Action row heading | New |
+| `add_sheet_browse_stores_sub` | `Open stores in the built-in browser` | `Deschide magazine în browser` | Action row subtitle | New |
+| `add_sheet_add_manually` | `Add manually` | `Adaugă manual` | Action row heading | New |
+| `add_sheet_add_manually_sub` | `Enter details yourself` | `Completează detaliile manual` | Action row subtitle | New |
+| `add_sheet_no_registry_hint` | `Create a registry first` | `Creează mai întâi o listă` | Zero-registry helper | New |
+| `status_chip_reserved` | `RESERVED` | `REZERVAT` | Reserved chip label | New |
+| `status_chip_given` | `✓ GIVEN` | `✓ OFERIT` | Given chip label | New |
+| `status_chip_open` | `OPEN` | `DISPONIBIL` | Open chip label | New |
+| `status_chip_countdown_template` | `%dm` | `%d min` | Countdown format (printf-style) | New |
+| `status_chip_countdown_zero` | `<1m` | `<1 min` | Countdown when minutesLeft == 0 | New |
+| `add_sheet_lists_empty_hint` | `No registries yet` | `Nicio listă încă` | Lists-tab empty state heading | New |
+| `add_sheet_lists_empty_cta` | `Create your first registry` | `Creează prima ta listă` | Lists-tab empty state CTA | New |
+| `error_loading_registries` | `Couldn't load your registries. Tap Lists again to retry.` | `Nu am putut încărca listele. Apasă pe Liste pentru a reîncerca.` | Snackbar shown when RegistryListViewModel emits an error resolving the Lists-tab destination | Existing key — Phase 9 replaces generic copy with solution-path version |
 
 Empty state (Lists tab, zero registries):
 - Heading: `add_sheet_lists_empty_hint` — `monoCaps`, `colors.inkFaint`, centred.
@@ -370,7 +391,7 @@ Empty state (Lists tab, zero registries):
 
 Error state:
 - No destructive actions in Phase 9. The `isPrimary` resolver falling back to null is handled by the Lists-tab empty state above, not an error toast.
-- If `RegistryListViewModel` emits an error while resolving Lists-tab destination: show a `Snackbar` with `stringResource(R.string.error_loading_registries)` (existing key) + no retry in Phase 9 (tap again to retry naturally).
+- If `RegistryListViewModel` emits an error while resolving Lists-tab destination: show a `Snackbar` with `stringResource(R.string.error_loading_registries)`. The updated copy is solution-path: "Couldn't load your registries. Tap Lists again to retry." — no programmatic retry button in Phase 9 (tap the Lists tab again to retry naturally).
 
 Destructive actions: none in Phase 9.
 
@@ -446,7 +467,7 @@ Phase 9 must append preview sections to `StyleGuidePreview.kt` (existing file fr
 
 5. **RegistryListViewModel** — already provides the registries list for Lists-tab routing. No new ViewModel or use case. Consume `registryListViewModel.registries.collectAsStateWithLifecycle()` in `AppNavigation.kt`, take `firstOrNull()` for `isPrimary`.
 
-6. **String resource files** — all keys in the table above must be added to both `values/strings.xml` and `values-ro/strings.xml`. Do not hardcode any visible string in Kotlin/Compose files.
+6. **String resource files** — all keys in the table above must be added to both `values/strings.xml` and `values-ro/strings.xml`. The `error_loading_registries` key already exists; update its copy to the solution-path version declared in the Copywriting Contract. Do not hardcode any visible string in Kotlin/Compose files.
 
 ---
 
