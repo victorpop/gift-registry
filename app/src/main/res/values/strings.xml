@@ -188,6 +188,21 @@
     <string name="notification_re_reserve_window_title">\"%1$s\" is available again</string>
     <string name="notification_re_reserve_window_body">Your reservation expired — \"%1$s\" can be re-reserved in \"%2$s\"</string>
 
+    <!-- Phase 11: Registry Detail (SCR-08) -->
+    <string name="registry_detail_share_button_desc">Share registry</string>
+    <string name="registry_detail_overflow_desc">Registry options</string>
+    <string name="registry_detail_item_overflow_desc">Item options</string>
+    <string name="registry_stat_items">ITEMS</string>
+    <string name="registry_stat_reserved">RESERVED</string>
+    <string name="registry_stat_given">GIVEN</string>
+    <string name="registry_stat_views">VIEWS</string>
+    <string name="registry_share_link_copied">Link copied</string>
+    <string name="registry_share_helper">Tap to copy or share</string>
+    <string name="registry_filter_all">All</string>
+    <string name="registry_filter_open">Open</string>
+    <string name="registry_filter_reserved">Reserved</string>
+    <string name="registry_filter_completed">Completed</string>
+
     <!-- Phase 9 status chips (STAT-01/02/03) -->
     <string name="status_chip_reserved">RESERVED</string>
     <string name="status_chip_given">✓ GIVEN</string>

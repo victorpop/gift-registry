@@ -1,84 +1,61 @@
 package com.giftregistry.ui.registry.detail
 
 import android.content.Intent
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PersonAdd
-import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.SuggestionChip
-import androidx.compose.material3.SuggestionChipDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.compose.AsyncImage
 import com.giftregistry.R
-import com.giftregistry.ui.navigation.hiltViewModelWithNavArgs
 import com.giftregistry.domain.model.Item
-import com.giftregistry.domain.model.ItemStatus
-import com.giftregistry.ui.common.status.StatusChip
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.giftregistry.ui.navigation.hiltViewModelWithNavArgs
+import com.giftregistry.ui.theme.GiftMaisonTheme
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegistryDetailScreen(
     registryId: String,
     onBack: () -> Unit,
+    // onNavigateToAddItem retained for future inline "add first item" affordance;
+    // Phase 9 global FAB handles current add-item nav flow.
     onNavigateToAddItem: () -> Unit,
     onNavigateToEditItem: (String) -> Unit,
     onNavigateToEditRegistry: () -> Unit,
@@ -87,8 +64,9 @@ fun RegistryDetailScreen(
     viewModel: RegistryDetailViewModel = hiltViewModelWithNavArgs(
         key = registryId,
         "registryId" to registryId,
-    )
+    ),
 ) {
+    // --- VM state collection (PRESERVED) ---
     val registry by viewModel.registry.collectAsStateWithLifecycle()
     val items by viewModel.items.collectAsStateWithLifecycle()
     val deleteError by viewModel.deleteError.collectAsStateWithLifecycle()
@@ -97,17 +75,41 @@ fun RegistryDetailScreen(
     val hasActiveReservation by viewModel.hasActiveReservation.collectAsStateWithLifecycle()
     val activeReservationId by viewModel.activeReservationId.collectAsStateWithLifecycle()
     val confirmingPurchase by viewModel.confirmingPurchase.collectAsStateWithLifecycle()
-    val snackbarHostState = remember { SnackbarHostState() }
 
     val context = LocalContext.current
-    var showGuestSheet by remember { mutableStateOf(false) }
+    val clipboardManager = LocalClipboardManager.current
+    val scope = rememberCoroutineScope()
+
+    val snackbarHostState = remember { SnackbarHostState() }
     val unavailableMsg = stringResource(R.string.reservation_error_unavailable)
     val genericErrorMsg = stringResource(R.string.reservation_error_generic)
+    val linkCopiedMsg = stringResource(R.string.registry_share_link_copied)
 
+    // --- UI state ---
+    var showGuestSheet by remember { mutableStateOf(false) }
     var overflowMenuExpanded by remember { mutableStateOf(false) }
     var showDeleteRegistryDialog by remember { mutableStateOf(false) }
     var itemToDelete by remember { mutableStateOf<Item?>(null) }
 
+    // --- Phase 11 filter + lazy list state ---
+    val listState = rememberLazyListState()
+    var activeFilterIndex by rememberSaveable { mutableIntStateOf(0) }
+    val activeFilter = FilterChipState.entries[activeFilterIndex]
+    val filteredItems = remember(items, activeFilter) { items.filter { activeFilter.matches(it.status) } }
+
+    // --- Share tap closure (reused by top-bar share icon AND overflow Share item) ---
+    val onShareTap: () -> Unit = {
+        val shareUrl = shareUrlOf(registryId)
+        clipboardManager.setText(AnnotatedString(shareUrl))
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, shareUrl)
+        }
+        context.startActivity(Intent.createChooser(intent, null))
+        scope.launch { snackbarHostState.showSnackbar(linkCopiedMsg) }
+    }
+
+    // --- LaunchedEffects (PRESERVED) ---
     LaunchedEffect(deleteError) {
         if (deleteError != null) {
             snackbarHostState.showSnackbar(deleteError ?: "")
@@ -146,7 +148,7 @@ fun RegistryDetailScreen(
                 is SnackbarMessage.Resource ->
                     snackbarHostState.showSnackbar(
                         message = context.getString(msg.resId),
-                        duration = androidx.compose.material3.SnackbarDuration.Short,
+                        duration = SnackbarDuration.Short,
                     )
                 is SnackbarMessage.Push -> {
                     val text = context.getString(
@@ -167,178 +169,152 @@ fun RegistryDetailScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = registry?.title ?: "",
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.common_back)
-                        )
-                    }
-                },
-                actions = {
-                    Box {
-                        IconButton(onClick = { overflowMenuExpanded = true }) {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = null
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = overflowMenuExpanded,
-                            onDismissRequest = { overflowMenuExpanded = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.registry_edit_title)) },
-                                leadingIcon = {
-                                    Icon(Icons.Default.Edit, contentDescription = null)
-                                },
-                                onClick = {
-                                    overflowMenuExpanded = false
-                                    onNavigateToEditRegistry()
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.registry_share_button)) },
-                                leadingIcon = {
-                                    Icon(Icons.Default.Share, contentDescription = null)
-                                },
-                                onClick = {
-                                    overflowMenuExpanded = false
-                                    /* Share — Phase 5 */
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.registry_invite_title)) },
-                                leadingIcon = {
-                                    Icon(Icons.Default.PersonAdd, contentDescription = null)
-                                },
-                                onClick = {
-                                    overflowMenuExpanded = false
-                                    onNavigateToInvite()
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        text = stringResource(R.string.common_delete),
-                                        color = MaterialTheme.colorScheme.error
-                                    )
-                                },
-                                leadingIcon = {
-                                    Icon(
-                                        Icons.Default.Delete,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
-                                },
-                                onClick = {
-                                    overflowMenuExpanded = false
-                                    showDeleteRegistryDialog = true
-                                }
-                            )
-                        }
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToAddItem) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = stringResource(R.string.item_add_title),
+    // --- Phase 11 SCR-08 Layout: Box (not Scaffold — UI-SPEC Pitfall 4) ---
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(GiftMaisonTheme.colors.paper),
+    ) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            item(key = "hero") {
+                RegistryDetailHero(
+                    registry = registry,
+                    listState = listState,
+                    onBack = onBack,
+                    onShare = onShareTap,
+                    onOverflow = { overflowMenuExpanded = true },
                 )
             }
-        },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { paddingValues ->
-        if (registry == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+
+            item(key = "stats") {
+                StatsStrip(items = items)
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(
-                    horizontal = 16.dp,
-                    vertical = 8.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                // Registry info section
-                item {
-                    RegistryInfoSection(registry = registry!!)
-                }
 
-                // Phase 6 (UI-SPEC Contract 1): confirm-purchase banner for givers with active reservation
-                val reservationId = activeReservationId
-                if (hasActiveReservation && reservationId != null) {
-                    item(key = "confirm-purchase-banner") {
-                        ConfirmPurchaseBanner(
-                            isConfirming = confirmingPurchase,
-                            onConfirm = {
-                                viewModel.onConfirmPurchase(reservationId)
-                            },
-                        )
-                    }
-                }
+            item(key = "share") {
+                ShareBanner(
+                    registryId = registryId,
+                    onShared = { scope.launch { snackbarHostState.showSnackbar(linkCopiedMsg) } },
+                )
+            }
 
-                // Items section header
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.registry_detail_items_title),
-                        style = MaterialTheme.typography.titleMedium
+            item(key = "filter") {
+                FilterChipsRow(
+                    items = items,
+                    activeFilter = activeFilter,
+                    onFilterSelected = { chip -> activeFilterIndex = chip.ordinal },
+                )
+            }
+
+            // Phase 6 (UI-SPEC Contract 1): confirm-purchase banner for givers with active reservation
+            val reservationId = activeReservationId
+            if (hasActiveReservation && reservationId != null) {
+                item(key = "confirm-purchase-banner") {
+                    ConfirmPurchaseBanner(
+                        isConfirming = confirmingPurchase,
+                        onConfirm = { viewModel.onConfirmPurchase(reservationId) },
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
                 }
+            }
 
-                if (items.isEmpty()) {
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 32.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = stringResource(R.string.registry_detail_no_items),
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                } else {
-                    items(items, key = { it.id }) { item ->
-                        ItemCard(
-                            item = item,
-                            isReserving = isReserving,
-                            onEditClick = { onNavigateToEditItem(item.id) },
-                            onDeleteClick = { itemToDelete = item },
-                            onReserveClick = { viewModel.onReserveClicked(item.id) }
-                        )
-                    }
+            if (filteredItems.isEmpty() && items.isNotEmpty()) {
+                // Active filter shows no results
+                item(key = "empty-filter") {
+                    // No items match the active filter — show nothing (filter counts show 0)
                 }
+            } else if (items.isEmpty()) {
+                item(key = "empty-list") {
+                    // No items at all
+                }
+            }
+
+            itemsIndexed(
+                items = filteredItems,
+                key = { _, item -> item.id },
+            ) { idx, item ->
+                RegistryItemRow(
+                    item = item,
+                    isLast = idx == filteredItems.lastIndex,
+                    onEdit = { onNavigateToEditItem(item.id) },
+                    onDelete = { itemToDelete = item },
+                )
+            }
+
+            // Bottom padding to account for the Phase 9 bottom nav bar (≈ 90 dp)
+            item(key = "bottom-nav-padding") {
+                Spacer(Modifier.height(90.dp))
             }
         }
+
+        // --- Overflow DropdownMenu (PRESERVED: Edit / Share / Invite / Delete) ---
+        // Anchored at top-end below the hero toolbar icon row (~56 dp)
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 56.dp, end = 8.dp),
+        ) {
+            DropdownMenu(
+                expanded = overflowMenuExpanded,
+                onDismissRequest = { overflowMenuExpanded = false },
+            ) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.registry_edit_title)) },
+                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                    onClick = {
+                        overflowMenuExpanded = false
+                        onNavigateToEditRegistry()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.registry_share_button)) },
+                    leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) },
+                    onClick = {
+                        overflowMenuExpanded = false
+                        onShareTap()
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.registry_invite_title)) },
+                    leadingIcon = { Icon(Icons.Default.PersonAdd, contentDescription = null) },
+                    onClick = {
+                        overflowMenuExpanded = false
+                        onNavigateToInvite()
+                    },
+                )
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = stringResource(R.string.common_delete),
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                        )
+                    },
+                    onClick = {
+                        overflowMenuExpanded = false
+                        showDeleteRegistryDialog = true
+                    },
+                )
+            }
+        }
+
+        // --- SnackbarHost overlay (bottom, above bottom nav) ---
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 90.dp),
+        )
     }
 
+    // --- GuestIdentitySheet (PRESERVED) ---
     if (showGuestSheet) {
         GuestIdentitySheet(
             initial = null,
@@ -350,6 +326,7 @@ fun RegistryDetailScreen(
         )
     }
 
+    // --- Delete registry confirmation AlertDialog (PRESERVED) ---
     if (showDeleteRegistryDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteRegistryDialog = false },
@@ -360,11 +337,11 @@ fun RegistryDetailScreen(
                     onClick = {
                         viewModel.onDeleteRegistry()
                         showDeleteRegistryDialog = false
-                    }
+                    },
                 ) {
                     Text(
                         text = stringResource(R.string.common_delete),
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
             },
@@ -372,10 +349,11 @@ fun RegistryDetailScreen(
                 TextButton(onClick = { showDeleteRegistryDialog = false }) {
                     Text(stringResource(R.string.common_cancel))
                 }
-            }
+            },
         )
     }
 
+    // --- Delete item confirmation AlertDialog (PRESERVED) ---
     itemToDelete?.let { item ->
         AlertDialog(
             onDismissRequest = { itemToDelete = null },
@@ -386,11 +364,11 @@ fun RegistryDetailScreen(
                     onClick = {
                         viewModel.onDeleteItem(item.id)
                         itemToDelete = null
-                    }
+                    },
                 ) {
                     Text(
                         text = stringResource(R.string.common_delete),
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
             },
@@ -398,191 +376,7 @@ fun RegistryDetailScreen(
                 TextButton(onClick = { itemToDelete = null }) {
                     Text(stringResource(R.string.common_cancel))
                 }
-            }
+            },
         )
     }
 }
-
-@Composable
-private fun RegistryInfoSection(registry: com.giftregistry.domain.model.Registry) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                SuggestionChip(
-                    onClick = {},
-                    label = { Text(registry.occasion) },
-                    colors = SuggestionChipDefaults.suggestionChipColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    )
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Icon(
-                    imageVector = if (registry.visibility == "private") {
-                        Icons.Default.Lock
-                    } else {
-                        Icons.Default.Public
-                    },
-                    contentDescription = if (registry.visibility == "private") {
-                        stringResource(R.string.registry_visibility_private)
-                    } else {
-                        stringResource(R.string.registry_visibility_public)
-                    },
-                    modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = if (registry.visibility == "private") {
-                        stringResource(R.string.registry_visibility_private)
-                    } else {
-                        stringResource(R.string.registry_visibility_public)
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            registry.eventDateMs?.let { dateMs ->
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date(dateMs)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            registry.eventLocation?.let { location ->
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = location,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            registry.description?.let { desc ->
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = desc,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ItemCard(
-    item: Item,
-    isReserving: Boolean,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit,
-    onReserveClick: () -> Unit,
-) {
-    var menuExpanded by remember { mutableStateOf(false) }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Product thumbnail. Falls back to the plus-icon placeholder when imageUrl is null or the load fails.
-            val placeholderPainter = rememberVectorPainter(Icons.Default.Add)
-            AsyncImage(
-                model = item.imageUrl,
-                contentDescription = stringResource(R.string.item_image_content_desc),
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(4.dp)),
-                contentScale = ContentScale.Crop,
-                placeholder = placeholderPainter,
-                error = placeholderPainter,
-                fallback = placeholderPainter,
-            )
-            Spacer(modifier = Modifier.size(8.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                item.price?.let { price ->
-                    Text(
-                        text = price,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(modifier = Modifier.height(4.dp))
-                StatusChip(status = item.status, expiresAt = item.expiresAt)
-
-                // Reserve button for available items
-                if (item.status == ItemStatus.AVAILABLE) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = onReserveClick,
-                        enabled = !isReserving,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
-                        Text(stringResource(R.string.reservation_reserve_button))
-                    }
-                }
-
-            }
-
-            Box {
-                IconButton(onClick = { menuExpanded = true }) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = null
-                    )
-                }
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.item_edit_title)) },
-                        leadingIcon = {
-                            Icon(Icons.Default.Edit, contentDescription = null)
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            onEditClick()
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = stringResource(R.string.common_delete),
-                                color = MaterialTheme.colorScheme.error
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            onDeleteClick()
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-
