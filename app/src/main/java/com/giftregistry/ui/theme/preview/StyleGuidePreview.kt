@@ -29,6 +29,7 @@ import com.giftregistry.ui.theme.GiftMaisonTheme
 import com.giftregistry.ui.theme.GiftMaisonWordmark
 import com.giftregistry.ui.theme.GiftRegistryTheme
 import com.giftregistry.ui.theme.fabShadow
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Style-guide @Preview harness for Phase 8 DES-02..05 verification.
@@ -167,6 +168,82 @@ private fun WordmarkPreview() {
             GiftMaisonWordmark(fontSize = 20.sp)
             GiftMaisonWordmark(fontSize = 22.sp)
             GiftMaisonWordmark(fontSize = 28.sp)
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Phase 9 — Shared Chrome + Status UI preview sections (CHROME-01/02/03, STAT-01..04)
+// ─────────────────────────────────────────────────────────────────────────
+
+@Preview(name = "Bottom nav — Home selected", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 80)
+@Composable
+private fun BottomNavHomeSelectedPreview() {
+    GiftRegistryTheme {
+        com.giftregistry.ui.common.chrome.GiftMaisonBottomNav(
+            currentKey = com.giftregistry.ui.navigation.HomeKey,
+            onHome = {}, onStores = {}, onFab = {}, onLists = {}, onYou = {},
+        )
+    }
+}
+
+@Preview(name = "Bottom nav — RegistryDetail selected", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 80)
+@Composable
+private fun BottomNavListsSelectedPreview() {
+    GiftRegistryTheme {
+        com.giftregistry.ui.common.chrome.GiftMaisonBottomNav(
+            currentKey = com.giftregistry.ui.navigation.RegistryDetailKey(registryId = "preview"),
+            onHome = {}, onStores = {}, onFab = {}, onLists = {}, onYou = {},
+        )
+    }
+}
+
+@Preview(name = "Status chips row", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 120)
+@Composable
+private fun StatusChipsPreview() {
+    GiftRegistryTheme {
+        Row(
+            modifier = Modifier
+                .background(GiftMaisonTheme.colors.paper)
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            com.giftregistry.ui.common.status.StatusChip(
+                status = com.giftregistry.domain.model.ItemStatus.AVAILABLE,
+                expiresAt = null,
+            )
+            com.giftregistry.ui.common.status.StatusChip(
+                status = com.giftregistry.domain.model.ItemStatus.RESERVED,
+                expiresAt = System.currentTimeMillis() + 10L * 60_000L, // 10 min left
+            )
+            com.giftregistry.ui.common.status.StatusChip(
+                status = com.giftregistry.domain.model.ItemStatus.PURCHASED,
+                expiresAt = null,
+            )
+        }
+    }
+}
+
+@Preview(name = "PulsingDot — 1400ms vs 1000ms", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 200, heightDp = 80)
+@Composable
+private fun PulsingDotPreview() {
+    GiftRegistryTheme {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            com.giftregistry.ui.common.status.PulsingDot(
+                color = GiftMaisonTheme.colors.accent,
+                size = 8.dp, // upscaled for preview visibility
+                period = 1_400.milliseconds,
+            )
+            com.giftregistry.ui.common.status.PulsingDot(
+                color = GiftMaisonTheme.colors.accent,
+                size = 8.dp,
+                period = 1_000.milliseconds,
+            )
         }
     }
 }

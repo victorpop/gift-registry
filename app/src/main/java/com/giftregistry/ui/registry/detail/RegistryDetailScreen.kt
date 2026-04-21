@@ -69,6 +69,7 @@ import com.giftregistry.R
 import com.giftregistry.ui.navigation.hiltViewModelWithNavArgs
 import com.giftregistry.domain.model.Item
 import com.giftregistry.domain.model.ItemStatus
+import com.giftregistry.ui.common.status.StatusChip
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -522,7 +523,7 @@ private fun ItemCard(
                     )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
-                ItemStatusChip(status = item.status)
+                StatusChip(status = item.status, expiresAt = item.expiresAt)
 
                 // Reserve button for available items
                 if (item.status == ItemStatus.AVAILABLE) {
@@ -536,20 +537,6 @@ private fun ItemCard(
                     }
                 }
 
-                // Reserved label + live countdown for reserved items (D-08, D-18, RES-02/RES-06)
-                if (item.status == ItemStatus.RESERVED) {
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.reservation_reserved_label),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.tertiary,
-                    )
-                    item.expiresAt?.let { expiresAtMs ->
-                        ReservationCountdown(
-                            expiresAtMs = expiresAtMs,
-                        )
-                    }
-                }
             }
 
             Box {
@@ -598,29 +585,4 @@ private fun ItemCard(
     }
 }
 
-@Composable
-private fun ItemStatusChip(status: ItemStatus) {
-    val (label, containerColor) = when (status) {
-        ItemStatus.AVAILABLE -> Pair(
-            stringResource(R.string.item_status_available),
-            MaterialTheme.colorScheme.primaryContainer
-        )
-        ItemStatus.RESERVED -> Pair(
-            stringResource(R.string.item_status_reserved),
-            MaterialTheme.colorScheme.tertiaryContainer
-        )
-        ItemStatus.PURCHASED -> Pair(
-            stringResource(R.string.item_status_purchased),
-            MaterialTheme.colorScheme.surfaceVariant
-        )
-    }
-
-    SuggestionChip(
-        onClick = {},
-        label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-        colors = SuggestionChipDefaults.suggestionChipColors(
-            containerColor = containerColor
-        )
-    )
-}
 
