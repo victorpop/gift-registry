@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Romanian Store Browser** - Owners can browse popular Romanian retailers in an in-app WebView with a persistent "Add to list" CTA that funnels products into the existing URL-based add flow (replaces original EMAG Catalog scope — no confirmed public EMAG catalog API) (completed 2026-04-20)
 - [x] **Phase 8: GiftMaison Design Foundation** - Ship fonts, type scale, colour tokens, spacing/radii/shadows, and the reusable "GiftMaison" wordmark as the design system every v1.1 screen builds on (completed 2026-04-21)
 - [x] **Phase 9: Shared Chrome + Status UI** - Bottom nav, centre FAB, Add-action bottom sheet, and the Reserved/Given/Open/Purchased status treatments shipped as shared UI the owner screens assemble from (completed 2026-04-21)
-- [ ] **Phase 10: Onboarding + Home Redesign** - Owner-facing Onboarding/sign up (06) and Home/all-registries (07) screens match the handoff pixel-accurately with the new design system
+- [x] **Phase 10: Onboarding + Home Redesign** - Owner-facing Onboarding/sign up (06) and Home/all-registries (07) screens match the handoff pixel-accurately with the new design system (completed 2026-04-21)
 - [ ] **Phase 11: Registry Detail + Create + Add Item Redesign** - Registry detail (08), Create registry (09), and Add item via URL (10) screens match the handoff pixel-accurately
 
 ## Phase Details
@@ -242,5 +242,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 7. Romanian Store Browser | 4/4 | Complete   | 2026-04-20 |
 | 8. GiftMaison Design Foundation | 0/5 | Planning complete | - |
 | 9. Shared Chrome + Status UI | 4/4 | Complete   | 2026-04-21 |
-| 10. Onboarding + Home Redesign | 4/5 | In Progress|  |
+| 10. Onboarding + Home Redesign | 4/5 | Complete    | 2026-04-21 |
 | 11. Registry Detail + Create + Add Item Redesign | 0/0 | Not started | - |
