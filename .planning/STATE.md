@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: "Checkpoint: 09-04 Task 3 human-verify — APK built, awaiting on-device verification"
-last_updated: "2026-04-21T09:48:55.415Z"
+stopped_at: "Phase 9 Plan 04: Tasks 1+2 committed (AppNavigation cutover + RegistryDetailScreen rewire); Task 3 (21-check on-device UAT) awaiting human validation — user paused autonomous mode"
+last_updated: "2026-04-21T10:15:45.354Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 11
@@ -227,9 +227,10 @@ Recent decisions affecting current work:
 | 260420-nh8 | Fix email invite URL + deploy hosting and 3 functions to gift-registry-ro | 2026-04-20 | 41ed064 | [260420-nh8-fix-email-invite-url-and-deploy-firebase](./quick/260420-nh8-fix-email-invite-url-and-deploy-firebase/) |
 | 260420-o6w | Show shared-with-me registries — add invitedUsers query + merge/dedupe/sort in repository | 2026-04-20 | d86577d | [260420-o6w-show-shared-with-me-registries-query-reg](./quick/260420-o6w-show-shared-with-me-registries-query-reg/) |
 | 260420-ozb | Persistent in-app notifications inbox — top-bar bell, 5 event sources via writeNotification helper, EN+RO strings | 2026-04-20 | cbc8b9a | [260420-ozb-add-persistent-in-app-notifications-inbo](./quick/260420-ozb-add-persistent-in-app-notifications-inbo/) |
+| 260421-lwi | Fix typography letter-spacing units (em→sp) — Phase 8 Typography used `.em` for letter-spacing but handoff JSX values are pixel-equivalent; fixed all 10 TextStyle roles + 8 TypographyTest assertions | 2026-04-21 | 7743d35 | [260421-lwi-fix-typography-letter-spacing-units-em-t](./quick/260421-lwi-fix-typography-letter-spacing-units-em-t/) |
 
 ## Session Continuity
 
-Last session: 2026-04-21T09:48:41.623Z
-Stopped at: Checkpoint: 09-04 Task 3 human-verify — APK built, awaiting on-device verification
-Resume file: None
+Last session: 2026-04-21T10:15:45.349Z
+Stopped at: Phase 9 Plan 04: Tasks 1+2 committed (AppNavigation cutover + RegistryDetailScreen rewire); Task 3 (21-check on-device UAT) awaiting human validation — user paused autonomous mode
+Resume file: .planning/phases/09-shared-chrome-status-ui/09-04-PLAN.md

@@ -21,7 +21,7 @@ decisions:
 metrics:
   duration: ~5min
   completed_date: "2026-04-21"
-  tasks_completed: 1
+  tasks_completed: 2
   tasks_total: 2
   files_modified: 2
 ---
@@ -45,7 +45,7 @@ The fix is a pure unit swap: `.em` → `.sp` on all 10 `letterSpacing` lines in 
 | Task | Name | Commit | Files Modified |
 |------|------|--------|---------------|
 | 1 | Flip letterSpacing units em→sp (production + test) | 7743d35 | GiftMaisonTypography.kt, TypographyTest.kt |
-| 2 | On-device visual check (checkpoint — awaiting human) | — | — |
+| 2 | On-device visual check | approved by user 2026-04-21 | — |
 
 ## Verification Results
 
