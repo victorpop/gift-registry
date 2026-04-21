@@ -3,7 +3,7 @@ phase: 10
 slug: onboarding-home-redesign
 status: draft
 nyquist_compliant: false
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-04-21
 ---
 
@@ -47,12 +47,12 @@ created: 2026-04-21
 ## Wave 0 Requirements
 
 RED stub unit test files (per 10-RESEARCH.md Key Finding 6):
-- [ ] `app/src/test/java/com/giftregistry/ui/registry/list/TabFilterPredicateTest.kt` — Active/Past predicate over `eventDateMs` and `startOfToday()` boundary
-- [ ] `app/src/test/java/com/giftregistry/ui/registry/list/DraftHeuristicTest.kt` — `title.isBlank() OR items.isEmpty()` classification
-- [ ] `app/src/test/java/com/giftregistry/ui/registry/list/IsPrimarySelectionTest.kt` — `maxByOrNull { updatedAt }` on registries list
-- [ ] `app/src/test/java/com/giftregistry/ui/registry/list/AvatarInitialsTest.kt` — `fromNames` / `fromEmail` / fallback ordering
-- [ ] `app/src/test/java/com/giftregistry/ui/auth/AuthHeadlineTest.kt` — `buildAnnotatedString` structure for italic-accent period in "first registry."
-- [ ] `app/src/test/java/com/giftregistry/ui/auth/AuthFormStateTest.kt` — firstName/lastName wiring, sign-up-default `isSignUpMode = true`, mode toggle
+- [x] `app/src/test/java/com/giftregistry/ui/registry/list/TabFilterPredicateTest.kt` — Active/Past predicate over `eventDateMs` and `startOfToday()` boundary
+- [x] `app/src/test/java/com/giftregistry/ui/registry/list/DraftHeuristicTest.kt` — `title.isBlank() OR items.isEmpty()` classification
+- [x] `app/src/test/java/com/giftregistry/ui/registry/list/IsPrimarySelectionTest.kt` — `maxByOrNull { updatedAt }` on registries list
+- [x] `app/src/test/java/com/giftregistry/ui/common/AvatarInitialsTest.kt` — `fromNames` / `fromEmail` / fallback ordering
+- [x] `app/src/test/java/com/giftregistry/ui/auth/AuthHeadlineTest.kt` — `buildAnnotatedString` structure for italic-accent period in "first registry."
+- [x] `app/src/test/java/com/giftregistry/ui/auth/AuthFormStateTest.kt` — firstName/lastName wiring, sign-up-default `isSignUpMode = true`, mode toggle
 
 ---
 

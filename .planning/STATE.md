@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: "Phase 9 Plan 04: Tasks 1+2 committed (AppNavigation cutover + RegistryDetailScreen rewire); Task 3 (21-check on-device UAT) awaiting human validation — user paused autonomous mode"
-last_updated: "2026-04-21T13:44:47.492Z"
+stopped_at: Completed 10-01-PLAN.md — Wave 0 RED stubs for SCR-06 + SCR-07
+last_updated: "2026-04-21T15:52:50.826Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 11
   completed_phases: 9
-  total_plans: 45
-  completed_plans: 45
+  total_plans: 50
+  completed_plans: 46
   percent: 0
 ---
 
@@ -90,6 +90,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 09-shared-chrome-status-ui P01 | 2min | 2 tasks | 5 files |
 | Phase 09-shared-chrome-status-ui P02 | 3min | 2 tasks | 6 files |
 | Phase 09-shared-chrome-status-ui P03 | 4min | 2 tasks | 5 files |
+| Phase 10-onboarding-home-redesign P01 | 2 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -199,6 +200,8 @@ Recent decisions affecting current work:
 - [Phase 09-shared-chrome-status-ui]: Icons.Outlined.KeyboardArrowRight used instead of Icons.AutoMirrored.Filled.ChevronRight — ChevronRight not in project Material Icons extended set
 - [Phase 09-shared-chrome-status-ui]: showsBottomNav() import replaces local predicate — semantic change from persistent-everywhere to HomeKey+RegistryDetailKey only (intentional Phase 9 cutover per D-03)
 - [Phase 09-shared-chrome-status-ui]: SuggestionChip imports kept in RegistryDetailScreen — file uses SuggestionChip for registry.occasion label in header; only inline ItemStatusChip composable deleted
+- [Phase 10-onboarding-home-redesign]: Calendar-based startOfTodayMs (not LocalDate) for minSdk 23 compat — LocalDate.atStartOfDay() requires API 26
+- [Phase 10-onboarding-home-redesign]: AUTH_SCREEN_DEFAULT_IS_SIGN_UP_MODE = true flips current false per CONTEXT.md D-02 (first-run new user creates account)
 
 ### Pending Todos
 
@@ -233,6 +236,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T10:15:45.349Z
-Stopped at: Phase 9 Plan 04: Tasks 1+2 committed (AppNavigation cutover + RegistryDetailScreen rewire); Task 3 (21-check on-device UAT) awaiting human validation — user paused autonomous mode
-Resume file: .planning/phases/09-shared-chrome-status-ui/09-04-PLAN.md
+Last session: 2026-04-21T15:52:50.823Z
+Stopped at: Completed 10-01-PLAN.md — Wave 0 RED stubs for SCR-06 + SCR-07
+Resume file: None

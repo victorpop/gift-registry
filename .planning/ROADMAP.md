@@ -208,7 +208,7 @@ Plans:
   4. The bottom nav and centre FAB from Phase 9 appear on Home; tapping a registry card navigates to the existing Registry detail route
 **Plans**: 5 plans
 Plans:
-- [ ] 10-01-PLAN.md -- Wave 0: 6 failing pure-Kotlin unit test files (SCR-06 + SCR-07 RED) — TabFilterPredicate, DraftHeuristic, IsPrimarySelection, AvatarInitials, AuthHeadline, AuthFormState
+- [x] 10-01-PLAN.md -- Wave 0: 6 failing pure-Kotlin unit test files (SCR-06 + SCR-07 RED) — TabFilterPredicate, DraftHeuristic, IsPrimarySelection, AvatarInitials, AuthHeadline, AuthFormState
 - [ ] 10-02-PLAN.md -- Wave 1 shared primitives: Registry.imageUrl + TabFilters helpers + AvatarInitials + 5 Compose composables (AvatarButton, FocusedFieldCaret, ConcentricRings, GoogleBanner, SegmentedTabs)
 - [ ] 10-03-PLAN.md -- Wave 1 SCR-06 AuthScreen re-skin: AuthFormState firstName/lastName + AuthHeadline + sign-up default + 23 auth_* strings (EN + RO) + AUTH-05 guest path preserved
 - [ ] 10-04-PLAN.md -- Wave 1 SCR-07 Home re-skin: RegistryListViewModel.currentUser + HomeTopBar + RegistryCard (primary + secondary) + RegistryListScreen + AppNavigation onNavigateToSettings + 15 home_* strings (EN + RO)
@@ -242,5 +242,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 7. Romanian Store Browser | 4/4 | Complete   | 2026-04-20 |
 | 8. GiftMaison Design Foundation | 0/5 | Planning complete | - |
 | 9. Shared Chrome + Status UI | 4/4 | Complete   | 2026-04-21 |
-| 10. Onboarding + Home Redesign | 0/5 | Planning complete | - |
+| 10. Onboarding + Home Redesign | 1/5 | In Progress|  |
 | 11. Registry Detail + Create + Add Item Redesign | 0/0 | Not started | - |

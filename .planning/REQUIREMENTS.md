@@ -23,8 +23,8 @@ Requirements for the v1.1 milestone. Owner-facing Android redesign per `design_h
 
 ### Screens
 
-- [ ] **SCR-06**: Onboarding + sign up screen matches handoff (wordmark top bar, italic-accent headline, Google banner with concentric rings, divider, name/email/password fields with focus ring, primary pill CTA, Terms line, "Log in" footer pill)
-- [ ] **SCR-07**: Home / all registries screen matches handoff (wordmark + avatar top bar, "Your registries" headline, 3-tab segmented Active/Drafts/Past, card list with 16:9 hero + occasion pill + date + title + stats; single dark "primary" card)
+- [x] **SCR-06**: Onboarding + sign up screen matches handoff (wordmark top bar, italic-accent headline, Google banner with concentric rings, divider, name/email/password fields with focus ring, primary pill CTA, Terms line, "Log in" footer pill)
+- [x] **SCR-07**: Home / all registries screen matches handoff (wordmark + avatar top bar, "Your registries" headline, 3-tab segmented Active/Drafts/Past, card list with 16:9 hero + occasion pill + date + title + stats; single dark "primary" card)
 - [ ] **SCR-08**: Registry detail screen matches handoff (180 px hero with gradient + pinned toolbar, 4-stat strip, share banner pill, filter chips, full-width item rows with 58 px thumbnail + status chip + ⋯)
 - [ ] **SCR-09**: Create registry screen matches handoff (Step 1 of 2 app bar with Skip, italic-accent headline, 2×3 occasion tile grid, form fields, visibility radio card, bottom CTA bar)
 - [ ] **SCR-10**: Add item (paste URL) screen matches handoff (× close app bar, 3-tab segmented, URL field with "Fetching from {domain}" + affiliate confirmation row, preview card, auto-fill tag, optional note, info pill, dual CTA bar)
@@ -239,8 +239,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CHROME-01 | Phase 9 | Complete |
 | CHROME-02 | Phase 9 | Complete |
 | CHROME-03 | Phase 9 | Complete |
-| SCR-06 | Phase 10 | Pending |
-| SCR-07 | Phase 10 | Pending |
+| SCR-06 | Phase 10 | Complete |
+| SCR-07 | Phase 10 | Complete |
 | SCR-08 | Phase 11 | Pending |
 | SCR-09 | Phase 11 | Pending |
 | SCR-10 | Phase 11 | Pending |
