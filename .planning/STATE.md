@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 10-03-PLAN.md — SCR-06 AuthScreen re-skin + AuthHeadline + 23 auth_* string keys
-last_updated: "2026-04-21T17:16:28.866Z"
+stopped_at: Completed 10-04-PLAN.md — SCR-07 Home screen re-skin + HomeTopBar + RegistryCard + onNavigateToSettings
+last_updated: "2026-04-21T17:23:26.175Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 50
-  completed_plans: 48
+  completed_plans: 49
   percent: 0
 ---
 
@@ -93,6 +93,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 10-onboarding-home-redesign P01 | 2 | 2 tasks | 6 files |
 | Phase 10-onboarding-home-redesign P02 | 45min | 2 tasks | 8 files |
 | Phase 10 P03 | 4min | 2 tasks | 6 files |
+| Phase 10-onboarding-home-redesign P04 | 3min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -210,6 +211,8 @@ Recent decisions affecting current work:
 - [Phase 10]: AuthUiState.kt stubs from Plan 02 were correct (firstName/lastName + AUTH_SCREEN_DEFAULT_IS_SIGN_UP_MODE=true) — no edit needed in Plan 03
 - [Phase 10]: Scaffold/SnackbarHost dropped from AuthScreen — inline warn-banner (colors.warn 0.15 alpha) replaces snackbar per RESEARCH.md Pattern 2
 - [Phase 10]: AUTH_SCREEN_DEFAULT_IS_SIGN_UP_MODE = true exposed as top-level const so AuthFormStateTest can assert the flip without reading Compose state
+- [Phase Phase 10-onboarding-home-redesign]: onNavigateToNotifications kept as no-op default in RegistryListScreen — inbox still reachable via deep link; bell placement deferred to Phase 11 per CONTEXT.md
+- [Phase Phase 10-onboarding-home-redesign]: Tab index uses Int via rememberSaveable mutableIntStateOf(0), not sealed class, per RESEARCH.md Pitfall 3
 
 ### Pending Todos
 
@@ -244,6 +247,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T17:16:28.862Z
-Stopped at: Completed 10-03-PLAN.md — SCR-06 AuthScreen re-skin + AuthHeadline + 23 auth_* string keys
+Last session: 2026-04-21T17:23:26.171Z
+Stopped at: Completed 10-04-PLAN.md — SCR-07 Home screen re-skin + HomeTopBar + RegistryCard + onNavigateToSettings
 Resume file: None
