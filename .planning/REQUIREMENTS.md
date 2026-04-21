@@ -9,11 +9,11 @@ Requirements for the v1.1 milestone. Owner-facing Android redesign per `design_h
 
 ### Design Foundation
 
-- [ ] **DES-01**: Instrument Serif, Inter, and JetBrains Mono fonts integrated via Google Fonts and available as Compose `FontFamily` values across all screens
-- [ ] **DES-02**: Type scale defined (Display XL/L/M/S, Body L/M/S/XS, Mono caps) with handoff-specified sizes, weights, letter-spacing, and line-heights
-- [ ] **DES-03**: Colour token palette defined (paper, paperDeep, ink, inkSoft, inkFaint, line, accent, accentInk, accentSoft, second, secondSoft, ok, warn) as sRGB hex matching handoff Housewarming table
-- [ ] **DES-04**: Spacing, radii (8/10/12/14/16/22/999), and shadow specs (FAB, Google banner, bottom sheet) applied consistently per handoff
-- [ ] **DES-05**: "GiftMaison" wordmark component (Instrument Serif italic + terracotta accent period) reusable across top bars
+- [x] **DES-01**: Instrument Serif, Inter, and JetBrains Mono fonts integrated via Google Fonts and available as Compose `FontFamily` values across all screens
+- [x] **DES-02**: Type scale defined (Display XL/L/M/S, Body L/M/S/XS, Mono caps) with handoff-specified sizes, weights, letter-spacing, and line-heights
+- [x] **DES-03**: Colour token palette defined (paper, paperDeep, ink, inkSoft, inkFaint, line, accent, accentInk, accentSoft, second, secondSoft, ok, warn) as sRGB hex matching handoff Housewarming table
+- [x] **DES-04**: Spacing, radii (8/10/12/14/16/22/999), and shadow specs (FAB, Google banner, bottom sheet) applied consistently per handoff
+- [x] **DES-05**: "GiftMaison" wordmark component (Instrument Serif italic + terracotta accent period) reusable across top bars
 
 ### Shared Chrome
 
@@ -228,11 +228,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | I18N-01 | Phase 2 | Complete |
 | I18N-02 | Phase 1 | Complete |
 | I18N-03 | Phase 2 | Complete |
-| DES-01 | Phase 8 | Pending |
-| DES-02 | Phase 8 | Pending |
-| DES-03 | Phase 8 | Pending |
-| DES-04 | Phase 8 | Pending |
-| DES-05 | Phase 8 | Pending |
+| DES-01 | Phase 8 | Complete |
+| DES-02 | Phase 8 | Complete |
+| DES-03 | Phase 8 | Complete |
+| DES-04 | Phase 8 | Complete |
+| DES-05 | Phase 8 | Complete |
 | THEME-01 | — | Deferred to v1.2 |
 | THEME-02 | — | Deferred to v1.2 |
 | THEME-03 | — | Deferred to v1.2 |
