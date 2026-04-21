@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 11-02-PLAN.md
-last_updated: "2026-04-21T20:25:18.872Z"
+stopped_at: Completed 11-03-PLAN.md
+last_updated: "2026-04-21T20:33:11.367Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 11
   completed_phases: 10
   total_plans: 56
-  completed_plans: 52
+  completed_plans: 53
   percent: 0
 ---
 
@@ -96,6 +96,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 10-onboarding-home-redesign P04 | 3min | 2 tasks | 8 files |
 | Phase 11-registry-detail-create-add-item-redesign P01 | 8min | 2 tasks | 7 files |
 | Phase 11-registry-detail-create-add-item-redesign P02 | 4min | 2 tasks | 8 files |
+| Phase 11 P03 | 5min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -221,6 +222,7 @@ Recent decisions affecting current work:
 - [Phase 11]: ADD_ITEM_MODE_DEFAULT_ORDINAL exposed as top-level const val per Phase 10 rememberSaveable Int-backed state pattern; ordinal=0 maps to PasteUrl
 - [Phase 11]: isAffiliateDomain inserted between extractDomain() and noMatch() in AffiliateUrlTransformer — additive, merchantRules stays private, transform() unchanged
 - [Phase 11]: OccasionCatalog legacy aliases use lowercase keys so storageKeyFor() normalises via .lowercase() — handles any casing variant from legacy Firestore docs
+- [Phase 11]: ShareBanner.onShared is a non-suspend lambda; caller wraps scope.launch to call showSnackbar — compile error auto-fixed
 
 ### Pending Todos
 
@@ -255,6 +257,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T20:25:18.868Z
-Stopped at: Completed 11-02-PLAN.md
+Last session: 2026-04-21T20:33:11.363Z
+Stopped at: Completed 11-03-PLAN.md
 Resume file: None
