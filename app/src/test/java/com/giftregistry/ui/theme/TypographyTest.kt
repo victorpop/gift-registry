@@ -19,33 +19,33 @@ class TypographyTest {
     @Test fun displayXL_is32spSerifW400() {
         assertEquals(32.sp, t.displayXL.fontSize)
         assertEquals(FontWeight.Normal, t.displayXL.fontWeight)
-        assertEquals((-0.8).em, t.displayXL.letterSpacing)
+        assertEquals((-0.8).sp, t.displayXL.letterSpacing)
         assertEquals(1.0.em, t.displayXL.lineHeight)
         assertEquals(InstrumentSerifFamily, t.displayXL.fontFamily)
     }
 
     @Test fun displayL_is24spSerifW400() {
         assertEquals(24.sp, t.displayL.fontSize)
-        assertEquals((-0.4).em, t.displayL.letterSpacing)
+        assertEquals((-0.4).sp, t.displayL.letterSpacing)
         assertEquals(1.05.em, t.displayL.lineHeight)
     }
 
     @Test fun displayM_is22spSerif() {
         assertEquals(22.sp, t.displayM.fontSize)
-        assertEquals((-0.4).em, t.displayM.letterSpacing)
+        assertEquals((-0.4).sp, t.displayM.letterSpacing)
         assertEquals(1.1.em, t.displayM.lineHeight)
     }
 
     @Test fun displayS_is18spSerif() {
         assertEquals(18.sp, t.displayS.fontSize)
-        assertEquals((-0.3).em, t.displayS.letterSpacing)
+        assertEquals((-0.3).sp, t.displayS.letterSpacing)
         assertEquals(1.1.em, t.displayS.lineHeight)
     }
 
     @Test fun bodyL_is15spInterW500() {
         assertEquals(15.sp, t.bodyL.fontSize)
         assertEquals(FontWeight.Medium, t.bodyL.fontWeight)
-        assertEquals((-0.2).em, t.bodyL.letterSpacing)
+        assertEquals((-0.2).sp, t.bodyL.letterSpacing)
         assertEquals(1.35.em, t.bodyL.lineHeight)
         assertEquals(InterFamily, t.bodyL.fontFamily)
     }
@@ -53,7 +53,7 @@ class TypographyTest {
     @Test fun bodyM_is135spInterW400() {
         assertEquals(13.5.sp, t.bodyM.fontSize)
         assertEquals(FontWeight.Normal, t.bodyM.fontWeight)
-        assertEquals((-0.1).em, t.bodyM.letterSpacing)
+        assertEquals((-0.1).sp, t.bodyM.letterSpacing)
         assertEquals(1.45.em, t.bodyM.lineHeight)
     }
 
@@ -64,13 +64,13 @@ class TypographyTest {
 
     @Test fun bodyS_is125sp() {
         assertEquals(12.5.sp, t.bodyS.fontSize)
-        assertEquals(0.em, t.bodyS.letterSpacing)
+        assertEquals(0.sp, t.bodyS.letterSpacing)
         assertEquals(1.4.em, t.bodyS.lineHeight)
     }
 
     @Test fun bodyXS_is115sp() {
         assertEquals(11.5.sp, t.bodyXS.fontSize)
-        assertEquals(0.em, t.bodyXS.letterSpacing)
+        assertEquals(0.sp, t.bodyXS.letterSpacing)
         assertEquals(1.35.em, t.bodyXS.lineHeight)
     }
 

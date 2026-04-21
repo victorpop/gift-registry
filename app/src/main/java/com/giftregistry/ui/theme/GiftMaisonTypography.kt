@@ -13,9 +13,12 @@ import androidx.compose.ui.unit.sp
  * GiftMaison v1.1 type scale.
  *
  * Source-of-truth: `design_handoff/design_handoff_android_owner_flow/README.md`
- * "Type scale" table. Letter-spacing and line-height values from the handoff are
- * expressed as em multipliers (CSS convention) — see 08-RESEARCH.md Pattern 5 and
- * Pitfall 3.
+ * "Type scale" table. Line-height values from the handoff are CSS unitless multipliers,
+ * expressed here as `.em` (per 08-RESEARCH.md Pattern 5). Letter-spacing values in the
+ * JSX source (`reference/GiftMaison - gift registry mocks.html`) are naked numerics,
+ * which React inline styles treat as **pixels** — NOT em. Mapped here as `.sp` so a
+ * "−0.2" handoff value renders as −0.2 scaled-pixels, matching the web prototype.
+ * (Corrects the em interpretation in 08-RESEARCH.md Pitfall 3.)
  *
  * Every style sets `PlatformTextStyle(includeFontPadding = false)` + a centred
  * `LineHeightStyle` to avoid the ~20% vertical inflation caused by legacy font
@@ -49,7 +52,7 @@ fun giftMaisonTypography(): GiftMaisonTypography = GiftMaisonTypography(
         fontFamily = InstrumentSerifFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 32.sp,
-        letterSpacing = (-0.8).em,
+        letterSpacing = (-0.8).sp,
         lineHeight = 1.0.em,
         platformStyle = noFontPadding,
         lineHeightStyle = centredLineHeight,
@@ -58,7 +61,7 @@ fun giftMaisonTypography(): GiftMaisonTypography = GiftMaisonTypography(
         fontFamily = InstrumentSerifFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 24.sp,
-        letterSpacing = (-0.4).em,
+        letterSpacing = (-0.4).sp,
         lineHeight = 1.05.em,
         platformStyle = noFontPadding,
         lineHeightStyle = centredLineHeight,
@@ -67,7 +70,7 @@ fun giftMaisonTypography(): GiftMaisonTypography = GiftMaisonTypography(
         fontFamily = InstrumentSerifFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 22.sp,
-        letterSpacing = (-0.4).em,
+        letterSpacing = (-0.4).sp,
         lineHeight = 1.1.em,
         platformStyle = noFontPadding,
         lineHeightStyle = centredLineHeight,
@@ -76,7 +79,7 @@ fun giftMaisonTypography(): GiftMaisonTypography = GiftMaisonTypography(
         fontFamily = InstrumentSerifFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 18.sp,
-        letterSpacing = (-0.3).em,
+        letterSpacing = (-0.3).sp,
         lineHeight = 1.1.em,
         platformStyle = noFontPadding,
         lineHeightStyle = centredLineHeight,
@@ -85,7 +88,7 @@ fun giftMaisonTypography(): GiftMaisonTypography = GiftMaisonTypography(
         fontFamily = InterFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 15.sp,
-        letterSpacing = (-0.2).em,
+        letterSpacing = (-0.2).sp,
         lineHeight = 1.35.em,
         platformStyle = noFontPadding,
         lineHeightStyle = centredLineHeight,
@@ -94,7 +97,7 @@ fun giftMaisonTypography(): GiftMaisonTypography = GiftMaisonTypography(
         fontFamily = InterFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 13.5.sp,
-        letterSpacing = (-0.1).em,
+        letterSpacing = (-0.1).sp,
         lineHeight = 1.45.em,
         platformStyle = noFontPadding,
         lineHeightStyle = centredLineHeight,
@@ -103,7 +106,7 @@ fun giftMaisonTypography(): GiftMaisonTypography = GiftMaisonTypography(
         fontFamily = InterFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 13.5.sp,
-        letterSpacing = (-0.1).em,
+        letterSpacing = (-0.1).sp,
         lineHeight = 1.45.em,
         platformStyle = noFontPadding,
         lineHeightStyle = centredLineHeight,
@@ -112,7 +115,7 @@ fun giftMaisonTypography(): GiftMaisonTypography = GiftMaisonTypography(
         fontFamily = InterFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 12.5.sp,
-        letterSpacing = 0.em,
+        letterSpacing = 0.sp,
         lineHeight = 1.4.em,
         platformStyle = noFontPadding,
         lineHeightStyle = centredLineHeight,
@@ -121,7 +124,7 @@ fun giftMaisonTypography(): GiftMaisonTypography = GiftMaisonTypography(
         fontFamily = InterFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 11.5.sp,
-        letterSpacing = 0.em,
+        letterSpacing = 0.sp,
         lineHeight = 1.35.em,
         platformStyle = noFontPadding,
         lineHeightStyle = centredLineHeight,
@@ -130,7 +133,7 @@ fun giftMaisonTypography(): GiftMaisonTypography = GiftMaisonTypography(
         fontFamily = JetBrainsMonoFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 9.5.sp,
-        letterSpacing = 1.5.em,
+        letterSpacing = 1.5.sp,
         lineHeight = 1.3.em,
         platformStyle = noFontPadding,
         lineHeightStyle = centredLineHeight,
