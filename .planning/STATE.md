@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 08-01-PLAN.md — Wave 0 RED stubs landed; ready for Wave 1 (08-02, 08-03, 08-04 in parallel)
-last_updated: "2026-04-21T06:16:31.432Z"
+stopped_at: Completed 09-shared-chrome-status-ui/09-01-PLAN.md
+last_updated: "2026-04-21T09:28:33.570Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 11
   completed_phases: 8
-  total_plans: 41
-  completed_plans: 41
+  total_plans: 45
+  completed_plans: 42
   percent: 0
 ---
 
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
-**Current focus:** Phase 08 — giftmaison-design-foundation
+**Current focus:** Phase 09 — Shared Chrome + Status UI
 
 ## Current Position
 
-Phase: 9
-Plan: Not started
+Phase: 09 (Shared Chrome + Status UI) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
 Last activity: 2026-04-21
 
@@ -87,6 +87,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07-romanian-store-browser P02 | 3min | 2 tasks | 9 files |
 | Phase 07-romanian-store-browser P03 | 12min | 3 tasks | 8 files |
 | Phase 08-giftmaison-design-foundation P01 | 5min | 2 tasks | 8 files |
+| Phase 09-shared-chrome-status-ui P01 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -188,6 +189,9 @@ Recent decisions affecting current work:
 - [Phase 08-giftmaison-design-foundation]: Compose Google Fonts BOM-pinning: compose-ui-text-google-fonts alias declared without version.ref so BOM 2026.03.00 resolves it to 1.10.5 alongside other androidx.compose.ui:* modules
 - [Phase 08-giftmaison-design-foundation]: Wordmark is unit-tested as a pure-Kotlin factory wordmarkAnnotatedString(ink, accent): AnnotatedString so Wave 2 must factor the @Composable GiftMaisonWordmark over this testable helper
 - [Phase 08-giftmaison-design-foundation]: TypographyTest includes an explicit Pitfall 2 guard (everyRole_disablesFontPadding_pitfall2) asserting PlatformTextStyle(includeFontPadding = false) on all 10 type roles — catches future em-lineHeight regressions
+- [Phase 09-shared-chrome-status-ui]: Wave 0 pure-Kotlin unit tests only: Compose UI test scaffolding deferred; unit tests cover logic; visual verification via StyleGuidePreview in Plan 04
+- [Phase 09-shared-chrome-status-ui]: PulsingDot constants exposed as top-level const vals for Compose-framework-free unit testing; Plan 02 contract is PULSING_DOT_DEFAULT_PERIOD_MS=1400L + alpha 1f/0.5f + scale 1f/0.85f
+- [Phase 09-shared-chrome-status-ui]: Asymmetric domain→display mapping pinned by test: ItemStatus.AVAILABLE→OPEN, ItemStatus.RESERVED→RESERVED, ItemStatus.PURCHASED→GIVEN (PURCHASED→GIVEN is highest-risk API pitfall)
 
 ### Pending Todos
 
@@ -219,6 +223,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T16:40:18.297Z
-Stopped at: Completed 08-01-PLAN.md — Wave 0 RED stubs landed; ready for Wave 1 (08-02, 08-03, 08-04 in parallel)
+Last session: 2026-04-21T09:28:33.566Z
+Stopped at: Completed 09-shared-chrome-status-ui/09-01-PLAN.md
 Resume file: None

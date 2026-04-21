@@ -17,7 +17,7 @@ Requirements for the v1.1 milestone. Owner-facing Android redesign per `design_h
 
 ### Shared Chrome
 
-- [ ] **CHROME-01**: Bottom nav shows 5 slots (Home · Stores · +FAB · Lists · You) with stroked icons and mono caps labels; selected state uses accentSoft pill + accent stroke; hidden on screens 06, 09, 10
+- [x] **CHROME-01**: Bottom nav shows 5 slots (Home · Stores · +FAB · Lists · You) with stroked icons and mono caps labels; selected state uses accentSoft pill + accent stroke; hidden on screens 06, 09, 10
 - [ ] **CHROME-02**: Centre FAB is a 54 px accent circle lifted 22 px above the bar with accent shadow and 4 px paper ring; tapping opens the Add action bottom sheet
 - [ ] **CHROME-03**: Add action bottom sheet (22-radius top, drag handle, scrim over blurred home) offers 4 actions: New registry (primary), Item from URL, Browse stores, Add manually
 
@@ -31,10 +31,10 @@ Requirements for the v1.1 milestone. Owner-facing Android redesign per `design_h
 
 ### Status UI
 
-- [ ] **STAT-01**: Reserved chip uses filled accent pill with pulsing 4 px dot (1.4 s interval) and "Nm" countdown updated once per minute
-- [ ] **STAT-02**: Given chip uses secondSoft fill with "✓ given" label
-- [ ] **STAT-03**: Open chip uses outlined pill with line border and inkFaint text
-- [ ] **STAT-04**: Purchased item row renders at 55 % opacity with grayscale image, ink tint, centred ✓, and strikethrough title — remains visible to viewers per handoff trust pattern
+- [x] **STAT-01**: Reserved chip uses filled accent pill with pulsing 4 px dot (1.4 s interval) and "Nm" countdown updated once per minute
+- [x] **STAT-02**: Given chip uses secondSoft fill with "✓ given" label
+- [x] **STAT-03**: Open chip uses outlined pill with line border and inkFaint text
+- [x] **STAT-04**: Purchased item row renders at 55 % opacity with grayscale image, ink tint, centred ✓, and strikethrough title — remains visible to viewers per handoff trust pattern
 
 **v1.1 Open questions (deferred to phase planning):**
 - Countdown re-render cadence (handoff suggests minute, display-only on owner screens)
@@ -236,7 +236,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | THEME-01 | — | Deferred to v1.2 |
 | THEME-02 | — | Deferred to v1.2 |
 | THEME-03 | — | Deferred to v1.2 |
-| CHROME-01 | Phase 9 | Pending |
+| CHROME-01 | Phase 9 | Complete |
 | CHROME-02 | Phase 9 | Pending |
 | CHROME-03 | Phase 9 | Pending |
 | SCR-06 | Phase 10 | Pending |
@@ -244,10 +244,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCR-08 | Phase 11 | Pending |
 | SCR-09 | Phase 11 | Pending |
 | SCR-10 | Phase 11 | Pending |
-| STAT-01 | Phase 9 | Pending |
-| STAT-02 | Phase 9 | Pending |
-| STAT-03 | Phase 9 | Pending |
-| STAT-04 | Phase 9 | Pending |
+| STAT-01 | Phase 9 | Complete |
+| STAT-02 | Phase 9 | Complete |
+| STAT-03 | Phase 9 | Complete |
+| STAT-04 | Phase 9 | Complete |
 
 **v1.0 Coverage:**
 - v1.0 requirements: 45 total (ITEM-03 and ITEM-04 retired — 43 active + 4 STORE-* added = 47 mapped)
