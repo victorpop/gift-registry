@@ -278,6 +278,11 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                             initialUrl = key.initialUrl,
                             initialRegistryId = key.initialRegistryId,
                             onBack = { backStack.removeLast() },
+                            onNavigateToBrowseStores = { regId ->
+                                // Pre-select the current registry so Store Browser's Add-to-list
+                                // round-trips back to AddItemKey with the chosen URL pre-filled.
+                                backStack.add(StoreListKey(preSelectedRegistryId = regId))
+                            },
                         )
                     }
 
