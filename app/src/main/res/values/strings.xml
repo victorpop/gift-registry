@@ -187,4 +187,11 @@
     <string name="notification_reservation_expired_body">The 30-minute reservation on \"%1$s\" in \"%2$s\" expired</string>
     <string name="notification_re_reserve_window_title">\"%1$s\" is available again</string>
     <string name="notification_re_reserve_window_body">Your reservation expired — \"%1$s\" can be re-reserved in \"%2$s\"</string>
+
+    <!-- Phase 9 status chips (STAT-01/02/03) -->
+    <string name="status_chip_reserved">RESERVED</string>
+    <string name="status_chip_given">✓ GIVEN</string>
+    <string name="status_chip_open">OPEN</string>
+    <string name="status_chip_countdown_template">%1$dm</string>
+    <string name="status_chip_countdown_zero">&lt;1m</string>
 </resources>

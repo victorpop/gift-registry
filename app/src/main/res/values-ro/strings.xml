@@ -188,4 +188,11 @@
     <string name="notification_reservation_expired_body">Rezervarea de 30 de minute pe \"%1$s\" din \"%2$s\" a expirat</string>
     <string name="notification_re_reserve_window_title">\"%1$s\" este disponibil din nou</string>
     <string name="notification_re_reserve_window_body">Rezervarea ta a expirat \u2014 \"%1$s\" poate fi re-rezervat \u00een \"%2$s\"</string>
+
+    <!-- Phase 9 status chips (STAT-01/02/03) — Romanian -->
+    <string name="status_chip_reserved">REZERVAT</string>
+    <string name="status_chip_given">✓ OFERIT</string>
+    <string name="status_chip_open">DISPONIBIL</string>
+    <string name="status_chip_countdown_template">%1$d min</string>
+    <string name="status_chip_countdown_zero">&lt;1 min</string>
 </resources>
