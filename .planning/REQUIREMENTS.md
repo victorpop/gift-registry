@@ -18,8 +18,8 @@ Requirements for the v1.1 milestone. Owner-facing Android redesign per `design_h
 ### Shared Chrome
 
 - [x] **CHROME-01**: Bottom nav shows 5 slots (Home · Stores · +FAB · Lists · You) with stroked icons and mono caps labels; selected state uses accentSoft pill + accent stroke; hidden on screens 06, 09, 10
-- [ ] **CHROME-02**: Centre FAB is a 54 px accent circle lifted 22 px above the bar with accent shadow and 4 px paper ring; tapping opens the Add action bottom sheet
-- [ ] **CHROME-03**: Add action bottom sheet (22-radius top, drag handle, scrim over blurred home) offers 4 actions: New registry (primary), Item from URL, Browse stores, Add manually
+- [x] **CHROME-02**: Centre FAB is a 54 px accent circle lifted 22 px above the bar with accent shadow and 4 px paper ring; tapping opens the Add action bottom sheet
+- [x] **CHROME-03**: Add action bottom sheet (22-radius top, drag handle, scrim over blurred home) offers 4 actions: New registry (primary), Item from URL, Browse stores, Add manually
 
 ### Screens
 
@@ -237,8 +237,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | THEME-02 | — | Deferred to v1.2 |
 | THEME-03 | — | Deferred to v1.2 |
 | CHROME-01 | Phase 9 | Complete |
-| CHROME-02 | Phase 9 | Pending |
-| CHROME-03 | Phase 9 | Pending |
+| CHROME-02 | Phase 9 | Complete |
+| CHROME-03 | Phase 9 | Complete |
 | SCR-06 | Phase 10 | Pending |
 | SCR-07 | Phase 10 | Pending |
 | SCR-08 | Phase 11 | Pending |
