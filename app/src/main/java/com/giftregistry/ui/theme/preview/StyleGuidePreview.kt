@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -25,9 +26,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.giftregistry.domain.model.Item
+import com.giftregistry.domain.model.ItemStatus
 import com.giftregistry.domain.model.Registry
 import com.giftregistry.ui.auth.AuthHeadline
 import com.giftregistry.ui.auth.GoogleBanner
+import com.giftregistry.ui.item.add.ItemPreviewCard
+import com.giftregistry.ui.registry.create.OccasionTileGrid
+import com.giftregistry.ui.registry.detail.FilterChipState
+import com.giftregistry.ui.registry.detail.FilterChipsRow
+import com.giftregistry.ui.registry.detail.RegistryDetailHero
+import com.giftregistry.ui.registry.detail.ShareBanner
+import com.giftregistry.ui.registry.detail.StatsStrip
 import com.giftregistry.ui.registry.list.RegistryCardPrimary
 import com.giftregistry.ui.registry.list.RegistryCardSecondary
 import com.giftregistry.ui.registry.list.SegmentedTabs
@@ -349,6 +359,114 @@ private fun RegistryCardSecondaryPreview() {
                 registry = previewRegistry,
                 onClick = {},
                 onLongClick = {},
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Phase 11 — Registry Detail / Create / Add Item preview sections
+// SCR-08 + SCR-09 + SCR-10
+// ─────────────────────────────────────────────────────────────────────────
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 180)
+@Composable
+private fun HeroPlaceholderHousewarmingPreview() {
+    GiftRegistryTheme {
+        RegistryDetailHero(
+            registry = Registry(id = "r1", title = "Our new home", occasion = "Housewarming", imageUrl = null),
+            listState = rememberLazyListState(),
+            onBack = {},
+            onShare = {},
+            onOverflow = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 180)
+@Composable
+private fun HeroPlaceholderWeddingPreview() {
+    GiftRegistryTheme {
+        RegistryDetailHero(
+            registry = Registry(id = "r2", title = "Ana & Radu", occasion = "Wedding", imageUrl = null),
+            listState = rememberLazyListState(),
+            onBack = {},
+            onShare = {},
+            onOverflow = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 80)
+@Composable
+private fun StatsStripPreview() {
+    GiftRegistryTheme {
+        StatsStrip(items = buildList {
+            repeat(9) { add(Item(id = "i$it", registryId = "r", title = "item $it", status = ItemStatus.AVAILABLE)) }
+            add(Item(id = "r1", registryId = "r", title = "res1", status = ItemStatus.RESERVED))
+            add(Item(id = "r2", registryId = "r", title = "res2", status = ItemStatus.RESERVED))
+            add(Item(id = "p1", registryId = "r", title = "given", status = ItemStatus.PURCHASED))
+        })
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360)
+@Composable
+private fun ShareBannerPreview() {
+    GiftRegistryTheme {
+        ShareBanner(registryId = "abc123", onShared = {})
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360)
+@Composable
+private fun FilterChipRowPreview() {
+    GiftRegistryTheme {
+        FilterChipsRow(
+            items = buildList {
+                repeat(9) { add(Item(id = "i$it", registryId = "r", title = "item $it", status = ItemStatus.AVAILABLE)) }
+                add(Item(id = "r1", registryId = "r", status = ItemStatus.RESERVED))
+                add(Item(id = "r2", registryId = "r", status = ItemStatus.RESERVED))
+                add(Item(id = "p1", registryId = "r", status = ItemStatus.PURCHASED))
+            },
+            activeFilter = FilterChipState.All,
+            onFilterSelected = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 400)
+@Composable
+private fun OccasionTileGridPreview() {
+    GiftRegistryTheme {
+        OccasionTileGrid(selectedOccasion = "Housewarming", onOccasionSelected = {})
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 80)
+@Composable
+private fun AddItemSegmentedTabsPreview() {
+    GiftRegistryTheme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            SegmentedTabs(
+                tabs = listOf("Paste URL", "Browse stores", "Manual"),
+                selectedIndex = 0,
+                onTabSelected = {},
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 140)
+@Composable
+private fun ItemPreviewCardPreview() {
+    GiftRegistryTheme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            ItemPreviewCard(
+                imageUrl = "",  // preview-only: no network; placeholder fills the 80x80 box
+                title = "Philips HD9200/90 Airfryer",
+                price = "189",
+                url = "https://emag.ro/philips-airfryer-product/12345",
             )
         }
     }
