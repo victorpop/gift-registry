@@ -1,10 +1,11 @@
 ---
 phase: 11
 slug: registry-detail-create-add-item-redesign
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-21
+reviewed_at: 2026-04-21
 ---
 
 # Phase 11 — UI Design Contract: Registry Detail + Create + Add Item Redesign
