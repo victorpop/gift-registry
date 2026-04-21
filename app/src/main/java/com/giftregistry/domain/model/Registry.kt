@@ -12,6 +12,7 @@ data class Registry(
     val locale: String = "en",
     val notificationsEnabled: Boolean = true,
     val invitedUsers: Map<String, Boolean> = emptyMap(),
+    val imageUrl: String? = null,
     val createdAt: Long = 0L,
-    val updatedAt: Long = 0L
+    val updatedAt: Long = 0L,
 )
