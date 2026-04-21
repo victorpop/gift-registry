@@ -4,7 +4,7 @@ milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
 stopped_at: "Phase 9 Plan 04: Tasks 1+2 committed (AppNavigation cutover + RegistryDetailScreen rewire); Task 3 (21-check on-device UAT) awaiting human validation — user paused autonomous mode"
-last_updated: "2026-04-21T10:15:45.354Z"
+last_updated: "2026-04-21T11:07:00.000Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 11
@@ -228,6 +228,7 @@ Recent decisions affecting current work:
 | 260420-o6w | Show shared-with-me registries — add invitedUsers query + merge/dedupe/sort in repository | 2026-04-20 | d86577d | [260420-o6w-show-shared-with-me-registries-query-reg](./quick/260420-o6w-show-shared-with-me-registries-query-reg/) |
 | 260420-ozb | Persistent in-app notifications inbox — top-bar bell, 5 event sources via writeNotification helper, EN+RO strings | 2026-04-20 | cbc8b9a | [260420-ozb-add-persistent-in-app-notifications-inbo](./quick/260420-ozb-add-persistent-in-app-notifications-inbo/) |
 | 260421-lwi | Fix typography letter-spacing units (em→sp) — Phase 8 Typography used `.em` for letter-spacing but handoff JSX values are pixel-equivalent; fixed all 10 TextStyle roles + 8 TypographyTest assertions | 2026-04-21 | 7743d35 | [260421-lwi-fix-typography-letter-spacing-units-em-t](./quick/260421-lwi-fix-typography-letter-spacing-units-em-t/) |
+| 260421-moi | Fix bottom-nav label truncation + remove duplicate RegistryListScreen FAB — 5-slot equal-width via Modifier.weight(1f), softWrap=false label guards, legacy Scaffold FAB removed | 2026-04-21 | 6139b9c | [260421-moi-fix-bottom-nav-label-truncation-weight-s](./quick/260421-moi-fix-bottom-nav-label-truncation-weight-s/) |
 
 ## Session Continuity
 
