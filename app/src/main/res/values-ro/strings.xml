@@ -195,4 +195,27 @@
     <string name="status_chip_open">DISPONIBIL</string>
     <string name="status_chip_countdown_template">%1$d min</string>
     <string name="status_chip_countdown_zero">&lt;1 min</string>
+
+    <!-- Phase 9 bottom nav (CHROME-01) — Romanian -->
+    <string name="nav_home_tab">ACAS&#0196;</string>
+    <string name="nav_stores_tab">MAGAZINE</string>
+    <string name="nav_fab_add">ADAUG&#0258;</string>
+    <string name="nav_lists_tab">LISTE</string>
+    <string name="nav_you_tab">TU</string>
+    <string name="nav_fab_add_content_description">Adaug&#0259;</string>
+
+    <!-- Phase 9 Add-action sheet (CHROME-03) — Romanian -->
+    <string name="add_sheet_title">Ce adaugi?</string>
+    <string name="add_sheet_new_registry">List&#0259; nou&#0259;</string>
+    <string name="add_sheet_new_registry_sub">Creeaz&#0259; o list&#0259; pentru orice ocazie</string>
+    <string name="add_sheet_item_url">Produs din URL</string>
+    <string name="add_sheet_item_url_sub">Lipe&#0351;te un link din orice magazin</string>
+    <string name="add_sheet_browse_stores">Caut&#0259; &#238;n magazine</string>
+    <string name="add_sheet_browse_stores_sub">Deschide magazine &#238;n browser</string>
+    <string name="add_sheet_add_manually">Adaug&#0259; manual</string>
+    <string name="add_sheet_add_manually_sub">Completeaz&#0259; detaliile manual</string>
+    <string name="add_sheet_no_registry_hint">Creeaz&#0259; mai &#238;nt&#226;i o list&#0259;</string>
+    <string name="add_sheet_lists_empty_hint">Nicio list&#0259; &#238;nc&#0259;</string>
+    <string name="add_sheet_lists_empty_cta">Creeaz&#0259; prima ta list&#0259;</string>
+    <string name="error_loading_registries">Nu am putut &#238;nc&#0259;rca listele. Apas&#0259; pe Liste pentru a re&#238;ncerca.</string>
 </resources>

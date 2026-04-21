@@ -194,4 +194,27 @@
     <string name="status_chip_open">OPEN</string>
     <string name="status_chip_countdown_template">%1$dm</string>
     <string name="status_chip_countdown_zero">&lt;1m</string>
+
+    <!-- Phase 9 bottom nav (CHROME-01) -->
+    <string name="nav_home_tab">HOME</string>
+    <string name="nav_stores_tab">STORES</string>
+    <string name="nav_fab_add">ADD</string>
+    <string name="nav_lists_tab">LISTS</string>
+    <string name="nav_you_tab">YOU</string>
+    <string name="nav_fab_add_content_description">Add new</string>
+
+    <!-- Phase 9 Add-action sheet (CHROME-03) -->
+    <string name="add_sheet_title">What are you adding?</string>
+    <string name="add_sheet_new_registry">New registry</string>
+    <string name="add_sheet_new_registry_sub">Start a list for any occasion</string>
+    <string name="add_sheet_item_url">Item from URL</string>
+    <string name="add_sheet_item_url_sub">Paste a link from any store</string>
+    <string name="add_sheet_browse_stores">Browse stores</string>
+    <string name="add_sheet_browse_stores_sub">Open stores in the built-in browser</string>
+    <string name="add_sheet_add_manually">Add manually</string>
+    <string name="add_sheet_add_manually_sub">Enter details yourself</string>
+    <string name="add_sheet_no_registry_hint">Create a registry first</string>
+    <string name="add_sheet_lists_empty_hint">No registries yet</string>
+    <string name="add_sheet_lists_empty_cta">Create your first registry</string>
+    <string name="error_loading_registries">Couldn\'t load your registries. Tap Lists again to retry.</string>
 </resources>
