@@ -56,6 +56,14 @@ class AuthViewModel @Inject constructor(
         _formState.value = _formState.value.copy(confirmPassword = confirmPassword)
     }
 
+    fun updateFirstName(firstName: String) {
+        _formState.value = _formState.value.copy(firstName = firstName, errorMessage = null)
+    }
+
+    fun updateLastName(lastName: String) {
+        _formState.value = _formState.value.copy(lastName = lastName, errorMessage = null)
+    }
+
     fun clearError() {
         _formState.value = _formState.value.copy(errorMessage = null)
     }

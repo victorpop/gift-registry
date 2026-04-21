@@ -218,4 +218,29 @@
     <string name="add_sheet_lists_empty_hint">Nicio list&#0259; &#238;nc&#0259;</string>
     <string name="add_sheet_lists_empty_cta">Creeaz&#0259; prima ta list&#0259;</string>
     <string name="error_loading_registries">Nu am putut &#238;nc&#0259;rca listele. Apas&#0259; pe Liste pentru a re&#238;ncerca.</string>
+
+    <!-- Phase 10 SCR-06 Auth / Onboarding keys -->
+    <string name="auth_headline_prefix">&#206;ncepe-&#539;i</string>
+    <string name="auth_headline_accent">primul registru</string>
+    <string name="auth_subline">O list&#259; c&#259;lduroas&#259;, de &#238;mp&#259;rt&#259;&#351;it &#8212; configurat&#259; &#238;n mai pu&#539;in de un minut.</string>
+    <string name="auth_google_cta">Continu&#259; cu Google</string>
+    <string name="auth_or_sign_up_email_divider">sau &#238;nregistreaz&#259;-te cu email</string>
+    <string name="auth_or_sign_in_email_divider">sau autentific&#259;-te cu email</string>
+    <string name="auth_first_name_label">Prenume</string>
+    <string name="auth_last_name_label">Nume</string>
+    <string name="auth_password_helper">Cel pu&#539;in 8 caractere &#351;i o cifr&#259;.</string>
+    <string name="auth_signup_cta">&#206;nregistreaz&#259;-te</string>
+    <string name="auth_login_cta">Autentific&#259;-te</string>
+    <string name="auth_terms_line">Prin &#238;nregistrare e&#351;ti de acord cu %1$s &#351;i %2$s</string>
+    <string name="auth_terms_link">Termenii</string>
+    <string name="auth_privacy_link">Politica de confiden&#539;ialitate</string>
+    <string name="auth_login_footer">Ai deja un cont? Autentific&#259;-te</string>
+    <string name="auth_signup_footer">Nou aici? &#206;nregistreaz&#259;-te</string>
+    <string name="auth_terms_url"></string>
+    <string name="auth_privacy_url"></string>
+    <string name="auth_first_name_placeholder">Ana</string>
+    <string name="auth_last_name_placeholder">Popescu</string>
+    <string name="auth_email_placeholder_new">ana.popescu@gmail.com</string>
+    <string name="auth_guest_tertiary_link">Continu&#259; ca oaspete</string>
+    <string name="auth_error_name_required">Prenumele &#351;i numele sunt obligatorii.</string>
 </resources>

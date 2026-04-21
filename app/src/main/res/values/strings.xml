@@ -217,4 +217,29 @@
     <string name="add_sheet_lists_empty_hint">No registries yet</string>
     <string name="add_sheet_lists_empty_cta">Create your first registry</string>
     <string name="error_loading_registries">Couldn\'t load your registries. Tap Lists again to retry.</string>
+
+    <!-- Phase 10 SCR-06 Auth / Onboarding keys -->
+    <string name="auth_headline_prefix">Start your</string>
+    <string name="auth_headline_accent">first registry</string>
+    <string name="auth_subline">A warm, shareable list — set up in under a minute.</string>
+    <string name="auth_google_cta">Continue with Google</string>
+    <string name="auth_or_sign_up_email_divider">or sign up with email</string>
+    <string name="auth_or_sign_in_email_divider">or sign in with email</string>
+    <string name="auth_first_name_label">First name</string>
+    <string name="auth_last_name_label">Last name</string>
+    <string name="auth_password_helper">At least 8 characters with one number.</string>
+    <string name="auth_signup_cta">Sign up</string>
+    <string name="auth_login_cta">Log in</string>
+    <string name="auth_terms_line">By signing up you agree to our %1$s and %2$s</string>
+    <string name="auth_terms_link">Terms</string>
+    <string name="auth_privacy_link">Privacy Policy</string>
+    <string name="auth_login_footer">Already have an account? Log in</string>
+    <string name="auth_signup_footer">New here? Sign up</string>
+    <string name="auth_terms_url"></string>
+    <string name="auth_privacy_url"></string>
+    <string name="auth_first_name_placeholder">Ana</string>
+    <string name="auth_last_name_placeholder">Popescu</string>
+    <string name="auth_email_placeholder_new">ana.popescu@gmail.com</string>
+    <string name="auth_guest_tertiary_link">Continue as guest</string>
+    <string name="auth_error_name_required">First and last name are required.</string>
 </resources>
