@@ -53,8 +53,9 @@ completed: 2026-04-21
 
 - **Duration:** ~12 min
 - **Started:** 2026-04-21T09:43:38Z
-- **Completed:** 2026-04-21 (Tasks 1+2 complete; Task 3 awaiting human verification)
-- **Tasks:** 2/3 automated complete; 1 human-verify checkpoint pending
+- **Completed:** 2026-04-21 (Tasks 1+2 automated; Task 3 UAT deferred to `09-HUMAN-UAT.md`)
+- **Tasks:** 2/3 automated complete; 21-check on-device UAT deferred by user 2026-04-21 to unblock Phases 10/11
+- **Post-ship fixes:** quick-260421-lwi (typography em→sp) + quick-260421-moi (nav slot weighting + duplicate FAB removal) — each ran its own on-device approval from the user and transitively validates UAT items 8 and 13
 - **Files modified:** 3 (modified) + 1 (deleted)
 
 ## Accomplishments
