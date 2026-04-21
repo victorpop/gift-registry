@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 10-02-PLAN.md — Registry.imageUrl + TabFilters + AvatarInitials + 5 shared composables
-last_updated: "2026-04-21T16:30:00.000Z"
+stopped_at: Completed 10-03-PLAN.md — SCR-06 AuthScreen re-skin + AuthHeadline + 23 auth_* string keys
+last_updated: "2026-04-21T17:16:28.866Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 11
   completed_phases: 9
   total_plans: 50
-  completed_plans: 47
+  completed_plans: 48
   percent: 0
 ---
 
@@ -92,6 +92,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 09-shared-chrome-status-ui P03 | 4min | 2 tasks | 5 files |
 | Phase 10-onboarding-home-redesign P01 | 2 | 2 tasks | 6 files |
 | Phase 10-onboarding-home-redesign P02 | 45min | 2 tasks | 8 files |
+| Phase 10 P03 | 4min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -206,6 +207,9 @@ Recent decisions affecting current work:
 - [Phase 10-onboarding-home-redesign P02]: Canvas over layered Box for ConcentricRings — rings anchor at corner Offset(width, 0) and natural bounds-clip achieves handoff overflow:hidden
 - [Phase 10-onboarding-home-redesign P02]: Provisional string refs: auth_google_sign_in_button (GoogleBanner) + auth_settings_title (AvatarButton) — both exist in strings.xml; Plans 03/04 rewire to final keys
 - [Phase 10-onboarding-home-redesign P02]: FocusedFieldCaret: 1.1 s InfiniteRepeatableSpec RepeatMode.Reverse, opacity-only — distinct from PulsingDot 1.4 s opacity+scale
+- [Phase 10]: AuthUiState.kt stubs from Plan 02 were correct (firstName/lastName + AUTH_SCREEN_DEFAULT_IS_SIGN_UP_MODE=true) — no edit needed in Plan 03
+- [Phase 10]: Scaffold/SnackbarHost dropped from AuthScreen — inline warn-banner (colors.warn 0.15 alpha) replaces snackbar per RESEARCH.md Pattern 2
+- [Phase 10]: AUTH_SCREEN_DEFAULT_IS_SIGN_UP_MODE = true exposed as top-level const so AuthFormStateTest can assert the flip without reading Compose state
 
 ### Pending Todos
 
@@ -240,6 +244,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T16:30:00.000Z
-Stopped at: Completed 10-02-PLAN.md — Registry.imageUrl + TabFilters + AvatarInitials + 5 shared composables (9ebdbc5)
+Last session: 2026-04-21T17:16:28.862Z
+Stopped at: Completed 10-03-PLAN.md — SCR-06 AuthScreen re-skin + AuthHeadline + 23 auth_* string keys
 Resume file: None
