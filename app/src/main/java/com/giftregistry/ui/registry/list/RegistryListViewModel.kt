@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.giftregistry.domain.auth.AuthRepository
 import com.giftregistry.domain.model.Registry
+import com.giftregistry.domain.model.User
 import com.giftregistry.domain.usecase.DeleteRegistryUseCase
 import com.giftregistry.domain.usecase.ObserveRegistriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,6 +36,9 @@ class RegistryListViewModel @Inject constructor(
 
     private val _deleteError = MutableStateFlow<String?>(null)
     val deleteError: StateFlow<String?> = _deleteError
+
+    val currentUser: StateFlow<User?> = authRepository.authState
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val uiState: StateFlow<RegistryListUiState>
 

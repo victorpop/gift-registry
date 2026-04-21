@@ -242,4 +242,21 @@
     <string name="auth_email_placeholder_new">ana.popescu@gmail.com</string>
     <string name="auth_guest_tertiary_link">Continue as guest</string>
     <string name="auth_error_name_required">First and last name are required.</string>
+
+    <!-- Phase 10 SCR-07 Home screen keys -->
+    <string name="home_headline">Your registries</string>
+    <string name="home_stats_caption">%1$d active · %2$d items total</string>
+    <string name="home_stats_items">%1$d items</string>
+    <string name="home_stats_reserved">%1$d reserved</string>
+    <string name="home_stats_given">%1$d given</string>
+    <string name="home_tab_active">ACTIVE</string>
+    <string name="home_tab_drafts">DRAFTS</string>
+    <string name="home_tab_past">PAST</string>
+    <string name="home_empty_active">No active registries yet</string>
+    <string name="home_empty_drafts">No drafts</string>
+    <string name="home_empty_past">No past registries</string>
+    <string name="home_avatar_content_desc">Open settings</string>
+    <string name="registry_card_menu_edit">Edit</string>
+    <string name="registry_card_menu_delete">Delete</string>
+    <string name="registry_list_retry">Retry</string>
 </resources>

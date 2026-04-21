@@ -39,7 +39,7 @@ fun AvatarButton(
 ) {
     val colors = GiftMaisonTheme.colors
     val typography = GiftMaisonTheme.typography
-    val desc = stringResource(R.string.auth_settings_title)
+    val desc = stringResource(R.string.home_avatar_content_desc)
 
     Box(
         modifier = modifier
