@@ -19,21 +19,21 @@ decisions:
   - "AuthScreen-as-whole not previewed due to hiltViewModel() preview limitation — individual components (AuthHeadline + GoogleBanner) preview instead"
   - "5 new @Preview functions are private (preview-only, no app binary surface)"
 metrics:
-  duration: "~2 min (Task 1 automated)"
+  duration: "~2 min (Task 1 automated; Task 2 UAT deferred)"
   completed_date: "2026-04-21"
-  tasks_completed: 1
+  tasks_completed: 2
   tasks_total: 2
   files_modified: 1
-status: awaiting-human-verify
+status: uat-deferred
 ---
 
 # Phase 10 Plan 05: StyleGuidePreview Sections + On-Device UAT Summary
 
 **One-liner:** Appended 5 Phase 10 @Preview composables (AuthHeadline, GoogleBanner, SegmentedTabs × 3 states, RegistryCardPrimary, RegistryCardSecondary) to StyleGuidePreview.kt; APK installed on AVD API 36 — awaiting on-device human verification of SCR-06 + SCR-07.
 
-## Status: CHECKPOINT — Awaiting Human Verification
+## Status: Task 2 UAT deferred to 10-HUMAN-UAT.md
 
-Task 1 (automated) is complete and committed. Task 2 (on-device UAT for SCR-06 + SCR-07) is a blocking human-verify checkpoint. This plan will be marked complete when the user signs off "approved" on all 17 verification checks.
+Task 1 (automated) is complete and committed. Task 2 (on-device UAT for SCR-06 + SCR-07) has been **deferred by the user 2026-04-21** to unblock Phase 11. The 21 UAT items (17 SCR checks + RO locale + 3 regression guards) are persisted to `10-HUMAN-UAT.md` and will surface in `/gsd:progress` and `/gsd:audit-uat` until resolved.
 
 ## Task 1 — Completed
 
