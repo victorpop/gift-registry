@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.Home
@@ -76,32 +75,38 @@ fun GiftMaisonBottomNav(
             .padding(top = 4.dp, bottom = 6.dp)
             .height(56.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceAround,
     ) {
         NavItemSlot(
             icon = Icons.Outlined.Home,
             labelRes = R.string.nav_home_tab,
             isSelected = selected == NavSlotId.HOME,
             onClick = onHome,
+            modifier = Modifier.weight(1f),
         )
         NavItemSlot(
             icon = Icons.Outlined.Storefront,
             labelRes = R.string.nav_stores_tab,
             isSelected = selected == NavSlotId.STORES,
             onClick = onStores,
+            modifier = Modifier.weight(1f),
         )
-        FabSlot(onClick = onFab)
+        FabSlot(
+            onClick = onFab,
+            modifier = Modifier.weight(1f),
+        )
         NavItemSlot(
             icon = Icons.AutoMirrored.Outlined.List,
             labelRes = R.string.nav_lists_tab,
             isSelected = selected == NavSlotId.LISTS,
             onClick = onLists,
+            modifier = Modifier.weight(1f),
         )
         NavItemSlot(
             icon = Icons.Outlined.Person,
             labelRes = R.string.nav_you_tab,
             isSelected = selected == NavSlotId.YOU,
             onClick = onYou,
+            modifier = Modifier.weight(1f),
         )
     }
 }
@@ -117,6 +122,7 @@ private fun NavItemSlot(
     labelRes: Int,
     isSelected: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = GiftMaisonTheme.colors
     val typography = GiftMaisonTheme.typography
@@ -126,9 +132,9 @@ private fun NavItemSlot(
     val pillBg: Color = if (isSelected) colors.accentSoft else Color.Transparent
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .clickable(onClick = onClick)
-            .padding(horizontal = 6.dp),
+            .padding(horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -153,18 +159,22 @@ private fun NavItemSlot(
                 fontWeight = if (isSelected) FontWeight.SemiBold else typography.monoCaps.fontWeight,
             ),
             color = labelTint,
+            maxLines = 1,
+            softWrap = false,
         )
     }
 }
 
 /** FAB slot: lifts the GiftMaisonFab 22 dp above the bar baseline + "ADD" caption. */
 @Composable
-private fun FabSlot(onClick: () -> Unit) {
+private fun FabSlot(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val colors = GiftMaisonTheme.colors
     val typography = GiftMaisonTheme.typography
     Column(
-        modifier = Modifier
-            .width(72.dp)
+        modifier = modifier
             .fillMaxHeight(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -179,6 +189,8 @@ private fun FabSlot(onClick: () -> Unit) {
             text = stringResource(R.string.nav_fab_add),
             style = typography.monoCaps,
             color = colors.inkFaint,
+            maxLines = 1,
+            softWrap = false,
         )
     }
 }
