@@ -203,8 +203,13 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                             onBack = { backStack.removeLast() },
                             onSaved = { registryId ->
                                 backStack.removeLast()
-                                backStack.add(RegistryDetailKey(registryId))
-                            }
+                                backStack.add(AddItemKey(registryId = registryId))   // Phase 11: Step 1 → Step 2
+                            },
+                            onSkip = {
+                                backStack.removeLast()
+                                // Pop to whatever sits beneath CreateRegistryKey on the stack.
+                                // On the standard path (Add-action sheet → New registry) that's HomeKey.
+                            },
                         )
                     }
 
