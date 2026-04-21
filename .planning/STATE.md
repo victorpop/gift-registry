@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 11-04-PLAN.md
-last_updated: "2026-04-21T20:39:05.725Z"
+stopped_at: Completed 11-05-PLAN.md
+last_updated: "2026-04-21T20:47:06.546Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 11
   completed_phases: 10
   total_plans: 56
-  completed_plans: 54
+  completed_plans: 55
   percent: 0
 ---
 
@@ -98,6 +98,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 11-registry-detail-create-add-item-redesign P02 | 4min | 2 tasks | 8 files |
 | Phase 11 P03 | 5min | 2 tasks | 8 files |
 | Phase 11 P04 | 4min | 2 tasks | 6 files |
+| Phase 11 P05 | 5min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -226,6 +227,8 @@ Recent decisions affecting current work:
 - [Phase 11]: ShareBanner.onShared is a non-suspend lambda; caller wraps scope.launch to call showSnackbar — compile error auto-fixed
 - [Phase 11]: onSkip default no-op on CreateRegistryScreen: EditRegistryKey entry backward-compat with zero changes
 - [Phase 11]: Skip-save pattern: set 'Untitled draft' placeholder before onSave() to pass VM title.length 3..50; isDraft classified by itemCount==0
+- [Phase 11]: addAnotherMode flag in Composable (not ViewModel) separates save+reset from save+pop — keeps ViewModel pure; flag resets after LaunchedEffect branch fires
+- [Phase 11]: LaunchedEffect(selectedTab) resets selectedTabIndex before calling onNavigateToBrowseStores — ensures re-entry shows PasteUrl tab
 
 ### Pending Todos
 
@@ -260,6 +263,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T20:39:05.722Z
-Stopped at: Completed 11-04-PLAN.md
+Last session: 2026-04-21T20:47:01.035Z
+Stopped at: Completed 11-05-PLAN.md
 Resume file: None
