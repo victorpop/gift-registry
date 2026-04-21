@@ -191,7 +191,6 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
 
                     entry<HomeKey> {
                         RegistryListScreen(
-                            onNavigateToCreate = { backStack.add(CreateRegistryKey) },
                             onNavigateToDetail = { registryId -> backStack.add(RegistryDetailKey(registryId)) },
                             onNavigateToEdit = { registryId -> backStack.add(EditRegistryKey(registryId)) },
                             onNavigateToNotifications = { backStack.add(NotificationsKey) },
