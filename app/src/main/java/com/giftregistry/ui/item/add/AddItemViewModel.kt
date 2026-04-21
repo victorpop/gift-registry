@@ -9,8 +9,12 @@ import com.giftregistry.domain.usecase.AddItemUseCase
 import com.giftregistry.domain.usecase.FetchOgMetadataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -124,4 +128,39 @@ class AddItemViewModel @Inject constructor(
     }
 
     fun clearError() { _error.value = null }
+
+    // --- Phase 11 Plan 05: derived StateFlows for SCR-10 UI ---
+
+    /** True once OG metadata populated any field and the fetch didn't fail. */
+    val ogFetchSucceeded: StateFlow<Boolean> = combine(
+        title, imageUrl, price, ogFetchFailed, isFetchingOg,
+    ) { t, img, p, failed, fetching ->
+        !fetching && !failed && (t.isNotBlank() || img.isNotBlank() || p.isNotBlank())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    /** True when url host matches a Phase 3 merchantRules entry. */
+    val isAffiliateDomain: StateFlow<Boolean> = url.map { u ->
+        com.giftregistry.util.AffiliateUrlTransformer.isAffiliateDomain(u)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    /** SCR-10: "Clear" action on the affiliate confirmation row — resets url and OG-derived fields. */
+    fun onClearUrl() {
+        url.value = ""
+        title.value = ""
+        imageUrl.value = ""
+        price.value = ""
+        _ogFetchFailed.value = false
+    }
+
+    /** SCR-10: "Add another" CTA — save via onSave() then caller calls this to reset all fields. */
+    fun onResetForm() {
+        url.value = ""
+        title.value = ""
+        imageUrl.value = ""
+        price.value = ""
+        notes.value = ""
+        _ogFetchFailed.value = false
+        _savedItemId.value = null
+        _error.value = null
+    }
 }

@@ -103,7 +103,7 @@
     <string name="registry_share_button">Distribuie registrul</string>
 
     <!-- Item management (Phase 3) -->
-    <string name="item_add_title">Adauga articol</string>
+    <string name="item_add_title">Adaug\u0103 obiect</string>
     <string name="item_add_url_label">Lipeste URL-ul produsului</string>
     <string name="item_add_url_hint">https://www.emag.ro/...</string>
     <string name="item_add_fetching_metadata">Se preiau detaliile produsului\u2026</string>
@@ -289,4 +289,20 @@
     <string name="registry_card_menu_edit">Editeaz&#259;</string>
     <string name="registry_card_menu_delete">&#536;terge</string>
     <string name="registry_list_retry">Re&#238;ncerc&#259;</string>
+
+    <!-- Phase 11: Add Item (SCR-10) — Romanian -->
+    <string name="add_item_close_cd">\u00cenchide</string>
+    <string name="add_item_tab_url">Lipe\u015fte URL</string>
+    <string name="add_item_tab_browse">R\u0103sfoie\u015fte magazine</string>
+    <string name="add_item_tab_manual">Manual</string>
+    <string name="add_item_fetching_from">&#8981; SE \u00ceNC\u0102RC\u0102 DE LA %1$s</string>
+    <string name="add_item_affiliate_confirmed">Etichet\u0103 de afiliat aplicat\u0103 invizibil</string>
+    <string name="add_item_affiliate_clear">\u015eterg</string>
+    <string name="add_item_affiliate_info">Am recunoscut %1$s \u015fi vom ad\u0103uga eticheta noastr\u0103 de afiliat. F\u0103r\u0103 impact pentru oaspe\u021bii t\u0103i.</string>
+    <string name="add_item_autofilled">completat automat</string>
+    <string name="add_item_cta_save">Salveaz\u0103 \u00een registru &#10003;</string>
+    <string name="add_item_cta_add_another">Adaug\u0103 altul</string>
+    <string name="item_og_fetch_failed_inline">Nu am putut citi acea pagin\u0103 \u2014 completeaz\u0103 detaliile mai jos.</string>
+    <string name="item_url_label">URL produs</string>
+    <string name="item_notes_hint_detail">ex.: \u00een argintiu, v\u0103 rog \u2014 se potrive\u015fte cu buc\u0103t\u0103ria</string>
 </resources>

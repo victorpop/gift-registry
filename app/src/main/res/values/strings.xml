@@ -103,7 +103,7 @@
     <string name="registry_share_button">Share Registry</string>
 
     <!-- Item management (Phase 3) -->
-    <string name="item_add_title">Add Item</string>
+    <string name="item_add_title">Add item</string>
     <string name="item_add_url_label">Paste product URL</string>
     <string name="item_add_url_hint">https://www.emag.ro/...</string>
     <string name="item_add_fetching_metadata">Fetching product details\u2026</string>
@@ -288,4 +288,20 @@
     <string name="registry_card_menu_edit">Edit</string>
     <string name="registry_card_menu_delete">Delete</string>
     <string name="registry_list_retry">Retry</string>
+
+    <!-- Phase 11: Add Item (SCR-10) -->
+    <string name="add_item_close_cd">Close</string>
+    <string name="add_item_tab_url">Paste URL</string>
+    <string name="add_item_tab_browse">Browse stores</string>
+    <string name="add_item_tab_manual">Manual</string>
+    <string name="add_item_fetching_from">&#8981; FETCHING FROM %1$s</string>
+    <string name="add_item_affiliate_confirmed">Affiliate tag applied invisibly</string>
+    <string name="add_item_affiliate_clear">Clear</string>
+    <string name="add_item_affiliate_info">We recognized %1$s and will add our affiliate tag. No impact on your guests.</string>
+    <string name="add_item_autofilled">auto-filled</string>
+    <string name="add_item_cta_save">Save to registry &#10003;</string>
+    <string name="add_item_cta_add_another">Add another</string>
+    <string name="item_og_fetch_failed_inline">We couldn\'t read that page — fill in the details below.</string>
+    <string name="item_url_label">Product URL</string>
+    <string name="item_notes_hint_detail">e.g., in silver, please — matches the kitchen</string>
 </resources>
