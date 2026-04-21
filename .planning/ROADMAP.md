@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 6: Notifications + Email Flows** - Expiry emails, re-reserve flow, owner push notifications, and private registry invites (completed 2026-04-19)
 - [x] **Phase 7: Romanian Store Browser** - Owners can browse popular Romanian retailers in an in-app WebView with a persistent "Add to list" CTA that funnels products into the existing URL-based add flow (replaces original EMAG Catalog scope — no confirmed public EMAG catalog API) (completed 2026-04-20)
 - [x] **Phase 8: GiftMaison Design Foundation** - Ship fonts, type scale, colour tokens, spacing/radii/shadows, and the reusable "GiftMaison" wordmark as the design system every v1.1 screen builds on (completed 2026-04-21)
-- [ ] **Phase 9: Shared Chrome + Status UI** - Bottom nav, centre FAB, Add-action bottom sheet, and the Reserved/Given/Open/Purchased status treatments shipped as shared UI the owner screens assemble from
+- [x] **Phase 9: Shared Chrome + Status UI** - Bottom nav, centre FAB, Add-action bottom sheet, and the Reserved/Given/Open/Purchased status treatments shipped as shared UI the owner screens assemble from (completed 2026-04-21)
 - [ ] **Phase 10: Onboarding + Home Redesign** - Owner-facing Onboarding/sign up (06) and Home/all-registries (07) screens match the handoff pixel-accurately with the new design system
 - [ ] **Phase 11: Registry Detail + Create + Add Item Redesign** - Registry detail (08), Create registry (09), and Add item via URL (10) screens match the handoff pixel-accurately
 
@@ -194,7 +194,7 @@ Plans:
 - [x] 09-01-PLAN.md -- Wave 0: 5 failing unit test stubs for CHROME-01 predicate + STAT-01/02/03/04 chip/dispatcher/modifier behaviour (RED)
 - [x] 09-02-PLAN.md -- Wave 1 — ui/common/status/: PulsingDot + StatusChip (dispatcher + Reserved/Given/Open) + PurchasedRowModifier + 7 status string keys (STAT-01..04 RED→GREEN)
 - [x] 09-03-PLAN.md -- Wave 1 — ui/common/chrome/: GiftMaisonBottomNav + showsBottomNav predicate + GiftMaisonFab + AddActionSheet + 13 chrome/sheet string keys (CHROME-01 RED→GREEN)
-- [ ] 09-04-PLAN.md -- Wave 2 — integration: wire GiftMaisonBottomNav + AddActionSheet into AppNavigation (replace old NavigationBar, isPrimary resolver, blur fallback); swap RegistryDetail inline ItemStatusChip + ReservationCountdown for shared StatusChip; append StyleGuidePreview sections (checkpoint: on-device)
+- [x] 09-04-PLAN.md -- Wave 2 — integration: wire GiftMaisonBottomNav + AddActionSheet into AppNavigation (replace old NavigationBar, isPrimary resolver, blur fallback); swap RegistryDetail inline ItemStatusChip + ReservationCountdown for shared StatusChip; append StyleGuidePreview sections (checkpoint: on-device)
 **UI hint**: yes
 
 ### Phase 10: Onboarding + Home Redesign
@@ -235,6 +235,6 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 6. Notifications + Email Flows | 6/6 | Complete   | 2026-04-19 |
 | 7. Romanian Store Browser | 4/4 | Complete   | 2026-04-20 |
 | 8. GiftMaison Design Foundation | 0/5 | Planning complete | - |
-| 9. Shared Chrome + Status UI | 3/4 | In Progress|  |
+| 9. Shared Chrome + Status UI | 4/4 | Complete   | 2026-04-21 |
 | 10. Onboarding + Home Redesign | 0/0 | Not started | - |
 | 11. Registry Detail + Create + Add Item Redesign | 0/0 | Not started | - |

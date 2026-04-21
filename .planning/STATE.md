@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 09-shared-chrome-status-ui/09-03-PLAN.md
-last_updated: "2026-04-21T09:41:32.879Z"
+stopped_at: "Checkpoint: 09-04 Task 3 human-verify — APK built, awaiting on-device verification"
+last_updated: "2026-04-21T09:48:55.415Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 11
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 45
-  completed_plans: 44
+  completed_plans: 45
   percent: 0
 ---
 
@@ -197,6 +197,8 @@ Recent decisions affecting current work:
 - [Phase 09-shared-chrome-status-ui]: NavVisibility.kt stub created in Plan 02 to unblock BottomNavVisibilityTest compilation — all unit tests share a single compile step; correct showsBottomNav() logic available for Plan 03 to build on
 - [Phase 09-shared-chrome-status-ui]: showsBottomNav() kept in NavVisibility.kt (Plan 02 stub) rather than merged into GiftMaisonBottomNav.kt — no duplicate declaration, tests already passing
 - [Phase 09-shared-chrome-status-ui]: Icons.Outlined.KeyboardArrowRight used instead of Icons.AutoMirrored.Filled.ChevronRight — ChevronRight not in project Material Icons extended set
+- [Phase 09-shared-chrome-status-ui]: showsBottomNav() import replaces local predicate — semantic change from persistent-everywhere to HomeKey+RegistryDetailKey only (intentional Phase 9 cutover per D-03)
+- [Phase 09-shared-chrome-status-ui]: SuggestionChip imports kept in RegistryDetailScreen — file uses SuggestionChip for registry.occasion label in header; only inline ItemStatusChip composable deleted
 
 ### Pending Todos
 
@@ -228,6 +230,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T09:41:32.875Z
-Stopped at: Completed 09-shared-chrome-status-ui/09-03-PLAN.md
+Last session: 2026-04-21T09:48:41.623Z
+Stopped at: Checkpoint: 09-04 Task 3 human-verify — APK built, awaiting on-device verification
 Resume file: None
