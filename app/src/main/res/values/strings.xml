@@ -188,6 +188,20 @@
     <string name="notification_re_reserve_window_title">\"%1$s\" is available again</string>
     <string name="notification_re_reserve_window_body">Your reservation expired — \"%1$s\" can be re-reserved in \"%2$s\"</string>
 
+    <!-- Phase 11: Create Registry (SCR-09) -->
+    <string name="registry_create_step_indicator">STEP 1 OF 2</string>
+    <string name="registry_create_skip">Skip</string>
+    <string name="registry_create_headline_prefix">What\'s the</string>
+    <string name="registry_create_headline_accent">occasion?</string>
+    <string name="registry_create_subline">We\'ll set the tone, suggested categories, and email theme to match.</string>
+    <string name="registry_create_cta">Continue · add items →</string>
+    <string name="registry_create_untitled_draft">Untitled draft</string>
+    <string name="registry_update_cta">Update registry</string>
+    <string name="registry_occasion_housewarming">Housewarming</string>
+    <string name="registry_occasion_baby">Baby</string>
+    <string name="registry_event_time_label">Time</string>
+    <string name="registry_visibility_section_label">VISIBILITY</string>
+
     <!-- Phase 11: Registry Detail (SCR-08) -->
     <string name="registry_detail_share_button_desc">Share registry</string>
     <string name="registry_detail_overflow_desc">Registry options</string>

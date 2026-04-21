@@ -189,6 +189,20 @@
     <string name="notification_re_reserve_window_title">\"%1$s\" este disponibil din nou</string>
     <string name="notification_re_reserve_window_body">Rezervarea ta a expirat \u2014 \"%1$s\" poate fi re-rezervat \u00een \"%2$s\"</string>
 
+    <!-- Phase 11: Create Registry (SCR-09) — Romanian -->
+    <string name="registry_create_step_indicator">PASUL 1 DIN 2</string>
+    <string name="registry_create_skip">Omite</string>
+    <string name="registry_create_headline_prefix">Care este</string>
+    <string name="registry_create_headline_accent">ocazia?</string>
+    <string name="registry_create_subline">Vom seta tonul, categoriile sugerate \u0219i tema emailului.</string>
+    <string name="registry_create_cta">Continu\u0103 \u00b7 adaug\u0103 obiecte \u2192</string>
+    <string name="registry_create_untitled_draft">Registru nesalvat</string>
+    <string name="registry_update_cta">Actualizeaz\u0103 registrul</string>
+    <string name="registry_occasion_housewarming">Cas\u0103 nou\u0103</string>
+    <string name="registry_occasion_baby">Bebe</string>
+    <string name="registry_event_time_label">Ora</string>
+    <string name="registry_visibility_section_label">VIZIBILITATE</string>
+
     <!-- Phase 11: Registry Detail (SCR-08) — Romanian -->
     <string name="registry_detail_share_button_desc">Distribuie registrul</string>
     <string name="registry_detail_overflow_desc">Op\u021biuni registru</string>
