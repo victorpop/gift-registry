@@ -22,7 +22,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: GiftMaison Design Foundation** - Ship fonts, type scale, colour tokens, spacing/radii/shadows, and the reusable "GiftMaison" wordmark as the design system every v1.1 screen builds on (completed 2026-04-21)
 - [x] **Phase 9: Shared Chrome + Status UI** - Bottom nav, centre FAB, Add-action bottom sheet, and the Reserved/Given/Open/Purchased status treatments shipped as shared UI the owner screens assemble from (completed 2026-04-21)
 - [x] **Phase 10: Onboarding + Home Redesign** - Owner-facing Onboarding/sign up (06) and Home/all-registries (07) screens match the handoff pixel-accurately with the new design system (completed 2026-04-21)
-- [ ] **Phase 11: Registry Detail + Create + Add Item Redesign** - Registry detail (08), Create registry (09), and Add item via URL (10) screens match the handoff pixel-accurately
+- [x] **Phase 11: Registry Detail + Create + Add Item Redesign** - Registry detail (08), Create registry (09), and Add item via URL (10) screens match the handoff pixel-accurately (completed 2026-04-21)
 
 ## Phase Details
 
@@ -230,7 +230,7 @@ Plans:
 - [x] 11-03-PLAN.md -- Wave 1 SCR-08 Registry Detail re-skin: 5 sub-composables (RegistryDetailHero / StatsStrip / ShareBanner / FilterChipsRow / RegistryItemRow) + 13 registry_detail_* strings (EN + RO) + Box+LazyColumn shell (preserves reservation / delete / invite / FCM push)
 - [x] 11-04-PLAN.md -- Wave 1 SCR-09 Create Registry re-skin: OccasionTileGrid + VisibilityRadioCard + 13 registry_create_* strings + AppNavigation onSaved rewired to AddItemKey + onSkip → HomeKey
 - [x] 11-05-PLAN.md -- Wave 1 SCR-10 Add Item re-skin: 6 sub-composables (FetchingIndicator / AffiliateConfirmationRow / ItemPreviewCard / AutoFillTag / InfoPill / AddItemDualCtaBar) + VM derived flows + 12-14 add_item_* strings + AppNavigation onNavigateToBrowseStores wiring
-- [ ] 11-06-PLAN.md -- Wave 2 integration: 7 StyleGuidePreview sections + on-device human UAT (41-check checklist covering SCR-08/09/10 + locale + regression guards)
+- [x] 11-06-PLAN.md -- Wave 2 integration: 7 StyleGuidePreview sections + on-device human UAT (41-check checklist covering SCR-08/09/10 + locale + regression guards)
 **UI hint**: yes
 
 ## Progress
@@ -250,4 +250,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 8. GiftMaison Design Foundation | 0/5 | Planning complete | - |
 | 9. Shared Chrome + Status UI | 4/4 | Complete   | 2026-04-21 |
 | 10. Onboarding + Home Redesign | 4/5 | Complete    | 2026-04-21 |
-| 11. Registry Detail + Create + Add Item Redesign | 5/6 | In Progress|  |
+| 11. Registry Detail + Create + Add Item Redesign | 6/6 | Complete   | 2026-04-21 |
