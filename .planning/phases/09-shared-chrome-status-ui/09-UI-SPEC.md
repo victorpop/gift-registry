@@ -1,10 +1,11 @@
 ---
 phase: 9
 slug: shared-chrome-status-ui
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-21
+reviewed_at: 2026-04-21
 ---
 
 # Phase 9 — UI Design Contract
