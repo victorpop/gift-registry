@@ -223,7 +223,14 @@ Plans:
   1. The Registry detail screen renders the 180 px hero with gradient + pinned toolbar, the 4-stat strip, the accentSoft share banner pill, horizontally scrolling filter chips (All / Open / Reserved / Completed), and full-width item rows with 58 px thumbnail + status chip + overflow button — backed by the existing items query and status from the reservation system
   2. The Create registry screen renders the "Step 1 of 2" app bar with Skip, the italic-accent "What's the occasion?" headline, the 2×3 occasion tile grid with selected/unselected states, name/date/time/place fields, the visibility radio card, and the bottom CTA bar — and submitting the form creates a registry through the existing repository path
   3. The Add item (paste URL) screen renders the × close app bar, the 3-tab segmented control (Paste URL / Browse stores / Manual), the URL field with "Fetching from {domain}" pulsing-dot status and affiliate confirmation row, the preview card, optional note field, info pill, and dual CTA bar — and pasting a URL drives the existing Open Graph + affiliate-tagging add-item flow
-**Plans**: TBD
+**Plans**: 6 plans
+Plans:
+- [ ] 11-01-PLAN.md -- Wave 0: 7 failing pure-Kotlin unit test files (SCR-08/09/10 RED) — FilterChipState, HeroToolbarAlpha, RegistryStats, ShareUrl, OccasionCatalog, AddItemMode, AffiliateRowVisibility
+- [ ] 11-02-PLAN.md -- Wave 1 shared helpers: AffiliateUrlTransformer.isAffiliateDomain + 7 pure-Kotlin Phase 11 helpers (flips all 7 Wave 0 tests GREEN)
+- [ ] 11-03-PLAN.md -- Wave 1 SCR-08 Registry Detail re-skin: 5 sub-composables (RegistryDetailHero / StatsStrip / ShareBanner / FilterChipsRow / RegistryItemRow) + 13 registry_detail_* strings (EN + RO) + Box+LazyColumn shell (preserves reservation / delete / invite / FCM push)
+- [ ] 11-04-PLAN.md -- Wave 1 SCR-09 Create Registry re-skin: OccasionTileGrid + VisibilityRadioCard + 13 registry_create_* strings + AppNavigation onSaved rewired to AddItemKey + onSkip → HomeKey
+- [ ] 11-05-PLAN.md -- Wave 1 SCR-10 Add Item re-skin: 6 sub-composables (FetchingIndicator / AffiliateConfirmationRow / ItemPreviewCard / AutoFillTag / InfoPill / AddItemDualCtaBar) + VM derived flows + 12-14 add_item_* strings + AppNavigation onNavigateToBrowseStores wiring
+- [ ] 11-06-PLAN.md -- Wave 2 integration: 7 StyleGuidePreview sections + on-device human UAT (41-check checklist covering SCR-08/09/10 + locale + regression guards)
 **UI hint**: yes
 
 ## Progress
@@ -243,4 +250,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 8. GiftMaison Design Foundation | 0/5 | Planning complete | - |
 | 9. Shared Chrome + Status UI | 4/4 | Complete   | 2026-04-21 |
 | 10. Onboarding + Home Redesign | 4/5 | Complete    | 2026-04-21 |
-| 11. Registry Detail + Create + Add Item Redesign | 0/0 | Not started | - |
+| 11. Registry Detail + Create + Add Item Redesign | 0/6 | Planning complete | - |
