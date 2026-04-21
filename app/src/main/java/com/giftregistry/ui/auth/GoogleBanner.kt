@@ -42,8 +42,8 @@ import com.giftregistry.ui.theme.googleBannerShadow
  *   - Top-end corner: ConcentricRings(color = colors.accentInk).
  *   - Entire banner is clickable, invokes onClick().
  *
- * Provisional string: R.string.auth_google_sign_in_button — rewired to
- * R.string.auth_google_cta in Plan 03.
+ * String: R.string.auth_google_cta — "Continue with Google" (EN) / "Continuă cu Google" (RO).
+ * Rewired from the provisional string reference used in Plan 02.
  */
 @Composable
 fun GoogleBanner(
@@ -88,7 +88,7 @@ fun GoogleBanner(
 
             // Centre: CTA label
             Text(
-                text = stringResource(R.string.auth_google_sign_in_button),
+                text = stringResource(R.string.auth_google_cta),
                 style = typography.bodyL,
                 color = colors.accentInk,
                 modifier = Modifier.weight(1f),
