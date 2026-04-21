@@ -25,6 +25,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.giftregistry.domain.model.Registry
+import com.giftregistry.ui.auth.AuthHeadline
+import com.giftregistry.ui.auth.GoogleBanner
+import com.giftregistry.ui.registry.list.RegistryCardPrimary
+import com.giftregistry.ui.registry.list.RegistryCardSecondary
+import com.giftregistry.ui.registry.list.SegmentedTabs
 import com.giftregistry.ui.theme.GiftMaisonTheme
 import com.giftregistry.ui.theme.GiftMaisonWordmark
 import com.giftregistry.ui.theme.GiftRegistryTheme
@@ -243,6 +249,106 @@ private fun PulsingDotPreview() {
                 color = GiftMaisonTheme.colors.accent,
                 size = 8.dp,
                 period = 1_000.milliseconds,
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Phase 10 — Onboarding + Home Redesign preview sections (SCR-06 + SCR-07)
+// ─────────────────────────────────────────────────────────────────────────
+
+@Preview(name = "Auth headline", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 140)
+@Composable
+private fun AuthHeadlinePreview() {
+    GiftRegistryTheme {
+        Box(
+            modifier = Modifier
+                .background(GiftMaisonTheme.colors.paper)
+                .padding(16.dp),
+        ) {
+            AuthHeadline()
+        }
+    }
+}
+
+@Preview(name = "Google banner (SCR-06)", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 120)
+@Composable
+private fun GoogleBannerPreview() {
+    GiftRegistryTheme {
+        Box(
+            modifier = Modifier
+                .background(GiftMaisonTheme.colors.paper)
+                .padding(16.dp),
+        ) {
+            GoogleBanner(onClick = {})
+        }
+    }
+}
+
+@Preview(name = "Segmented tabs — all 3 selected states", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 220)
+@Composable
+private fun SegmentedTabsPreview() {
+    GiftRegistryTheme {
+        val tabs = listOf("ACTIVE", "DRAFTS", "PAST")
+        Column(
+            modifier = Modifier
+                .background(GiftMaisonTheme.colors.paper)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            SegmentedTabs(tabs = tabs, selectedIndex = 0, onTabSelected = {})
+            SegmentedTabs(tabs = tabs, selectedIndex = 1, onTabSelected = {})
+            SegmentedTabs(tabs = tabs, selectedIndex = 2, onTabSelected = {})
+        }
+    }
+}
+
+private val previewRegistry: Registry = Registry(
+    id = "preview-1",
+    ownerId = "owner-1",
+    title = "Ana's housewarming",
+    occasion = "Housewarming",
+    visibility = "public",
+    eventDateMs = 1_780_000_000_000L,
+    eventLocation = "Bucharest",
+    description = null,
+    imageUrl = null,  // null exercises the paperDeep placeholder path
+    createdAt = 1_740_000_000_000L,
+    updatedAt = 1_745_000_000_000L,
+)
+
+@Preview(name = "Registry card — primary (ink bg, 70% image)", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 320)
+@Composable
+private fun RegistryCardPrimaryPreview() {
+    GiftRegistryTheme {
+        Box(
+            modifier = Modifier
+                .background(GiftMaisonTheme.colors.paper)
+                .padding(16.dp),
+        ) {
+            RegistryCardPrimary(
+                registry = previewRegistry,
+                onClick = {},
+                onLongClick = {},
+            )
+        }
+    }
+}
+
+@Preview(name = "Registry card — secondary (paperDeep + line border)", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 320)
+@Composable
+private fun RegistryCardSecondaryPreview() {
+    GiftRegistryTheme {
+        Box(
+            modifier = Modifier
+                .background(GiftMaisonTheme.colors.paper)
+                .padding(16.dp),
+        ) {
+            RegistryCardSecondary(
+                registry = previewRegistry,
+                onClick = {},
+                onLongClick = {},
             )
         }
     }
