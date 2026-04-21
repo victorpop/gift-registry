@@ -43,6 +43,21 @@ object AffiliateUrlTransformer {
         }
     }
 
+    /**
+     * Phase 11 SCR-10 accessor: returns true when [url]'s host matches any entry
+     * in [merchantRules] (currently `"emag.ro"`). Mirrors the domain check in
+     * [transform] without invoking the URL builder — the Add item screen uses this
+     * to decide whether to show the affiliate confirmation row before save.
+     *
+     * Returns false for blank / malformed URLs and for hosts that do not match
+     * any merchant rule. Case-insensitive (extractDomain lowercases).
+     */
+    fun isAffiliateDomain(url: String): Boolean {
+        if (url.isBlank()) return false
+        val domain = extractDomain(url) ?: return false
+        return merchantRules.keys.any { domain.endsWith(it) }
+    }
+
     private fun noMatch(url: String) = TransformResult(url, url, null, false)
 
     private fun buildEmagAffiliateUrl(productUrl: String): String {
