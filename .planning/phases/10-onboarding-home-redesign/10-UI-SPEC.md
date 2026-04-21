@@ -72,19 +72,19 @@ Source: GiftMaisonSpacing.kt, CONTEXT.md, handoff § 06 + § 07
 
 ## Typography
 
-Phase 8 GiftMaison type scale applied directly. Phase 10 role assignments:
+**All size, weight, and line-height values are fixed in Phase 8 `GiftMaisonTypography.kt` and re-used unchanged. Phase 10 does not declare or override any typography scale values — this table only documents which existing Phase 8 roles each Phase 10 element consumes.**
 
-| Role | Token | Size | Weight | Line-height | Phase 10 Usage |
-|------|-------|------|--------|-------------|----------------|
-| Display XL | `typography.displayXL` | 32 sp | Normal (Instrument Serif) | 1.0 em | Home "Your registries" headline |
-| Display L | `typography.displayL` | 24 sp | Normal (Instrument Serif) | 1.05 em | Auth headline lines ("Start your", "first registry.") |
-| Display S | `typography.displayS` | 18 sp | Normal (Instrument Serif) | 1.1 em | Registry card title (primary card) |
-| Body L | `typography.bodyL` | 15 sp | W500 (Inter) | 1.35 em | Auth CTA button labels; primary action labels |
-| Body M | `typography.bodyM` | 13.5 sp | W400 (Inter) | 1.45 em | Auth field labels, helper text, divider text; card secondary text |
-| Body M Emphasis | `typography.bodyMEmphasis` | 13.5 sp | W500 (Inter) | 1.45 em | Auth "Log in" footer ghost pill label; field label emphasis |
-| Body S | `typography.bodyS` | 12.5 sp | W400 (Inter) | 1.4 em | Registry card date, location, stats line on secondary cards |
-| Body XS | `typography.bodyXS` | 11.5 sp | W400 (Inter) | 1.35 em | Terms line on Auth; occasion pill label |
-| Mono Caps | `typography.monoCaps` | 9.5 sp | W500 (JetBrains Mono) | 1.3 em | Home stats caption ("N active · M items total"); tab labels |
+| Role | Token | Phase 10 Usage |
+|------|-------|----------------|
+| Display XL | `typography.displayXL` | Home "Your registries" headline |
+| Display L | `typography.displayL` | Auth headline lines ("Start your", "first registry.") |
+| Display S | `typography.displayS` | Registry card title (primary card) |
+| Body L | `typography.bodyL` | Auth CTA button labels; primary action labels |
+| Body M | `typography.bodyM` | Auth field labels, helper text, divider text; card secondary text |
+| Body M Emphasis | `typography.bodyMEmphasis` | Auth "Log in" footer ghost pill label; field label emphasis |
+| Body S | `typography.bodyS` | Registry card date, location, stats line on secondary cards |
+| Body XS | `typography.bodyXS` | Terms line on Auth; occasion pill label |
+| Mono Caps | `typography.monoCaps` | Home stats caption ("N active · M items total"); tab labels |
 
 **Special: Headline italic-accent construction on Auth screen**
 
@@ -132,6 +132,7 @@ Full palette is from `housewarmingColors()` in GiftMaisonColors.kt. Phase 10 60/
 | `colors.accentInk` | `#FCF8EF` | Text on accent/accentSoft surfaces |
 | `colors.second` | `#4F7050` | Avatar circle background (olive) |
 | `colors.secondSoft` | `#D7E2CE` | Avatar text on second |
+| `colors.warn` | `#D29447` | Error banner background at 0.15 alpha (`colors.warn.copy(alpha = 0.15f)`) |
 
 Source: GiftMaisonColors.kt, CONTEXT.md § Home screen + Auth screen decisions
 
@@ -226,7 +227,7 @@ First name + Last name in sign-up: placed in a `Row` with `spacing.gap8` gap bet
 
 Email field: `KeyboardType.Email`, `ImeAction.Next`. No leading icon (handoff has none — drop the existing `Icons.Default.Email` leading icon).
 
-Password field: trailing eye-toggle `IconButton` (existing implementation kept). No leading icon.
+Password field: trailing eye-toggle `IconButton` (existing implementation kept). The eye `IconButton` uses `contentDescription = stringResource(R.string.auth_password_show)` when the field is masked and `contentDescription = stringResource(R.string.auth_password_hide)` when revealed — add these keys if missing from strings.xml. No leading icon.
 
 Confirm password: sign-up mode only, same style as password field.
 
@@ -429,8 +430,12 @@ All new keys follow `auth_` prefix. Add to `values/strings.xml` AND `values-ro/s
 | `auth_login_footer` | "Already have an account? Log in" | "Ai deja un cont? Autentifică-te" |
 | `auth_terms_url` | "" (TODO placeholder) | "" (TODO placeholder) |
 | `auth_privacy_url` | "" (TODO placeholder) | "" (TODO placeholder) |
+| `auth_password_show` | "Show password" | "Arată parola" |
+| `auth_password_hide` | "Hide password" | "Ascunde parola" |
 
-**Existing auth keys reused without change:** `auth_email_label`, `auth_password_label`, `auth_password_show`, `auth_password_hide`, `auth_confirm_password_label`, `auth_error_invalid_credentials`, `auth_error_email_exists`, `auth_error_weak_password`, `auth_error_network`.
+**Note:** `auth_signup_cta` ("Sign up") and `auth_login_cta` ("Log in") are conventional two-word auth labels (industry standard). Full-sentence variants like "Sign up for GiftMaison" were considered and rejected for visual density on the pill CTA.
+
+**Existing auth keys reused without change:** `auth_email_label`, `auth_password_label`, `auth_confirm_password_label`, `auth_error_invalid_credentials`, `auth_error_email_exists`, `auth_error_weak_password`, `auth_error_network`.
 
 ### New String Keys — Home Screen (English / Romanian)
 
@@ -469,13 +474,13 @@ All new keys follow `home_` prefix.
 
 | Error | Copy (existing keys reused) | Treatment |
 |-------|------------------------------|-----------|
-| Auth invalid credentials | `auth_error_invalid_credentials`: "Incorrect email or password. Check your details and try again." | Inline error banner, `colors.warn` background, `typography.bodyM` |
+| Auth invalid credentials | `auth_error_invalid_credentials`: "Incorrect email or password. Check your details and try again." | Inline error banner, `colors.warn.copy(alpha = 0.15f)` background, `typography.bodyM` |
 | Auth email exists | `auth_error_email_exists`: "An account with this email already exists. Try signing in." | Same inline banner |
 | Auth weak password | `auth_error_weak_password`: "Password must be at least 8 characters." | Same inline banner |
 | Auth network error | `auth_error_network`: "No connection. Check your internet and try again." | Same inline banner |
 | Home list load error | `common_error_generic` + `common_retry` (existing) | Centred `Column`, `colors.ink` text, `TextButton` retry |
 
-Error banner style: `Box`, `shapes.radius12`, `colors.warn` at 0.15 alpha background, `colors.inkSoft` text, `spacing.gap12` internal padding.
+Error banner style: `Box`, `shapes.radius12`, `colors.warn.copy(alpha = 0.15f)` background, `colors.inkSoft` text, `spacing.gap12` internal padding.
 
 ### Destructive Actions
 
