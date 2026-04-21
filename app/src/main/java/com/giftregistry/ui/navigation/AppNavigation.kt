@@ -194,6 +194,7 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                             onNavigateToDetail = { registryId -> backStack.add(RegistryDetailKey(registryId)) },
                             onNavigateToEdit = { registryId -> backStack.add(EditRegistryKey(registryId)) },
                             onNavigateToNotifications = { backStack.add(NotificationsKey) },
+                            onNavigateToSettings = { backStack.add(SettingsKey) },
                         )
                     }
 
