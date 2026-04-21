@@ -1,34 +1,26 @@
 package com.giftregistry.ui.theme
 
 import androidx.compose.material3.Typography
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
 
-val GiftRegistryTypography = Typography(
-    headlineLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 32.sp,
-        lineHeight = 40.sp
-    ),
-    titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
-        fontSize = 22.sp,
-        lineHeight = 28.sp
-    ),
-    bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp
-    ),
-    labelLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        lineHeight = 20.sp
-    )
+/**
+ * Material3 Typography mapped from the GiftMaison type scale.
+ *
+ * Existing Phase 2-7 screens read `MaterialTheme.typography.headlineLarge` /
+ * `.titleLarge` / `.bodyLarge` / `.labelLarge`. This mapping re-skins them onto
+ * the Housewarming scale. Phase 9+ screens that need bespoke roles (bodyXS,
+ * monoCaps with custom letter-spacing) should read `GiftMaisonTheme.typography.*`
+ * directly.
+ */
+private val gm = giftMaisonTypography()
+
+val GiftRegistryTypography: Typography = Typography(
+    displayLarge = gm.displayXL,
+    headlineLarge = gm.displayL,
+    headlineMedium = gm.displayM,
+    titleLarge = gm.displayS,
+    bodyLarge = gm.bodyL,
+    bodyMedium = gm.bodyM,
+    bodySmall = gm.bodyS,
+    labelLarge = gm.bodyMEmphasis,
+    labelSmall = gm.monoCaps,
 )
