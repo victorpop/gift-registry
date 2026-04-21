@@ -1,10 +1,11 @@
 ---
 phase: 10
 slug: onboarding-home-redesign
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-04-21
+reviewed_at: 2026-04-21
 ---
 
 # Phase 10 — UI Design Contract: Onboarding + Home Redesign
