@@ -73,7 +73,7 @@ fun GiftMaisonBottomNav(
             .border(width = 1.dp, color = colors.line)
             .navigationBarsPadding()
             .padding(top = 4.dp, bottom = 6.dp)
-            .height(56.dp),
+            .height(72.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         NavItemSlot(
