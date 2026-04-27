@@ -260,9 +260,10 @@ Recent decisions affecting current work:
 | 260421-lwi | Fix typography letter-spacing units (em→sp) — Phase 8 Typography used `.em` for letter-spacing but handoff JSX values are pixel-equivalent; fixed all 10 TextStyle roles + 8 TypographyTest assertions | 2026-04-21 | 7743d35 | [260421-lwi-fix-typography-letter-spacing-units-em-t](./quick/260421-lwi-fix-typography-letter-spacing-units-em-t/) |
 | 260421-moi | Fix bottom nav label truncation — weight all 5 slots evenly, remove hardcoded FAB slot width, add maxLines/softWrap guards; remove duplicate RegistryListScreen legacy FAB | 2026-04-21 | c1a1f65 | [260421-moi-fix-bottom-nav-label-truncation-weight-s](./quick/260421-moi-fix-bottom-nav-label-truncation-weight-s/) |
 | 260421-moi | Fix bottom-nav label truncation + remove duplicate RegistryListScreen FAB — 5-slot equal-width via Modifier.weight(1f), softWrap=false label guards, legacy Scaffold FAB removed | 2026-04-21 | 6139b9c | [260421-moi-fix-bottom-nav-label-truncation-weight-s](./quick/260421-moi-fix-bottom-nav-label-truncation-weight-s/) |
+| 260427-gld | Fix wordmark letterSpacing em→sp + decouple ConcentricRings from GoogleBanner height — matchParentSize overlay pattern restores Auth screen wordmark legibility and ~68 dp banner height | 2026-04-27 | 82d8125 | [260427-gld-fix-wordmark-letterspacing-em-to-sp-and-](./quick/260427-gld-fix-wordmark-letterspacing-em-to-sp-and-/) |
 
 ## Session Continuity
 
-Last session: 2026-04-21T20:50:18.081Z
-Stopped at: 11-06 Task 1 complete — awaiting human checkpoint (Task 2)
+Last session: 2026-04-27T09:01:30Z
+Stopped at: quick-260427-gld Task 1 complete — awaiting human-verify checkpoint (Task 2)
 Resume file: None
