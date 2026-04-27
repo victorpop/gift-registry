@@ -253,11 +253,22 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 11. Registry Detail + Create + Add Item Redesign | 6/6 | Complete   | 2026-04-21 |
 
 ### Phase 12: Registry Cover Photo & Themed Placeholder
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 11
-**Plans:** 0 plans
-
+**Goal**: Registry owners can pick a cover photo (bundled per-occasion preset OR Android Photo Picker upload to Firebase Storage) on Create, Edit, and Registry Detail surfaces; registries without a cover render the GiftMaison gradient + occasion-glyph placeholder consistently across the 180 dp hero and both registry card variants
+**Depends on**: Phase 11
+**Requirements**: D-01..D-16 (see .planning/phases/12-registry-cover-photo-themed-placeholder/12-CONTEXT.md — Phase 12 has no REQ-IDs in REQUIREMENTS.md; CONTEXT decisions are the requirement set)
+**Success Criteria** (what must be TRUE):
+  1. RegistryCardPrimary AND RegistryCardSecondary render the gradient + occasion glyph when `registry.imageUrl == null` (visible bug fix)
+  2. RegistryDetailHero pixel contract from Phase 11 is preserved (40 sp glyph, 3-stop dark overlay only on real images)
+  3. Owner can pick from 6 bundled per-occasion preset JPEGs via a Material3 ModalBottomSheet picker on Create / Edit / Detail
+  4. Owner can pick from gallery via Android Photo Picker; image is downscaled to 1280×720 JPEG q=85 and uploaded to Firebase Storage at `/users/{uid}/registries/{registryId}/cover.jpg`
+  5. Picker is disabled until an occasion is selected; switching occasion clears any picked preset; tap target on the Detail hero is owner-only
+  6. `storage.rules` cross-service rules deny non-owner write and non-member read; deployed to gift-registry-ro
+  7. `RegistryDto` + `RegistryRepositoryImpl.toMap`/`toUpdateMap` round-trip `imageUrl` (Phase 12 fixes the silent-data-loss bug from Phase 10)
+**Plans**: 5 plans
 Plans:
-- [ ] TBD (run /gsd:plan-phase 12 to break down)
+- [ ] 12-01-PLAN.md -- Wave 0: 8 failing pure-Kotlin RED tests + 6 stub files + firebase-storage dep + storage emulator wiring (D-02/05/06/07/11/12/14/16 RED)
+- [ ] 12-02-PLAN.md -- Wave 1: Pitfall 1 fix (RegistryDto.imageUrl + RegistryRepositoryImpl mappers) + 36 placeholder JPEGs + PresetCatalog populated + StorageRepository/CoverImageProcessor impls + StorageModule + storage.rules
+- [ ] 12-03-PLAN.md -- Wave 1: HeroImageOrPlaceholder + CoverPhotoPickerInline + CoverPhotoPickerSheet + PresetThumbnail; refactor RegistryCard primary/secondary + RegistryDetailHero to consume the shared composable
+- [ ] 12-04-PLAN.md -- Wave 2: CreateRegistryViewModel + Screen wiring (inline picker above OccasionTileGrid; sheet host; create-mode two-writes-zero-orphans upload); RegistryDetailScreen owner-only tap target; 10 cover_photo_* strings × 2 locales
+- [ ] 12-05-PLAN.md -- Wave 3: 4 StyleGuidePreview sections + on-device UAT (12-check checklist) + storage.rules deploy (human checkpoint)
+**UI hint**: yes
