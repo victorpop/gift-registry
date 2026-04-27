@@ -25,9 +25,11 @@ import com.giftregistry.ui.theme.fabShadow
 /**
  * CHROME-02: 54 dp centre FAB — accent fill, 4 dp paper ring, accent shadow.
  *
- * The handoff's 22 dp lift (`top: -22`) is applied by the CALLER
- * (GiftMaisonBottomNav's FAB slot), not here — keeping this composable slot-
- * agnostic so it can be previewed in the style guide without nav context.
+ * Slot-agnostic: caller controls placement. As of 2026-04-27 (quick-260427-nkn)
+ * the FAB no longer lifts above the bar — the handoff's 22 dp upward offset
+ * (`top: -22`) was dropped after on-device review showed the plus icon crossing
+ * the bar's top border line. The FAB now renders flush within GiftMaisonBottomNav,
+ * vertically centered with the icon-pill row.
  *
  * Modifier chain order is CRITICAL (Pitfall 4): fabShadow → border → background.
  * Applying background before border would paint over the paper ring.

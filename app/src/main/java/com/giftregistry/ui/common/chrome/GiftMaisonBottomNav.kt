@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
@@ -168,7 +167,12 @@ private fun NavItemSlot(
 /**
  * FAB slot: 44 dp invisible scaffold (mirrors NavItemSlot icon-pill footprint
  * so the ADD label aligns with the other nav labels) wrapping a 54 dp FAB
- * lifted 22 dp above the bar baseline + "ADD" caption.
+ * that sits flush within the bar (no upward lift) + "ADD" caption.
+ *
+ * The FAB used to lift 22 dp above the bar per handoff JSX (`top: -22`), but
+ * on-device review showed the plus icon getting crossed by the bar's top
+ * border line. User feedback 2026-04-27 (quick-260427-nkn): keep the FAB
+ * inside the bar, no protrusion above the gray line.
  */
 @Composable
 private fun FabSlot(
@@ -184,19 +188,21 @@ private fun FabSlot(
     ) {
         // 44 dp invisible scaffold — matches NavItemSlot icon-pill footprint so the
         // column wraps to the same height (~62 dp), aligning the ADD label with the
-        // other four nav labels. The FAB renders OUTSIDE this footprint via
-        // requiredSize(54.dp) + offset(y = -22.dp) per handoff design.
+        // other four nav labels. The FAB visually overflows this footprint via
+        // requiredSize(54.dp) (5 dp top/bottom overflow), but stays fully inside
+        // the bar — see modifier comment below for vertical-position math.
         Box(
             modifier = Modifier.size(44.dp),
             contentAlignment = Alignment.Center,
         ) {
             GiftMaisonFab(
                 onClick = onClick,
-                // requiredSize forces 54 dp visual despite 44 dp parent constraint;
-                // offset preserves the 22 dp lift above the bar baseline (handoff).
-                modifier = Modifier
-                    .requiredSize(54.dp)
-                    .offset(y = (-22).dp),
+                // requiredSize forces 54 dp visual; FAB centers in 44 dp Box,
+                // overflowing 5 dp top/bottom. With Row padding(top=4.dp) outside
+                // the 72.dp height, the FAB top lands 4 dp below the gray border —
+                // fully inside the bar, no protrusion. (Removed handoff 22 dp lift
+                // per user feedback 2026-04-27 — looked crossed by border line.)
+                modifier = Modifier.requiredSize(54.dp),
             )
         }
         Spacer(modifier = Modifier.height(4.dp))
