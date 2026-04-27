@@ -251,3 +251,13 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 9. Shared Chrome + Status UI | 4/4 | Complete   | 2026-04-21 |
 | 10. Onboarding + Home Redesign | 4/5 | Complete    | 2026-04-21 |
 | 11. Registry Detail + Create + Add Item Redesign | 6/6 | Complete   | 2026-04-21 |
+
+### Phase 12: Registry Cover Photo & Themed Placeholder
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 11
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 12 to break down)

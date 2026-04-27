@@ -102,6 +102,10 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 12 added: Registry Cover Photo & Themed Placeholder
+
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
