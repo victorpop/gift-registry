@@ -261,9 +261,10 @@ Recent decisions affecting current work:
 | 260421-moi | Fix bottom nav label truncation — weight all 5 slots evenly, remove hardcoded FAB slot width, add maxLines/softWrap guards; remove duplicate RegistryListScreen legacy FAB | 2026-04-21 | c1a1f65 | [260421-moi-fix-bottom-nav-label-truncation-weight-s](./quick/260421-moi-fix-bottom-nav-label-truncation-weight-s/) |
 | 260421-moi | Fix bottom-nav label truncation + remove duplicate RegistryListScreen FAB — 5-slot equal-width via Modifier.weight(1f), softWrap=false label guards, legacy Scaffold FAB removed | 2026-04-21 | 6139b9c | [260421-moi-fix-bottom-nav-label-truncation-weight-s](./quick/260421-moi-fix-bottom-nav-label-truncation-weight-s/) |
 | 260427-gld | Fix wordmark letterSpacing em→sp + decouple ConcentricRings from GoogleBanner height — matchParentSize overlay pattern restores Auth screen wordmark legibility and ~68 dp banner height | 2026-04-27 | 82d8125 | [260427-gld-fix-wordmark-letterspacing-em-to-sp-and-](./quick/260427-gld-fix-wordmark-letterspacing-em-to-sp-and-/) |
+| 260427-gxu | Bundle Instrument Serif TTFs as GMS-first/bundled-fallback + fix Auth headline to 2-span (ink line 1, accent line 2 incl. period) — OFL licence in assets/licenses/; 6/6 AuthHeadlineTest pass | 2026-04-27 | d4fccf8 | [260427-gxu-fix-auth-headline-colors-line-2-should-b](./quick/260427-gxu-fix-auth-headline-colors-line-2-should-b/) |
 
 ## Session Continuity
 
-Last session: 2026-04-27T09:01:30Z
-Stopped at: quick-260427-gld Task 1 complete — awaiting human-verify checkpoint (Task 2)
+Last session: 2026-04-27T09:19:59Z
+Stopped at: Completed quick-260427-gxu-PLAN.md
 Resume file: None
