@@ -8,12 +8,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
@@ -165,7 +165,11 @@ private fun NavItemSlot(
     }
 }
 
-/** FAB slot: lifts the GiftMaisonFab 22 dp above the bar baseline + "ADD" caption. */
+/**
+ * FAB slot: 44 dp invisible scaffold (mirrors NavItemSlot icon-pill footprint
+ * so the ADD label aligns with the other nav labels) wrapping a 54 dp FAB
+ * lifted 22 dp above the bar baseline + "ADD" caption.
+ */
 @Composable
 private fun FabSlot(
     onClick: () -> Unit,
@@ -174,17 +178,28 @@ private fun FabSlot(
     val colors = GiftMaisonTheme.colors
     val typography = GiftMaisonTheme.typography
     Column(
-        modifier = modifier
-            .fillMaxHeight(),
+        modifier = modifier.padding(horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        // 22 dp lift per handoff — hardcoded absolute value, not a spacing token.
-        // RESEARCH.md Pattern 2: use offset(y = (-22).dp) inside the FAB slot column.
-        GiftMaisonFab(
-            onClick = onClick,
-            modifier = Modifier.offset(y = (-22).dp), // handoff 22 dp lift
-        )
+        // 44 dp invisible scaffold — matches NavItemSlot icon-pill footprint so the
+        // column wraps to the same height (~62 dp), aligning the ADD label with the
+        // other four nav labels. The FAB renders OUTSIDE this footprint via
+        // requiredSize(54.dp) + offset(y = -22.dp) per handoff design.
+        Box(
+            modifier = Modifier.size(44.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            GiftMaisonFab(
+                onClick = onClick,
+                // requiredSize forces 54 dp visual despite 44 dp parent constraint;
+                // offset preserves the 22 dp lift above the bar baseline (handoff).
+                modifier = Modifier
+                    .requiredSize(54.dp)
+                    .offset(y = (-22).dp),
+            )
+        }
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = stringResource(R.string.nav_fab_add),
             style = typography.monoCaps,
