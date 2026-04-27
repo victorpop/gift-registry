@@ -8,17 +8,13 @@ import org.junit.Test
 /**
  * SCR-06: Auth headline AnnotatedString construction.
  *
- * Contract:
- *   Line 1 "Start your"        → SpanStyle(color = inkSoft)
+ * Contract (updated per design Image #7 and user constraint):
+ *   Line 1 "Start your"        → SpanStyle(color = ink)      ← solid black, not inkSoft
  *   \n
- *   Line 2 "first registry"    → SpanStyle(color = ink)
- *   Line 2 "."                 → SpanStyle(color = accent)   ← trailing accent period
+ *   Line 2 "first registry."   → SpanStyle(color = accent)   ← entire line incl. period
  *
  * Same pattern as wordmarkAnnotatedString in GiftMaisonWordmark.kt — factory
  * is pure Kotlin so it can be unit-tested without Compose UI test runtime.
- *
- * RED in Wave 0 — flips GREEN when Plan 03 ships AuthHeadline.kt with
- * top-level `authHeadlineAnnotatedString(...)` in com.giftregistry.ui.auth.
  */
 class AuthHeadlineTest {
 
@@ -61,27 +57,27 @@ class AuthHeadlineTest {
         )
     }
 
-    @Test fun firstRegistryWords_areInkColored() {
+    @Test fun firstRegistryLine_isAccentColored() {
         val result = build()
-        val startIdx = result.text.indexOf("first registry")
+        val startIdx = result.text.indexOf("first registry.")
         val span = result.spanStyles.firstOrNull { span ->
             startIdx in span.start until span.end
         }
         assertEquals(
-            "'first registry' run must be ink-coloured (not inkSoft, not accent)",
-            ink, span?.item?.color
+            "'first registry.' run must be entirely accent-coloured (period included)",
+            accent, span?.item?.color
         )
     }
 
-    @Test fun startYourLine_isInkSoftColored() {
+    @Test fun startYourLine_isInkColored() {
         val result = build()
         val startIdx = result.text.indexOf("Start your")
         val span = result.spanStyles.firstOrNull { span ->
             startIdx in span.start until span.end
         }
         assertEquals(
-            "'Start your' must be inkSoft-coloured",
-            inkSoft, span?.item?.color
+            "'Start your' must be solid ink-coloured (per design Image #7, not inkSoft)",
+            ink, span?.item?.color
         )
     }
 

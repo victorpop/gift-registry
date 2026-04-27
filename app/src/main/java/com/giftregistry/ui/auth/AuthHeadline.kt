@@ -17,31 +17,31 @@ import com.giftregistry.ui.theme.GiftMaisonTheme
 /**
  * SCR-06: Two-line italic-serif headline for the Auth screen.
  *
- *   Line 1 "Start your"                        → inkSoft
+ *   Line 1 "Start your"                        → ink (solid black per design Image #7)
  *   \n
- *   Line 2 "first registry"                    → ink
- *   Line 2 "."                                 → accent (trailing accent period)
+ *   Line 2 "first registry."                   → accent (entire line incl. period)
  *
  * Same AnnotatedString factory pattern as wordmarkAnnotatedString in
  * GiftMaisonWordmark.kt — factory is pure Kotlin so it is unit-testable via
  * AuthHeadlineTest without a Compose test runtime. The @Composable wrapper is
  * untested (Compose-framework dependency) but delegates all logic to the factory.
+ *
+ * Note: [inkSoft] parameter is retained for API stability but no longer applied
+ * to any span — line 1 is solid [ink] per design Image #7 override.
  */
 fun authHeadlineAnnotatedString(
     prefix: String,
     accent: String,
     ink: Color,
     accentColor: Color,
-    inkSoft: Color,
+    @Suppress("UNUSED_PARAMETER") inkSoft: Color,  // retained for API stability; no longer used
 ): AnnotatedString = buildAnnotatedString {
-    withStyle(SpanStyle(color = inkSoft)) {
+    withStyle(SpanStyle(color = ink)) {
         append(prefix)
     }
     append("\n")
-    withStyle(SpanStyle(color = ink)) {
-        append(accent)
-    }
     withStyle(SpanStyle(color = accentColor)) {
+        append(accent)
         append(".")
     }
 }
