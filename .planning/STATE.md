@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Phase 12 context gathered
-last_updated: "2026-04-27T12:48:26.466Z"
+stopped_at: Completed quick-260427-n67 (Task 2 human-verify outstanding)
+last_updated: "2026-04-27T13:46:09.998Z"
 last_activity: 2026-04-21
 progress:
-  total_phases: 11
+  total_phases: 12
   completed_phases: 11
   total_plans: 56
   completed_plans: 56
@@ -268,9 +268,10 @@ Recent decisions affecting current work:
 | 260427-gxu | Bundle Instrument Serif TTFs as GMS-first/bundled-fallback + fix Auth headline to 2-span (ink line 1, accent line 2 incl. period) — OFL licence in assets/licenses/; 6/6 AuthHeadlineTest pass | 2026-04-27 | d4fccf8 | [260427-gxu-fix-auth-headline-colors-line-2-should-b](./quick/260427-gxu-fix-auth-headline-colors-line-2-should-b/) |
 | 260427-lnq | Reorder InstrumentSerifFamily — bundled fonts promoted to sole entries, GMS async entries removed; synchronous serif rendering app-wide | 2026-04-21 | abd6028 | [260427-lnq-reorder-instrumentseriffamily-to-put-bun](./quick/260427-lnq-reorder-instrumentseriffamily-to-put-bun/) |
 | 260427-lwz | Fix bottom nav clipping + FAB optical alignment — Row content height 56 dp -> 72 dp so HOME/STORES/LISTS/YOU labels and ADD caption render fully; FAB 22 dp lift preserved | 2026-04-27 | b21e24e | [260427-lwz-fix-bottom-nav-clipping-and-fab-alignmen](./quick/260427-lwz-fix-bottom-nav-clipping-and-fab-alignmen/) |
+| 260427-n67 | Align ADD label with other nav labels — FabSlot mirrors NavItemSlot column (wrap-content + 44 dp inner Box scaffold + 4 dp Spacer); FAB rendered at 54 dp via requiredSize, 22 dp lift preserved via offset; Task 2 human-verify outstanding | 2026-04-27 | 5fe7c87 | [260427-n67-align-add-label-with-other-nav-labels-mi](./quick/260427-n67-align-add-label-with-other-nav-labels-mi/) |
 
 ## Session Continuity
 
-Last session: 2026-04-27T13:00:00.000Z
-Stopped at: Completed quick-260427-lwz (Task 2 human-verify outstanding)
-Resume file: .planning/quick/260427-lwz-fix-bottom-nav-clipping-and-fab-alignmen/260427-lwz-SUMMARY.md
+Last session: 2026-04-27T13:46:09.994Z
+Stopped at: Completed quick-260427-n67 (Task 2 human-verify outstanding)
+Resume file: None
