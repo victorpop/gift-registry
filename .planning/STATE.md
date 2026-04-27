@@ -263,9 +263,10 @@ Recent decisions affecting current work:
 | 260427-gld | Fix wordmark letterSpacing em→sp + decouple ConcentricRings from GoogleBanner height — matchParentSize overlay pattern restores Auth screen wordmark legibility and ~68 dp banner height | 2026-04-27 | 82d8125 | [260427-gld-fix-wordmark-letterspacing-em-to-sp-and-](./quick/260427-gld-fix-wordmark-letterspacing-em-to-sp-and-/) |
 | 260427-gxu | Bundle Instrument Serif TTFs as GMS-first/bundled-fallback + fix Auth headline to 2-span (ink line 1, accent line 2 incl. period) — OFL licence in assets/licenses/; 6/6 AuthHeadlineTest pass | 2026-04-27 | d4fccf8 | [260427-gxu-fix-auth-headline-colors-line-2-should-b](./quick/260427-gxu-fix-auth-headline-colors-line-2-should-b/) |
 | 260427-lnq | Reorder InstrumentSerifFamily — bundled fonts promoted to sole entries, GMS async entries removed; synchronous serif rendering app-wide | 2026-04-21 | abd6028 | [260427-lnq-reorder-instrumentseriffamily-to-put-bun](./quick/260427-lnq-reorder-instrumentseriffamily-to-put-bun/) |
+| 260427-lwz | Fix bottom nav clipping + FAB optical alignment — Row content height 56 dp -> 72 dp so HOME/STORES/LISTS/YOU labels and ADD caption render fully; FAB 22 dp lift preserved | 2026-04-27 | b21e24e | [260427-lwz-fix-bottom-nav-clipping-and-fab-alignmen](./quick/260427-lwz-fix-bottom-nav-clipping-and-fab-alignmen/) |
 
 ## Session Continuity
 
-Last session: 2026-04-27T12:48:26.461Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-registry-cover-photo-themed-placeholder/12-CONTEXT.md
+Last session: 2026-04-27T13:00:00.000Z
+Stopped at: Completed quick-260427-lwz (Task 2 human-verify outstanding)
+Resume file: .planning/quick/260427-lwz-fix-bottom-nav-clipping-and-fab-alignmen/260427-lwz-SUMMARY.md
