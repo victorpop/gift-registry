@@ -1,5 +1,6 @@
 package com.giftregistry.ui.theme
 
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -38,10 +39,16 @@ private val jetBrainsMono = GoogleFont("JetBrains Mono")
 /**
  * Instrument Serif — displays (h1..card title) and the GiftMaison wordmark.
  * Handoff uses Italic variant for expressive accents (wordmark period, occasion glyphs).
+ *
+ * GMS entries are listed first so Google Play Services font download takes priority
+ * when available. Bundled TTF entries follow as fallback for non-GMS devices or
+ * before the async download completes on first cold launch.
  */
 val InstrumentSerifFamily: FontFamily = FontFamily(
     Font(googleFont = instrumentSerif, fontProvider = giftMaisonFontProvider, weight = FontWeight.Normal),
+    Font(resId = R.font.instrument_serif_regular, weight = FontWeight.Normal),
     Font(googleFont = instrumentSerif, fontProvider = giftMaisonFontProvider, weight = FontWeight.Normal, style = FontStyle.Italic),
+    Font(resId = R.font.instrument_serif_italic, weight = FontWeight.Normal, style = FontStyle.Italic),
 )
 
 /**
