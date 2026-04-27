@@ -12,7 +12,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 
 /**
@@ -53,6 +52,6 @@ fun GiftMaisonWordmark(
         fontStyle = FontStyle.Italic,
         fontWeight = FontWeight.Normal,
         fontSize = fontSize,
-        letterSpacing = (-0.4).em,
+        letterSpacing = (-0.4).sp,
     )
 }

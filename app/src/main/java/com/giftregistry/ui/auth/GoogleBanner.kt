@@ -104,10 +104,15 @@ fun GoogleBanner(
             )
         }
 
-        // Top-end concentric-rings overlay (ornamental, clipped at radius16 corner)
-        ConcentricRings(
-            color = colors.accentInk,
-            modifier = Modifier.align(Alignment.TopEnd),
-        )
+        // Top-end concentric-rings overlay (ornamental, clipped at radius16 corner).
+        // matchParentSize wrapper draws within the banner's natural bounds
+        // (Row + padding ≈ 68 dp) without ConcentricRings' Canvas inflating
+        // the banner's measured height.
+        Box(modifier = Modifier.matchParentSize()) {
+            ConcentricRings(
+                color = colors.accentInk,
+                modifier = Modifier.matchParentSize(),
+            )
+        }
     }
 }

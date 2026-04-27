@@ -1,7 +1,6 @@
 package com.giftregistry.ui.common
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -24,13 +23,17 @@ import androidx.compose.ui.unit.dp
  * Canvas is preferred over layered Box(border=) because rings anchor at the
  * corner (center = Offset(width, 0)) — Canvas drawing naturally clips at bounds,
  * achieving the handoff's `overflow: hidden` corner effect.
+ *
+ * The Canvas inherits its size from `modifier`. For decorative-overlay use
+ * (e.g. inside a parent Box), pass `Modifier.matchParentSize()` so the rings
+ * fill the parent's bounds without contributing to its measured height.
  */
 @Composable
 fun ConcentricRings(
     color: Color,
     modifier: Modifier = Modifier,
 ) {
-    Canvas(modifier = modifier.size(70.dp)) {
+    Canvas(modifier = modifier) {
         val center = Offset(x = size.width, y = 0f)
         drawCircle(
             color = color.copy(alpha = 0.08f),
