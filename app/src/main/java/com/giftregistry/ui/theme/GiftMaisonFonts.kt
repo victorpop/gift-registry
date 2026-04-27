@@ -29,25 +29,24 @@ val giftMaisonFontProvider: GoogleFont.Provider = GoogleFont.Provider(
 )
 
 // Google Fonts catalog names — must match fonts.google.com URLs exactly (Pitfall 7).
-// See: https://fonts.google.com/specimen/Instrument+Serif
-//      https://fonts.google.com/specimen/Inter
+// See: https://fonts.google.com/specimen/Inter
 //      https://fonts.google.com/specimen/JetBrains+Mono
-private val instrumentSerif = GoogleFont("Instrument Serif")
+// Note: Instrument Serif was removed from Google Fonts entries (260427-lnq) — bundled TTFs
+// ship synchronously in the APK; see InstrumentSerifFamily KDoc for rationale.
 private val inter = GoogleFont("Inter")
 private val jetBrainsMono = GoogleFont("JetBrains Mono")
 
 /**
- * Instrument Serif — displays (h1..card title) and the GiftMaison wordmark.
+ * Instrument Serif — display headings (h1..card title) and the GiftMaison wordmark.
  * Handoff uses Italic variant for expressive accents (wordmark period, occasion glyphs).
  *
- * GMS entries are listed first so Google Play Services font download takes priority
- * when available. Bundled TTF entries follow as fallback for non-GMS devices or
- * before the async download completes on first cold launch.
+ * Bundled as `res/font/instrument_serif_{regular,italic}.ttf` so rendering is synchronous
+ * and works on devices without Google Play Services. Replaces the original Google Fonts
+ * runtime download (260427-gxu added bundled as fallback; 260427-lnq promoted bundled to
+ * primary since GMS async loading caused inconsistent fallback behaviour app-wide).
  */
 val InstrumentSerifFamily: FontFamily = FontFamily(
-    Font(googleFont = instrumentSerif, fontProvider = giftMaisonFontProvider, weight = FontWeight.Normal),
     Font(resId = R.font.instrument_serif_regular, weight = FontWeight.Normal),
-    Font(googleFont = instrumentSerif, fontProvider = giftMaisonFontProvider, weight = FontWeight.Normal, style = FontStyle.Italic),
     Font(resId = R.font.instrument_serif_italic, weight = FontWeight.Normal, style = FontStyle.Italic),
 )
 
