@@ -48,9 +48,14 @@ class ItemRepositoryImpl @Inject constructor(
                 .await()
             @Suppress("UNCHECKED_CAST")
             val data = result.data as Map<String, Any?>
+            val rawImageUrl = data["imageUrl"] as? String
             OgMetadata(
                 title = data["title"] as? String,
-                imageUrl = data["imageUrl"] as? String,
+                imageUrl = if (rawImageUrl?.startsWith("http://") == true) {
+                    "https://" + rawImageUrl.drop(7)
+                } else {
+                    rawImageUrl
+                },
                 price = data["price"] as? String,
                 priceAmount = data["priceAmount"] as? String,
                 priceCurrency = data["priceCurrency"] as? String,
