@@ -153,6 +153,17 @@ function findPriceInJsonLd(node: unknown): PriceCandidate | null {
 }
 
 /**
+ * Rewrites http:// image URLs to https://.
+ * Retailers sometimes serve og:image over plain HTTP; Android blocks cleartext
+ * traffic by default (targetSdk >= 28) so those URLs silently fail in Coil.
+ */
+function normalizeImageUrl(raw: string | null): string | null {
+  if (!raw) return null;
+  if (raw.startsWith("http://")) return "https://" + raw.slice(7);
+  return raw;
+}
+
+/**
  * Combines a raw amount and an optional currency into a human-facing display
  * string. We intentionally keep the original amount format (which may use a
  * comma decimal separator) rather than reformatting via Intl — the source page
@@ -279,7 +290,7 @@ export const fetchOgMetadata = onCall(
 
       return {
         title: og("title") ?? root.querySelector("title")?.text?.trim() ?? null,
-        imageUrl: og("image"),
+        imageUrl: normalizeImageUrl(og("image")),
         price: priceCandidate
           ? formatPriceForDisplay(priceCandidate.amount, priceCandidate.currency)
           : null,
