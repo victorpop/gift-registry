@@ -1,0 +1,82 @@
+// Phase 12 — Firebase Storage Security Rules for cover-photo upload (D-08).
+//
+// Cross-service rules (firestore.get(...)) reuse the same ownerId / visibility
+// / invitedUsers data model encoded in firestore.rules `canReadRegistry`.
+// Reuse — not duplication — keeps the security boundary aligned across both
+// products: Storage authorisation depends on the SAME registry document that
+// Firestore authorisation depends on.
+//
+// References:
+// - https://firebase.google.com/docs/storage/security/rules-conditions  (cross-service rules)
+// - RESEARCH.md Pattern 6 (verbatim template inlined here)
+// - RESEARCH.md Pitfall 5 (cross-service rules cost — each evaluation is 1
+//   Firestore read; we keep the cross-service path narrow to a single match
+//   block; the default-deny path does not invoke firestore.get)
+// - firestore.rules (canReadRegistry) — legacy-doc defaults `data.get('visibility','public')`
+//   and `data.get('invitedUsers', {})` mirror that file exactly.
+//
+// Deploy via: firebase deploy --only storage   (Plan 05 surfaces the deploy
+// as a human checkpoint; the first deploy auto-prompts for cross-service
+// permissions linking Storage to Firestore reads).
+
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ----- Helpers -----------------------------------------------------------
+
+    // Look up the registry document via the cross-service Firestore extension.
+    // Returns a Resource whose .data field carries the same shape as a
+    // Firestore document. Up to 2 cross-service reads per evaluation; we
+    // re-call this from both helpers so callers can short-circuit owner
+    // checks before evaluating membership.
+    function registryDoc(registryId) {
+      return firestore.get(/databases/(default)/documents/registries/$(registryId));
+    }
+
+    // Owner check — write authorisation gate.
+    // Empty-string default fails closed: a doc missing ownerId is unwritable
+    // by every caller (no auth.uid == '').
+    function isOwnerOfRegistry(registryId) {
+      return request.auth != null
+          && registryDoc(registryId).data.get('ownerId', '') == request.auth.uid;
+    }
+
+    // Public-or-invited check — read authorisation for non-owners.
+    // Defaults match firestore.rules `canReadRegistry`:
+    //   - missing visibility -> 'public' (legacy docs predate the field;
+    //     RegistryDto.visibility default is 'public')
+    //   - missing invitedUsers -> {} (no one is invited; safe default)
+    function isPublicOrInvited(registryId) {
+      return registryDoc(registryId).data.get('visibility', 'public') == 'public'
+          || (request.auth != null
+              && registryDoc(registryId).data.get('invitedUsers', {})[request.auth.uid] == true);
+    }
+
+    // ----- Cover-photo path schema (D-05) -----------------------------------
+    // Single canonical filename `cover.jpg` per registry — re-uploads
+    // overwrite cleanly so there are no orphan blobs in Storage.
+    match /users/{uid}/registries/{registryId}/cover.jpg {
+      // Write: only the registry owner, AND the {uid} segment must match the
+      // caller's auth.uid (so an owner can't write into another user's path).
+      allow write: if request.auth != null
+                   && request.auth.uid == uid
+                   && isOwnerOfRegistry(registryId);
+
+      // Read: owner OR public OR invited member. Mirrors firestore.rules
+      // `canReadRegistry` so a user who can read the registry document can
+      // also read its cover image.
+      allow read: if isOwnerOfRegistry(registryId)
+                  || isPublicOrInvited(registryId);
+    }
+
+    // ----- Default deny ------------------------------------------------------
+    // Any other path is unwritable and unreadable. Crucially this match block
+    // does NOT invoke firestore.get(...) — keeps cross-service read costs
+    // bounded to the cover.jpg evaluation path (Pitfall 5).
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
