@@ -223,7 +223,11 @@ Done-criteria checklist:
 - Zero `strings.xml` changes
 - Zero theme/color changes
 
-### Outstanding — Task 2 human-verify (deferred to user)
+### Task 2 — human-verify: APPROVED 2026-04-28
+
+User confirmed the fix on-device. Pickers render terracotta; OK/Cancel/locale/round-trip behaviours all working. No regressions reported.
+
+### Original verification protocol (kept for audit trail)
 
 **Task 2 (`type="checkpoint:human-verify"`) was NOT executed by this agent per the constraint "do NOT block on it; document it in the SUMMARY for the user".**
 
