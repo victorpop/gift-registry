@@ -36,12 +36,18 @@ internal fun AddItemDualCtaBar(
     onAddAnother: () -> Unit,
     onSaveAndExit: () -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * quick-260428-iny: visually-gated buttons when the user must still pick a
+     * registry. Defaults to true so existing call sites (every path that arrives
+     * with a concrete registryId) keep their current behaviour.
+     */
+    enabled: Boolean = true,
 ) {
     val colors = GiftMaisonTheme.colors
     val typography = GiftMaisonTheme.typography
     val shapes = GiftMaisonTheme.shapes
     val spacing = GiftMaisonTheme.spacing
-    val disabled = isSaving || isFetching
+    val disabled = isSaving || isFetching || !enabled
     Column(modifier = modifier.fillMaxWidth()) {
         HorizontalDivider(thickness = 1.dp, color = colors.line)
         Row(

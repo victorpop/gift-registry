@@ -233,18 +233,24 @@
     <string name="nav_fab_add_content_description">Add new</string>
 
     <!-- Phase 9 Add-action sheet (CHROME-03) -->
+    <!-- quick-260428-iny: trimmed from 4 rows to 2 rows. The deprecated keys
+         add_sheet_item_url(_sub), add_sheet_browse_stores(_sub), and
+         add_sheet_add_manually(_sub) were removed because their entry points
+         consolidated into a single "Add an item" row. -->
     <string name="add_sheet_title">What are you adding?</string>
     <string name="add_sheet_new_registry">New registry</string>
     <string name="add_sheet_new_registry_sub">Start a list for any occasion</string>
-    <string name="add_sheet_item_url">Item from URL</string>
-    <string name="add_sheet_item_url_sub">Paste a link from any store</string>
-    <string name="add_sheet_browse_stores">Browse stores</string>
-    <string name="add_sheet_browse_stores_sub">Open stores in the built-in browser</string>
-    <string name="add_sheet_add_manually">Add manually</string>
-    <string name="add_sheet_add_manually_sub">Enter details yourself</string>
+    <string name="add_sheet_add_item">Add an item</string>
+    <string name="add_sheet_add_item_sub">Add a gift to one of your registries</string>
     <string name="add_sheet_no_registry_hint">Create a registry first</string>
     <string name="add_sheet_lists_empty_hint">No registries yet</string>
     <string name="add_sheet_lists_empty_cta">Create your first registry</string>
+
+    <!-- quick-260428-iny: registry picker (rendered as first field on AddItemScreen
+         when entered from the FAB sheet's "Add an item" row). -->
+    <string name="add_item_picker_label">Choose a registry</string>
+    <string name="add_item_picker_hint">Select which registry this gift goes to</string>
+
     <string name="error_loading_registries">Couldn\'t load your registries. Tap Lists again to retry.</string>
 
     <!-- Phase 10 SCR-06 Auth / Onboarding keys -->

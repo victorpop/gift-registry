@@ -4,35 +4,78 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.giftregistry.domain.auth.AuthRepository
 import com.giftregistry.domain.model.Item
+import com.giftregistry.domain.model.Registry
 import com.giftregistry.domain.usecase.AddItemUseCase
 import com.giftregistry.domain.usecase.FetchOgMetadataUseCase
+import com.giftregistry.domain.usecase.ObserveRegistriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AddItemViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
+    authRepository: AuthRepository,
+    observeRegistries: ObserveRegistriesUseCase,
     private val addItem: AddItemUseCase,
     private val fetchOgMetadata: FetchOgMetadataUseCase
 ) : ViewModel() {
 
-    val registryId: String = savedStateHandle["registryId"] ?: ""
+    // quick-260428-iny: registryId is now nullable on the nav key. When the user
+    // entered AddItemScreen via the FAB sheet (`fromAddSheet=true`) they have not
+    // yet picked a registry — the picker rendered as the first form field gates
+    // Save until they choose one. For all other paths (CreateRegistry → AddItem
+    // chain, Store Browser deep link, Registry Detail FAB) a concrete registryId
+    // arrives in savedStateHandle and seeds `_selectedRegistryId` immediately so
+    // the picker stays hidden and behaviour matches pre-trim AddItemScreen.
+    private val initialRegistryIdFromKey: String =
+        savedStateHandle["registryId"] ?: ""
+
+    /** True when AddItemScreen was reached via the trimmed Add-action sheet. */
+    val fromAddSheet: Boolean = savedStateHandle["fromAddSheet"] ?: false
+
+    private val _selectedRegistryId = MutableStateFlow<String?>(
+        if (initialRegistryIdFromKey.isBlank()) null else initialRegistryIdFromKey
+    )
+    val selectedRegistryId: StateFlow<String?> = _selectedRegistryId.asStateFlow()
+
+    /** Picker mutator — UI calls this when the user picks a registry from the dropdown. */
+    fun setRegistry(id: String) {
+        _selectedRegistryId.value = id
+    }
 
     // Phase 7: Plan 03 — pre-fill support from Store Browser
     val initialUrl: String = savedStateHandle["initialUrl"] ?: ""
     val initialRegistryId: String = savedStateHandle["initialRegistryId"] ?: ""
-    // TODO(D-10 follow-up): When multi-registry picker ships, use initialRegistryId
-    // as the default selection. Currently unused because registry picker is
-    // deferred — the add is always committed to `registryId`.
+
+    /**
+     * The signed-in user's registries — drives the picker dropdown when
+     * `fromAddSheet=true`. Mirrors RegistryListViewModel's flatMapLatest pattern.
+     * Empty list flips the picker into its zero-registry empty-state branch
+     * (renders an inline "Create a registry first" affordance).
+     */
+    val registriesForPicker: StateFlow<List<Registry>> =
+        authRepository.authState
+            .flatMapLatest { user ->
+                if (user == null) flowOf(emptyList())
+                else observeRegistries(user.uid)
+            }
+            .catch { emit(emptyList()) }
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     // Form fields
     val url = MutableStateFlow("")
@@ -107,6 +150,15 @@ class AddItemViewModel @Inject constructor(
             return
         }
 
+        // quick-260428-iny: defensive guard — UI also disables the Save CTAs when
+        // selectedRegistryId is null + fromAddSheet=true. If somehow reached here
+        // without a registry chosen, surface a clear error instead of NPE-ing.
+        val targetRegistryId = _selectedRegistryId.value
+        if (targetRegistryId.isNullOrBlank()) {
+            _error.value = "Please choose a registry first"
+            return
+        }
+
         viewModelScope.launch {
             _isSaving.value = true
             _error.value = null
@@ -119,7 +171,7 @@ class AddItemViewModel @Inject constructor(
                 notes = notes.value.trim().ifBlank { null }
             )
 
-            addItem(registryId, item)
+            addItem(targetRegistryId, item)
                 .onSuccess { itemId -> _savedItemId.value = itemId }
                 .onFailure { e -> _error.value = e.message ?: "Failed to save item" }
 

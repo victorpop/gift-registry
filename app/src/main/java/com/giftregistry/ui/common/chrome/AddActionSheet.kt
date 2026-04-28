@@ -12,11 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.AddHome
 import androidx.compose.material.icons.outlined.KeyboardArrowRight
-import androidx.compose.material.icons.outlined.EditNote
-import androidx.compose.material.icons.outlined.Link
-import androidx.compose.material.icons.outlined.Storefront
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
@@ -35,14 +33,24 @@ import com.giftregistry.ui.theme.GiftMaisonTheme
 
 /**
  * CHROME-03: Add-action bottom sheet — 22 dp top corners, drag handle,
- * scrim `ink.copy(alpha=0.55f)`, 4 action rows in fixed order:
+ * scrim `ink.copy(alpha=0.55f)`, 2 action rows in fixed order:
  *   1. New registry (primary — accentSoft)
- *   2. Item from URL
- *   3. Browse stores
- *   4. Add manually
+ *   2. Add an item (secondary — paperDeep)
+ *
+ * Trimmed from 4 rows to 2 rows by quick-260428-iny: the previous
+ * "Item from URL", "Browse stores", and "Add manually" rows all routed to
+ * the same AddItemScreen — they were consolidated behind a single "Add an
+ * item" row that now opens AddItemScreen with a registry picker as the first
+ * field. URL/Browse-stores/Manual are reachable from inside AddItemScreen
+ * (the segmented tab strip) and Browse-stores is also reachable from the
+ * bottom-nav STORES tab.
  *
  * Shape MUST be `RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)` directly —
  * NOT `shapes.radius22` (that rounds all four corners, per Pitfall 2).
+ *
+ * Drag-handle padding is symmetric (`vertical = 12.dp`) and there is NO
+ * `bottomSheetShadow` modifier — both fixes shipped in earlier quick tasks
+ * (260427-nkn / 260427-n67) MUST NOT regress.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,9 +58,7 @@ fun AddActionSheet(
     visible: Boolean,
     onDismiss: () -> Unit,
     onNewRegistry: () -> Unit,
-    onItemFromUrl: () -> Unit,
-    onBrowseStores: () -> Unit,
-    onAddManually: () -> Unit,
+    onAddItem: () -> Unit,
 ) {
     if (!visible) return
 
@@ -102,25 +108,11 @@ fun AddActionSheet(
                 onClick = onNewRegistry,
             )
             ActionRow(
-                icon = Icons.Outlined.Link,
-                headingRes = R.string.add_sheet_item_url,
-                subtitleRes = R.string.add_sheet_item_url_sub,
+                icon = Icons.Outlined.AddCircleOutline,
+                headingRes = R.string.add_sheet_add_item,
+                subtitleRes = R.string.add_sheet_add_item_sub,
                 isPrimary = false,
-                onClick = onItemFromUrl,
-            )
-            ActionRow(
-                icon = Icons.Outlined.Storefront,
-                headingRes = R.string.add_sheet_browse_stores,
-                subtitleRes = R.string.add_sheet_browse_stores_sub,
-                isPrimary = false,
-                onClick = onBrowseStores,
-            )
-            ActionRow(
-                icon = Icons.Outlined.EditNote,
-                headingRes = R.string.add_sheet_add_manually,
-                subtitleRes = R.string.add_sheet_add_manually_sub,
-                isPrimary = false,
-                onClick = onAddManually,
+                onClick = onAddItem,
             )
         }
     }

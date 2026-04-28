@@ -127,13 +127,6 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
     val currentKey = backStack.lastOrNull()
     val showBottomBar = currentKey.showsBottomNav()
 
-    // Derived: when on RegistryDetailKey, pre-select that registry for sheet actions.
-    // When on HomeKey (or elsewhere), fall back to the isPrimary registry.
-    val sheetContextRegistryId: String? = when (val currentKeyLocal = currentKey) {
-        is RegistryDetailKey -> currentKeyLocal.registryId
-        else -> primaryRegistryId
-    }
-
     Scaffold(
         bottomBar = {
             if (showBottomBar) {
@@ -275,6 +268,7 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                     entry<AddItemKey> { key ->
                         AddItemScreen(
                             registryId = key.registryId,
+                            fromAddSheet = key.fromAddSheet,
                             initialUrl = key.initialUrl,
                             initialRegistryId = key.initialRegistryId,
                             onBack = { backStack.removeLast() },
@@ -282,6 +276,11 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                                 // Pre-select the current registry so Store Browser's Add-to-list
                                 // round-trips back to AddItemKey with the chosen URL pre-filled.
                                 backStack.add(StoreListKey(preSelectedRegistryId = regId))
+                            },
+                            onNavigateToCreateRegistry = {
+                                // quick-260428-iny: zero-registry empty-state link in
+                                // the picker routes the user to CreateRegistryKey.
+                                backStack.add(CreateRegistryKey)
                             },
                         )
                     }
@@ -334,28 +333,12 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
             showAddSheet = false
             backStack.add(CreateRegistryKey)
         },
-        onItemFromUrl = {
+        onAddItem = {
+            // quick-260428-iny: trimmed sheet — single Add-an-item row routes to
+            // AddItemScreen with no preselected registry; the picker rendered as
+            // the first field gates Save until the user chooses a registry.
             showAddSheet = false
-            if (sheetContextRegistryId != null) {
-                backStack.add(AddItemKey(registryId = sheetContextRegistryId))
-            }
-            // Zero-registry: row is visually disabled inside the sheet; this branch
-            // is a defensive no-op. Phase 10 adds the inline helper/picker polish.
-        },
-        onBrowseStores = {
-            showAddSheet = false
-            backStack.add(StoreListKey(preSelectedRegistryId = sheetContextRegistryId))
-        },
-        onAddManually = {
-            showAddSheet = false
-            if (sheetContextRegistryId != null) {
-                backStack.add(
-                    AddItemKey(
-                        registryId = sheetContextRegistryId,
-                        initialUrl = "",
-                    )
-                )
-            }
+            backStack.add(AddItemKey(registryId = null, fromAddSheet = true))
         },
     )
 }

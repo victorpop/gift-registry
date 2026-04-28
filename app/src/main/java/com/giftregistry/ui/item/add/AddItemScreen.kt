@@ -1,5 +1,7 @@
 package com.giftregistry.ui.item.add
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,6 +19,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.KeyboardArrowRight
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -39,6 +47,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.giftregistry.R
+import com.giftregistry.domain.model.Registry
 import com.giftregistry.ui.navigation.hiltViewModelWithNavArgs
 import com.giftregistry.ui.registry.list.SegmentedTabs
 import com.giftregistry.ui.theme.GiftMaisonTheme
@@ -46,14 +55,20 @@ import java.net.URI
 
 @Composable
 fun AddItemScreen(
-    registryId: String,
+    registryId: String?,
+    fromAddSheet: Boolean = false,
     initialUrl: String? = null,
     initialRegistryId: String? = null,
     onBack: () -> Unit,
     onNavigateToBrowseStores: (String) -> Unit = {},   // NEW — Phase 11
+    onNavigateToCreateRegistry: () -> Unit = {},       // quick-260428-iny — picker empty-state
     viewModel: AddItemViewModel = hiltViewModelWithNavArgs(
-        key = registryId,
-        "registryId" to registryId,
+        // Stable ViewModelStore key. When entered via the FAB sheet there is no
+        // registryId yet — fall back to a deterministic placeholder so the same
+        // VM instance survives recompositions.
+        key = registryId ?: "add-item-no-registry-yet",
+        "registryId" to (registryId ?: ""),
+        "fromAddSheet" to fromAddSheet,
         "initialUrl" to (initialUrl ?: ""),
         "initialRegistryId" to (initialRegistryId ?: ""),
     )
@@ -71,6 +86,10 @@ fun AddItemScreen(
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val savedItemId by viewModel.savedItemId.collectAsStateWithLifecycle()
+
+    // quick-260428-iny: registry picker state (only consumed when fromAddSheet=true)
+    val selectedRegistryId by viewModel.selectedRegistryId.collectAsStateWithLifecycle()
+    val registriesForPicker by viewModel.registriesForPicker.collectAsStateWithLifecycle()
 
     // --- Tab state (NEW — rememberSaveable Int-backed per Phase 10 precedent) ---
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(ADD_ITEM_MODE_DEFAULT_ORDINAL) }
@@ -92,10 +111,16 @@ fun AddItemScreen(
     }
 
     // --- Browse stores tab triggers navigation + resets tab to PasteUrl before leaving ---
+    // quick-260428-iny: when fromAddSheet=true and the user hasn't picked yet,
+    // selectedRegistryId is null — the Browse stores side-trip needs a real id
+    // so we skip navigation in that case (the user must pick the registry first).
     LaunchedEffect(selectedTab) {
         if (selectedTab == AddItemMode.BrowseStores) {
             selectedTabIndex = ADD_ITEM_MODE_DEFAULT_ORDINAL   // reset before navigating so re-entry shows URL tab
-            onNavigateToBrowseStores(registryId)
+            val target = selectedRegistryId
+            if (target != null) {
+                onNavigateToBrowseStores(target)
+            }
         }
     }
 
@@ -111,6 +136,11 @@ fun AddItemScreen(
         isAffiliateDomain = isAffiliateDomain,
         ogFetchSucceeded = ogFetchSucceeded,
     )
+
+    // quick-260428-iny: gate Save CTAs when the picker is required and unfilled.
+    // canSubmit short-circuits to true on every non-FAB-sheet path (default
+    // behaviour preserved for CreateRegistry → AddItem chain, Store Browser, etc).
+    val canSubmit = !fromAddSheet || selectedRegistryId != null
 
     Scaffold(
         containerColor = colors.paper,
@@ -144,11 +174,14 @@ fun AddItemScreen(
             AddItemDualCtaBar(
                 isSaving = isSaving,
                 isFetching = isFetchingOg,
+                enabled = canSubmit,
                 onAddAnother = {
+                    if (!canSubmit) return@AddItemDualCtaBar
                     addAnotherMode = true
                     viewModel.onSave()
                 },
                 onSaveAndExit = {
+                    if (!canSubmit) return@AddItemDualCtaBar
                     addAnotherMode = false
                     viewModel.onSave()
                 },
@@ -161,6 +194,27 @@ fun AddItemScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState()),
         ) {
+            // quick-260428-iny: registry picker as FIRST field, conditional on fromAddSheet.
+            // When the user entered AddItemScreen via any other path (CreateRegistry chain,
+            // Store Browser deep link, RegistryDetail FAB) the picker stays hidden — those
+            // paths arrive with a concrete registryId already seeded into the ViewModel.
+            if (fromAddSheet) {
+                Box(
+                    modifier = Modifier.padding(
+                        start = spacing.edge,
+                        end = spacing.edge,
+                        top = spacing.gap12,
+                    )
+                ) {
+                    RegistryPickerField(
+                        selectedRegistryId = selectedRegistryId,
+                        registries = registriesForPicker,
+                        onSelect = { viewModel.setRegistry(it) },
+                        onCreateRegistry = onNavigateToCreateRegistry,
+                    )
+                }
+            }
+
             // 3-tab segmented control (reuses Phase 10 SegmentedTabs)
             Box(
                 modifier = Modifier.padding(
@@ -381,6 +435,102 @@ private fun ManualModeContent(
             colors = giftMaisonFieldColors(),
         )
         Spacer(Modifier.height(spacing.gap20))
+    }
+}
+
+/**
+ * quick-260428-iny: Registry picker rendered as the first field of the form
+ * when AddItemScreen was entered via the trimmed FAB sheet. Two branches:
+ *
+ *  1. Empty registry list — renders an inline "Create a registry first" link
+ *     (reusing R.string.add_sheet_no_registry_hint) that navigates to
+ *     CreateRegistryKey via [onCreateRegistry]. CTAs above remain disabled.
+ *  2. Populated list — Material3 ExposedDropdownMenuBox listing every registry
+ *     by title; tapping a row calls [onSelect] which sets selectedRegistryId
+ *     in the VM, enabling the bottom Save CTAs.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RegistryPickerField(
+    selectedRegistryId: String?,
+    registries: List<Registry>,
+    onSelect: (String) -> Unit,
+    onCreateRegistry: () -> Unit,
+) {
+    val colors = GiftMaisonTheme.colors
+    val typography = GiftMaisonTheme.typography
+    val spacing = GiftMaisonTheme.spacing
+    val shapes = GiftMaisonTheme.shapes
+
+    if (registries.isEmpty()) {
+        Column(verticalArrangement = Arrangement.spacedBy(spacing.gap8)) {
+            Text(
+                text = stringResource(R.string.add_item_picker_label),
+                style = typography.bodyS,
+                color = colors.inkSoft,
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(colors.paperDeep, shapes.radius12)
+                    .clickable(onClick = onCreateRegistry)
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringResource(R.string.add_sheet_no_registry_hint),
+                    style = typography.bodyMEmphasis,
+                    color = colors.accent,
+                    modifier = Modifier.weight(1f),
+                )
+                Icon(
+                    imageVector = Icons.Outlined.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = colors.accent,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        }
+        return
+    }
+
+    var expanded by remember { mutableStateOf(false) }
+    val selected = registries.firstOrNull { it.id == selectedRegistryId }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
+    ) {
+        OutlinedTextField(
+            value = selected?.title ?: "",
+            onValueChange = { /* read-only */ },
+            readOnly = true,
+            label = { Text(stringResource(R.string.add_item_picker_label)) },
+            placeholder = { Text(stringResource(R.string.add_item_picker_hint)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            shape = shapes.radius12,
+            modifier = Modifier
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable, enabled = true)
+                .fillMaxWidth(),
+            colors = giftMaisonFieldColors(),
+        )
+        // ExposedDropdownMenu is a member function of ExposedDropdownMenuBoxScope —
+        // calling it directly here picks up the receiver scope from the enclosing
+        // ExposedDropdownMenuBox lambda.
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            registries.forEach { registry ->
+                DropdownMenuItem(
+                    text = { Text(registry.title) },
+                    onClick = {
+                        onSelect(registry.id)
+                        expanded = false
+                    },
+                )
+            }
+        }
     }
 }
 
