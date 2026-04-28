@@ -33,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +45,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.giftregistry.R
 import com.giftregistry.ui.navigation.hiltViewModelWithNavArgs
+import com.giftregistry.ui.registry.cover.CoverPhotoPickerInline
+import com.giftregistry.ui.registry.cover.CoverPhotoPickerSheet
+import com.giftregistry.ui.registry.cover.isCoverPickerEnabled
 import com.giftregistry.ui.theme.GiftMaisonTheme
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -88,6 +92,7 @@ fun CreateRegistryScreen(
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val savedRegistryId by viewModel.savedRegistryId.collectAsStateWithLifecycle()
+    val coverPhotoSelection by viewModel.coverPhotoSelection.collectAsStateWithLifecycle()
 
     val colors = GiftMaisonTheme.colors
     val typography = GiftMaisonTheme.typography
@@ -100,6 +105,10 @@ fun CreateRegistryScreen(
     // Skip mode: set true when Skip button is tapped; LaunchedEffect routes to onSkip instead of onSaved.
     var skipMode by remember { mutableStateOf(false) }
     val untitledDraftLabel = stringResource(R.string.registry_create_untitled_draft)
+
+    // Phase 12 D-09 / D-12 — cover-photo picker sheet open state. rememberSaveable
+    // so it survives configuration changes / process death (Pitfall 4).
+    var pickerSheetOpen by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(savedRegistryId) {
         savedRegistryId?.let {
@@ -236,6 +245,26 @@ fun CreateRegistryScreen(
                 )
             }
 
+            // Phase 12 D-09 — Cover photo picker (inline 16:9 preview block).
+            // Inserted ABOVE the occasion tile grid per the cover-photo decision
+            // doc. Disabled until an occasion is set (D-12). Tap opens the
+            // ModalBottomSheet picker hosted at the bottom of this Composable.
+            Column(modifier = Modifier.padding(horizontal = spacing.edge)) {
+                Text(
+                    text = stringResource(R.string.cover_photo_label),
+                    style = typography.monoCaps,
+                    color = colors.inkFaint,
+                    modifier = Modifier.padding(bottom = spacing.gap8),
+                )
+                CoverPhotoPickerInline(
+                    occasion = occasion,
+                    selection = coverPhotoSelection,
+                    onTap = { pickerSheetOpen = true },
+                    disabledHint = stringResource(R.string.cover_photo_pick_occasion_first),
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
             // 2×3 Occasion tile grid (Task 1 composable)
             OccasionTileGrid(
                 selectedOccasion = occasion,
@@ -338,6 +367,24 @@ fun CreateRegistryScreen(
 
             Spacer(Modifier.height(spacing.gap20))
         }
+    }
+
+    // Phase 12 D-10 — ModalBottomSheet host for the cover-photo picker.
+    // Gated on isCoverPickerEnabled(occasion) (D-12) so we never open the sheet
+    // without an occasion. Sheet is sibling to the Scaffold so it renders on top
+    // with its own scrim.
+    if (pickerSheetOpen && isCoverPickerEnabled(occasion)) {
+        CoverPhotoPickerSheet(
+            occasion = occasion,
+            currentSelection = coverPhotoSelection,
+            onSelectionChanged = { newSelection ->
+                viewModel.coverPhotoSelection.value = newSelection
+            },
+            onDismiss = { pickerSheetOpen = false },
+            headerText = stringResource(R.string.cover_photo_sheet_header),
+            pickFromGalleryText = stringResource(R.string.cover_photo_pick_from_gallery),
+            removeText = stringResource(R.string.cover_photo_remove),
+        )
     }
 }
 

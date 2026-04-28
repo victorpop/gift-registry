@@ -311,4 +311,16 @@
     <string name="item_og_fetch_failed_inline">We couldn\'t read that page — fill in the details below.</string>
     <string name="item_url_label">Product URL</string>
     <string name="item_notes_hint_detail">e.g., in silver, please — matches the kitchen</string>
+
+    <!-- Phase 12: cover photo -->
+    <string name="cover_photo_label">Cover photo</string>
+    <string name="cover_photo_pick_occasion_first">Pick an occasion to see suggested covers</string>
+    <string name="cover_photo_sheet_header">CHOOSE A COVER</string>
+    <string name="cover_photo_pick_from_gallery">Pick from gallery</string>
+    <string name="cover_photo_remove">Remove cover photo</string>
+    <string name="cover_photo_uploading">Uploading cover…</string>
+    <string name="cover_photo_upload_failed">Cover photo upload failed</string>
+    <string name="cover_photo_change_hint">Tap to change cover</string>
+    <string name="cover_photo_processing_failed">Could not process the selected photo</string>
+    <string name="cover_photo_owner_only_desc">Change registry cover photo</string>
 </resources>

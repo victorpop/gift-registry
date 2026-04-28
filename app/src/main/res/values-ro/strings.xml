@@ -308,4 +308,16 @@
     <string name="item_og_fetch_failed_inline">Nu am putut citi acea pagin\u0103 \u2014 completeaz\u0103 detaliile mai jos.</string>
     <string name="item_url_label">URL produs</string>
     <string name="item_notes_hint_detail">ex.: \u00een argintiu, v\u0103 rog \u2014 se potrive\u015fte cu buc\u0103t\u0103ria</string>
+
+    <!-- Phase 12: cover photo -->
+    <string name="cover_photo_label">Fotografie de copert\u0103</string>
+    <string name="cover_photo_pick_occasion_first">Alege o ocazie pentru a vedea coper\u0163i sugerate</string>
+    <string name="cover_photo_sheet_header">ALEGE O COPERT\u0102</string>
+    <string name="cover_photo_pick_from_gallery">Alege din galerie</string>
+    <string name="cover_photo_remove">Elimin\u0103 coperta</string>
+    <string name="cover_photo_uploading">Se \u00eencarc\u0103 coperta\u2026</string>
+    <string name="cover_photo_upload_failed">\u00cenc\u0103rcarea copertei a e\u015fuat</string>
+    <string name="cover_photo_change_hint">Atinge pentru a schimba coperta</string>
+    <string name="cover_photo_processing_failed">Fotografia selectat\u0103 nu a putut fi procesat\u0103</string>
+    <string name="cover_photo_owner_only_desc">Schimb\u0103 fotografia de copert\u0103</string>
 </resources>
