@@ -1,15 +1,27 @@
 package com.giftregistry.ui.registry.cover
 
 /**
- * Phase 12 — Wave 0 STUB.
+ * Phase 12 — resolves a `Registry.imageUrl` into a Coil 3 model (D-05 / D-14).
  *
- * Resolves a `Registry.imageUrl` value to a Coil 3 model:
- *   - `null` -> null (placeholder branch in HeroImageOrPlaceholder)
- *   - `"preset:..."` sentinel -> Int? (`R.drawable.*` from PresetCatalog.resolve)
- *   - any other String -> the String unchanged (HTTP URL, Coil routes through OkHttp)
+ * Coil 3 routes `model: Any?` based on its runtime type:
+ *   - `Int` → resource ID (preset drawable)
+ *   - `String` → URL (OkHttp fetcher)
+ *   - `null` → no image; consumer renders the gradient + glyph placeholder
  *
- * STUB returns null for everything so ResolveImageModelTest fails RED on
- * the URL passthrough + sentinel-to-Int branches. Plan 03 ships the real
- * three-branch `when` per RESEARCH.md Pattern 4.
+ * Branches:
+ *   - `null` → `null` (placeholder branch in HeroImageOrPlaceholder)
+ *   - `"preset:..."` sentinel → `Int?` from [PresetCatalog.resolve]; `null`
+ *     for malformed sentinels so the UI shows the placeholder instead of
+ *     leaking the raw sentinel string into Coil (which would fail to load
+ *     it as a URL and render a broken-image affordance).
+ *   - any other String → the String unchanged (HTTP URL, Coil routes
+ *     through OkHttp).
+ *
+ * RESEARCH.md Pattern 4. Plan 03 will consume this from the shared
+ * `HeroImageOrPlaceholder` composable.
  */
-fun resolveImageModel(imageUrl: String?): Any? = null
+fun resolveImageModel(imageUrl: String?): Any? = when {
+    imageUrl == null -> null
+    imageUrl.startsWith("preset:") -> PresetCatalog.resolve(imageUrl)
+    else -> imageUrl
+}
