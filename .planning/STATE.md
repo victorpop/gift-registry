@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed quick-260428-s3b (Event Date+Time pickers wired; Task 3 human-verify outstanding)
-last_updated: "2026-04-28T17:24:49.000Z"
+stopped_at: Completed quick-260428-tx9 (M3 Compose pickers swapped — terracotta palette inherited; Task 2 human-verify outstanding)
+last_updated: "2026-04-28T18:41:28.000Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 12
@@ -255,6 +255,10 @@ Recent decisions affecting current work:
 - [Phase 12-registry-cover-photo-themed-placeholder]: D-13 owner-only tap on RegistryDetailHero implemented via nullable onCoverTap callback — guests pass null, clickable(enabled = false) is a no-op (no ripple, no pressed state)
 - [Phase 12-registry-cover-photo-themed-placeholder]: CreateRegistryViewModelCoverTest contract assertions (coVerifyOrder, exactly=0, failure assertions) preserved verbatim; only Wave 0 fail() markers + simulated state replaced with VM-driven exercise
 - [Phase 12-registry-cover-photo-themed-placeholder]: Cover-photo selection rehydration on Detail VM placed in second init { } block AFTER val registry — Kotlin runs init blocks in source order, before subsequent property initializers
+- [quick-260428-tx9]: M3 Compose DatePickerDialog / AlertDialog{TimePicker} replace framework android.app dialogs on CreateRegistryScreen — framework dialogs read the system Android theme (default green/teal) bypassing MaterialTheme.colorScheme; M3 Compose pickers inherit colorScheme.primary (= gm.accent terracotta via LightColorScheme) with zero `colors=` overrides
+- [quick-260428-tx9]: rememberDatePickerState UTC-midnight ↔ local-Calendar Long: convert symmetrically at the picker call site (decode UTC to civil Y/M/D; re-encode locally preserving prevHour/prevMin) — Bucharest UTC+2/+3 off-by-one guard
+- [quick-260428-tx9]: M3 has no TimePickerDialog composable; documented standard is AlertDialog { TimePicker(state) } with confirmButton/dismissButton TextButtons calling viewModel.setEventTime(state.hour, state.minute)
+- [quick-260428-tx9]: stringResource(android.R.string.ok / .cancel) over new strings.xml keys for picker buttons — system labels are translated by the platform on RO devices, no app keys needed
 
 ### Pending Todos
 
@@ -294,9 +298,10 @@ Recent decisions affecting current work:
 | 260427-nkn | Drop FAB lift — plus icon must sit below the bar's top border line; removed `.offset(y = -22.dp)` from FabSlot + unused `offset` import; FAB now flush within 72 dp bar (FAB top ~4 dp below gray border, no protrusion); KDocs updated to record handoff override per user feedback; Task 2 human-verify outstanding | 2026-04-27 | d4d9a4a | [260427-nkn-drop-fab-lift-plus-icon-must-sit-below-t](./quick/260427-nkn-drop-fab-lift-plus-icon-must-sit-below-t/) |
 | 260428-iny | Trim Add sheet from 4 rows to 2 (New registry + Add an item); AddItemKey gains nullable registryId + fromAddSheet flag; AddItemScreen renders Material3 ExposedDropdownMenuBox registry picker as first field when fromAddSheet=true (with empty-state link to CreateRegistryKey); CreateRegistry → AddItem chain keeps picker hidden; 4 new EN+RO strings added, 6 deprecated strings removed; sheet bug-fix preservation (corners, scrim, drag-handle, no shadow) confirmed; Task 3 human-verify outstanding | 2026-04-28 | 5752adf | [260428-iny-trim-add-sheet-to-2-options-new-registry](./quick/260428-iny-trim-add-sheet-to-2-options-new-registry/) |
 | 260428-s3b | Fix Event Date + Time fields on Create/Edit Registry — InteractionSource pattern replaces broken Modifier.clickable on date field (was no-op due to TextField pointer-input swallow); add TimePickerDialog wired via same pattern with runtime gate inside collector (enabled=true so InteractionSource fires); ViewModel gets eventTimeSet StateFlow + setEventTime(hour, minute) encoding into existing eventDateMs Long; edit-mode hydration flips eventTimeSet=true on non-midnight Calendar-decoded timestamps; 5 new VM unit tests pin the contract; no domain/persistence/string changes; Task 3 human-verify outstanding | 2026-04-28 | c133ac5 | [260428-s3b-fix-event-date-time-fields-on-createregi](./quick/260428-s3b-fix-event-date-time-fields-on-createregi/) |
+| 260428-tx9 | Replace framework android.app.DatePickerDialog / TimePickerDialog with Material3 Compose DatePickerDialog + DatePicker(state) and AlertDialog { TimePicker(state) } on Create/Edit Registry — pickers now inherit GiftMaison terracotta via MaterialTheme.colorScheme.primary (LightColorScheme.primary = gm.accent in Theme.kt:36) instead of bleeding the Android system Material green/teal; UTC↔local-Calendar conversion in DatePickerDialog confirmButton guards against Bucharest UTC+2/+3 off-by-one civil-day; @OptIn(ExperimentalMaterial3Api::class) at @Composable level; OK/Cancel via stringResource(android.R.string.ok / .cancel) — zero new strings.xml keys; all s3b behaviour preserved verbatim (InteractionSource trigger, hour/minute preservation on re-pick, eventTimeSet StateFlow + setEventTime VM API, 24h locale awareness, edit-mode round-trip); Task 2 human-verify outstanding | 2026-04-28 | 08c66da | [260428-tx9-replace-framework-datepickerdialog-timep](./quick/260428-tx9-replace-framework-datepickerdialog-timep/) |
 
 ## Session Continuity
 
-Last session: 2026-04-28T17:24:49.000Z
-Stopped at: Completed quick-260428-s3b (Event Date+Time pickers wired; Task 3 human-verify outstanding)
+Last session: 2026-04-28T18:41:28.000Z
+Stopped at: Completed quick-260428-tx9 (M3 Compose pickers swapped — terracotta palette inherited; Task 2 human-verify outstanding)
 Resume file: None
