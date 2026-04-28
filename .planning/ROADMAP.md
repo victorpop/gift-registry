@@ -251,7 +251,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 9. Shared Chrome + Status UI | 4/4 | Complete   | 2026-04-21 |
 | 10. Onboarding + Home Redesign | 4/5 | Complete    | 2026-04-21 |
 | 11. Registry Detail + Create + Add Item Redesign | 6/6 | Complete   | 2026-04-21 |
-| 12. Registry Cover Photo & Themed Placeholder | 5/5 | Complete   | 2026-04-28 |
+| 12. Registry Cover Photo & Themed Placeholder | 5/5 | Complete    | 2026-04-28 |
 
 ### Phase 12: Registry Cover Photo & Themed Placeholder
 **Goal**: Registry owners can pick a cover photo (bundled per-occasion preset OR Android Photo Picker upload to Firebase Storage) on Create, Edit, and Registry Detail surfaces; registries without a cover render the GiftMaison gradient + occasion-glyph placeholder consistently across the 180 dp hero and both registry card variants
