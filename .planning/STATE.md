@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
-status: executing
-stopped_at: Completed quick-260428-tx9 (M3 Compose pickers — terracotta palette; user-approved 2026-04-28)
-last_updated: "2026-04-28T22:00:00.000Z"
+status: verifying
+stopped_at: Completed 12-05-PLAN.md (Phase 12 Wave 3 — UAT approved; storage rules deploy deferred)
+last_updated: "2026-04-28T19:26:16.710Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 12
-  completed_phases: 11
+  completed_phases: 12
   total_plans: 61
-  completed_plans: 60
+  completed_plans: 61
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 
 Phase: 12 (registry-cover-photo-themed-placeholder) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-04-28
 
 Progress: [░░░░░░░░░░] 0%
@@ -103,6 +103,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 12-registry-cover-photo-themed-placeholder P03 | 10min | 3 tasks | 7 files |
 | Phase 12-registry-cover-photo-themed-placeholder P02 | 9min | 4 tasks | 52 files |
 | Phase 12-registry-cover-photo-themed-placeholder P04 | 11min | 3 tasks | 12 files |
+| Phase 12-registry-cover-photo-themed-placeholder P05 | 12min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -259,6 +260,9 @@ Recent decisions affecting current work:
 - [quick-260428-tx9]: rememberDatePickerState UTC-midnight ↔ local-Calendar Long: convert symmetrically at the picker call site (decode UTC to civil Y/M/D; re-encode locally preserving prevHour/prevMin) — Bucharest UTC+2/+3 off-by-one guard
 - [quick-260428-tx9]: M3 has no TimePickerDialog composable; documented standard is AlertDialog { TimePicker(state) } with confirmButton/dismissButton TextButtons calling viewModel.setEventTime(state.hour, state.minute)
 - [quick-260428-tx9]: stringResource(android.R.string.ok / .cancel) over new strings.xml keys for picker buttons — system labels are translated by the platform on RO devices, no app keys needed
+- [Phase 12-registry-cover-photo-themed-placeholder]: Plan 12-05: 4 StyleGuidePreview @Preview sections shipped (HeroImageOrPlaceholder hero+card, CoverPhotoPickerInline 3 states, CoverPhotoPickerSheet inline-body, RegistryCard placeholder regression check) — Phase 12 visual contracts now reviewable in Studio without booting an emulator
+- [Phase 12-registry-cover-photo-themed-placeholder]: Plan 12-05: storage rules live deploy DEFERRED via structured todo (.planning/todos/pending/2026-04-28-deploy-phase-12-storage-rules.md) — user resume signal was 'approved — storage deploy skipped'; production cover-photo upload traffic blocked until the deploy lands; preset selection paths unaffected
+- [Phase 12-registry-cover-photo-themed-placeholder]: Plan 12-05: 12-VALIDATION.md signed off (status=approved, nyquist_compliant=true, wave_0_complete=true); Per-Task Verification Map has 15 rows; 7 of 8 Wave 0 RED suites GREEN; all 16 Decision IDs satisfied; Pitfalls 1+2+5+6+7 pinned
 
 ### Pending Todos
 
@@ -302,6 +306,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-28T22:00:00.000Z
-Stopped at: Completed quick-260428-tx9 (M3 Compose pickers — terracotta palette; user-approved 2026-04-28)
+Last session: 2026-04-28T19:26:03.425Z
+Stopped at: Completed 12-05-PLAN.md (Phase 12 Wave 3 — UAT approved; storage rules deploy deferred)
 Resume file: None

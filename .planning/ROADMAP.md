@@ -251,6 +251,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 9. Shared Chrome + Status UI | 4/4 | Complete   | 2026-04-21 |
 | 10. Onboarding + Home Redesign | 4/5 | Complete    | 2026-04-21 |
 | 11. Registry Detail + Create + Add Item Redesign | 6/6 | Complete   | 2026-04-21 |
+| 12. Registry Cover Photo & Themed Placeholder | 5/5 | Complete   | 2026-04-28 |
 
 ### Phase 12: Registry Cover Photo & Themed Placeholder
 **Goal**: Registry owners can pick a cover photo (bundled per-occasion preset OR Android Photo Picker upload to Firebase Storage) on Create, Edit, and Registry Detail surfaces; registries without a cover render the GiftMaison gradient + occasion-glyph placeholder consistently across the 180 dp hero and both registry card variants
@@ -270,5 +271,5 @@ Plans:
 - [x] 12-02-PLAN.md -- Wave 1: Pitfall 1 fix (RegistryDto.imageUrl + RegistryRepositoryImpl mappers) + 36 placeholder JPEGs + PresetCatalog populated + StorageRepository/CoverImageProcessor impls + StorageModule + storage.rules
 - [x] 12-03-PLAN.md -- Wave 1: HeroImageOrPlaceholder + CoverPhotoPickerInline + CoverPhotoPickerSheet + PresetThumbnail; refactor RegistryCard primary/secondary + RegistryDetailHero to consume the shared composable
 - [x] 12-04-PLAN.md -- Wave 2: CreateRegistryViewModel + Screen wiring (inline picker above OccasionTileGrid; sheet host; create-mode two-writes-zero-orphans upload); RegistryDetailScreen owner-only tap target; 10 cover_photo_* strings × 2 locales
-- [ ] 12-05-PLAN.md -- Wave 3: 4 StyleGuidePreview sections + on-device UAT (12-check checklist) + storage.rules deploy (human checkpoint)
+- [x] 12-05-PLAN.md -- Wave 3: 4 StyleGuidePreview sections + on-device UAT (12-check checklist) + storage.rules deploy (human checkpoint)
 **UI hint**: yes
