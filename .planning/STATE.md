@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 12-04-PLAN.md (cover-photo wiring; CreateRegistry + Detail surfaces wired; D-07 + D-11 + D-13 honoured)
-last_updated: "2026-04-28T12:06:21.739Z"
+stopped_at: Completed quick-260428-s3b (Event Date+Time pickers wired; Task 3 human-verify outstanding)
+last_updated: "2026-04-28T17:24:49.000Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 12
@@ -293,9 +293,10 @@ Recent decisions affecting current work:
 | 260427-n67 | Align ADD label with other nav labels — FabSlot mirrors NavItemSlot column (wrap-content + 44 dp inner Box scaffold + 4 dp Spacer); FAB rendered at 54 dp via requiredSize, 22 dp lift preserved via offset; Task 2 human-verify outstanding | 2026-04-27 | 5fe7c87 | [260427-n67-align-add-label-with-other-nav-labels-mi](./quick/260427-n67-align-add-label-with-other-nav-labels-mi/) |
 | 260427-nkn | Drop FAB lift — plus icon must sit below the bar's top border line; removed `.offset(y = -22.dp)` from FabSlot + unused `offset` import; FAB now flush within 72 dp bar (FAB top ~4 dp below gray border, no protrusion); KDocs updated to record handoff override per user feedback; Task 2 human-verify outstanding | 2026-04-27 | d4d9a4a | [260427-nkn-drop-fab-lift-plus-icon-must-sit-below-t](./quick/260427-nkn-drop-fab-lift-plus-icon-must-sit-below-t/) |
 | 260428-iny | Trim Add sheet from 4 rows to 2 (New registry + Add an item); AddItemKey gains nullable registryId + fromAddSheet flag; AddItemScreen renders Material3 ExposedDropdownMenuBox registry picker as first field when fromAddSheet=true (with empty-state link to CreateRegistryKey); CreateRegistry → AddItem chain keeps picker hidden; 4 new EN+RO strings added, 6 deprecated strings removed; sheet bug-fix preservation (corners, scrim, drag-handle, no shadow) confirmed; Task 3 human-verify outstanding | 2026-04-28 | 5752adf | [260428-iny-trim-add-sheet-to-2-options-new-registry](./quick/260428-iny-trim-add-sheet-to-2-options-new-registry/) |
+| 260428-s3b | Fix Event Date + Time fields on Create/Edit Registry — InteractionSource pattern replaces broken Modifier.clickable on date field (was no-op due to TextField pointer-input swallow); add TimePickerDialog wired via same pattern with runtime gate inside collector (enabled=true so InteractionSource fires); ViewModel gets eventTimeSet StateFlow + setEventTime(hour, minute) encoding into existing eventDateMs Long; edit-mode hydration flips eventTimeSet=true on non-midnight Calendar-decoded timestamps; 5 new VM unit tests pin the contract; no domain/persistence/string changes; Task 3 human-verify outstanding | 2026-04-28 | c133ac5 | [260428-s3b-fix-event-date-time-fields-on-createregi](./quick/260428-s3b-fix-event-date-time-fields-on-createregi/) |
 
 ## Session Continuity
 
-Last session: 2026-04-28T12:06:21.735Z
-Stopped at: Completed 12-04-PLAN.md (cover-photo wiring; CreateRegistry + Detail surfaces wired; D-07 + D-11 + D-13 honoured)
+Last session: 2026-04-28T17:24:49.000Z
+Stopped at: Completed quick-260428-s3b (Event Date+Time pickers wired; Task 3 human-verify outstanding)
 Resume file: None
