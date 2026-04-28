@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -26,20 +27,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.compose.foundation.lazy.LazyListState
-import coil3.compose.AsyncImage
 import com.giftregistry.R
 import com.giftregistry.domain.model.Registry
-import com.giftregistry.ui.registry.create.OccasionCatalog
+import com.giftregistry.ui.registry.cover.HeroImageOrPlaceholder
 import com.giftregistry.ui.theme.GiftMaisonTheme
 
 /**
@@ -52,6 +48,13 @@ import com.giftregistry.ui.theme.GiftMaisonTheme
  * Pitfall 2 guard: `heroThresholdPx` is computed OUTSIDE `derivedStateOf` via
  * `remember(density) { with(density) { 120.dp.toPx() } }` — density access inside the
  * derived lambda would crash (composition locals unavailable outside composition).
+ *
+ * Phase 12 refactor (D-16): the inline image-or-placeholder block delegates to
+ * the shared [HeroImageOrPlaceholder] composable. The 3-stop dark overlay
+ * STAYS at this call site, gated on `imageUrl != null` (Pitfall 6 — the
+ * overlay must NOT paint over the gradient placeholder, which already has
+ * sufficient contrast for the over-hero text). The `glyphSize = 40.sp`
+ * argument preserves the Phase 11 hero pixel contract.
  */
 @Composable
 internal fun RegistryDetailHero(
@@ -82,16 +85,15 @@ internal fun RegistryDetailHero(
     }
 
     Box(modifier = modifier.fillMaxWidth().height(180.dp)) {
-        // --- Hero image OR placeholder ---
-        val imageUrl = registry?.imageUrl
-        if (imageUrl != null) {
-            AsyncImage(
-                model = imageUrl,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop,
-            )
-            // 3-stop gradient overlay per UI-SPEC § Color (ink@0x44 top, transparent 40%, ink@0xAA bottom)
+        // --- Hero image OR gradient placeholder via shared composable (D-16). ---
+        HeroImageOrPlaceholder(
+            imageUrl = registry?.imageUrl,
+            occasion = registry?.occasion,
+            glyphSize = 40.sp,                       // hero uses 40 sp (preserve Phase 11 pixel contract)
+            modifier = Modifier.fillMaxSize(),
+        )
+        // 3-stop dark overlay (ink@0x44 top, transparent 40%, ink@0xAA bottom) — ONLY when imageUrl != null (Pitfall 6 guard)
+        if (registry?.imageUrl != null) {
             val inkTop = Color(0xFF2A2420).copy(alpha = 0.27f)
             val inkBottom = Color(0xFF2A2420).copy(alpha = 0.67f)
             Box(
@@ -105,27 +107,6 @@ internal fun RegistryDetailHero(
                         )
                     )
             )
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            0f to colors.accentSoft,
-                            1f to colors.accent,
-                        )
-                    ),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = OccasionCatalog.glyphFor(registry?.occasion),
-                    style = typography.displayXL.copy(
-                        fontSize = 40.sp,
-                        fontStyle = FontStyle.Italic,
-                    ),
-                    color = colors.paper,
-                )
-            }
         }
 
         // --- Over-hero text: occasion + title (bottom-left) ---
