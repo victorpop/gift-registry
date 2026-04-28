@@ -218,6 +218,9 @@
     <string name="registry_filter_reserved">Rezervate</string>
     <string name="registry_filter_completed">Finalizate</string>
 
+    <!-- quick-260428-k5u: Registry Detail "Add an item" CTA — Romanian -->
+    <string name="registry_detail_add_item_cta">Adaug&#259; un produs</string>
+
     <!-- Phase 9 status chips (STAT-01/02/03) — Romanian -->
     <string name="status_chip_reserved">REZERVAT</string>
     <string name="status_chip_given">✓ OFERIT</string>

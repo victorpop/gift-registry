@@ -5,24 +5,29 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Phase 12 — Wave 0 STUB.
+ * Phase 12 — real implementation of [StorageRepository] (D-04 / D-05 / D-07).
  *
- * Empty skeleton so [com.giftregistry.data.storage.StorageRepositoryImplTest]
- * compiles in Wave 0. Plan 02 Task 3 replaces the body with the real
- * Firebase Storage `putBytes(...).await() + downloadUrl.await()` pipeline
- * inside `runCatching { … }` per RESEARCH.md Pattern 3.
+ * Delegates the FirebaseStorage call to [StorageDataSource] (which holds the
+ * canonical D-05 path schema) and wraps it in `runCatching` so any
+ * StorageException / IOException surfaces as `Result.failure` rather than
+ * leaking out of the data layer (Phase 02 D-08 — keep FirebaseExceptions out
+ * of the domain).
  *
- * Wave 0 returns Result.failure(NotImplementedError) so the StorageRepositoryImplTest
- * happy-path assertions fail RED (expected); the failure-path test for `runCatching`
- * also fails RED because we throw NotImplementedError before runCatching wraps the
- * mocked Firebase exception.
+ * The ViewModel translates the failure into a user-facing error string via
+ * its existing `error: StateFlow<String?>` channel (D-07 failure path).
+ *
+ * RESEARCH.md Pattern 3.
  */
 @Singleton
-class StorageRepositoryImpl @Inject constructor() : StorageRepository {
+class StorageRepositoryImpl @Inject constructor(
+    private val dataSource: StorageDataSource,
+) : StorageRepository {
 
     override suspend fun uploadCover(
         uid: String,
         registryId: String,
         jpegBytes: ByteArray,
-    ): Result<String> = Result.failure(NotImplementedError("Plan 02 wires Firebase Storage"))
+    ): Result<String> = runCatching {
+        dataSource.uploadCoverBytes(uid, registryId, jpegBytes)
+    }
 }

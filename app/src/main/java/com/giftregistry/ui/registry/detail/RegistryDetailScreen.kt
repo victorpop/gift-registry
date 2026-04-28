@@ -2,11 +2,16 @@ package com.giftregistry.ui.registry.detail
 
 import android.content.Intent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -15,6 +20,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -37,6 +43,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -54,8 +61,7 @@ import kotlinx.coroutines.launch
 fun RegistryDetailScreen(
     registryId: String,
     onBack: () -> Unit,
-    // onNavigateToAddItem retained for future inline "add first item" affordance;
-    // Phase 9 global FAB handles current add-item nav flow.
+    // quick-260428-k5u: wired to the in-screen "Add an item" CTA above the items list.
     onNavigateToAddItem: () -> Unit,
     onNavigateToEditItem: (String) -> Unit,
     onNavigateToEditRegistry: () -> Unit,
@@ -206,6 +212,12 @@ fun RegistryDetailScreen(
                     activeFilter = activeFilter,
                     onFilterSelected = { chip -> activeFilterIndex = chip.ordinal },
                 )
+            }
+
+            // quick-260428-k5u: prominent Add Item CTA above items list. Tap → AddItemKey
+            // with fromAddSheet=false (default) → picker HIDDEN per quick-260428-iny contract.
+            item(key = "add-item-cta") {
+                AddItemTopCta(onClick = onNavigateToAddItem)
             }
 
             // Phase 6 (UI-SPEC Contract 1): confirm-purchase banner for givers with active reservation
@@ -377,6 +389,45 @@ fun RegistryDetailScreen(
                     Text(stringResource(R.string.common_cancel))
                 }
             },
+        )
+    }
+}
+
+/**
+ * quick-260428-k5u: full-width primary CTA on Registry Detail. Sits above the
+ * items list (below FilterChipsRow). Accent fill + accentInk text/icon, 14 dp
+ * radius. Tap dispatches AddItemKey(registryId) with fromAddSheet=false so the
+ * registry picker stays hidden (quick-260428-iny contract).
+ */
+@Composable
+private fun AddItemTopCta(onClick: () -> Unit) {
+    val colors = GiftMaisonTheme.colors
+    val typography = GiftMaisonTheme.typography
+    val shapes = GiftMaisonTheme.shapes
+    val spacing = GiftMaisonTheme.spacing
+    val ctaLabel = stringResource(R.string.registry_detail_add_item_cta)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = spacing.edge, vertical = spacing.gap8)
+            .clip(shapes.radius14)
+            .background(colors.accent)
+            .clickable(onClick = onClick)
+            .padding(horizontal = spacing.gap16, vertical = spacing.gap14),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Add,
+            contentDescription = null,  // label below provides screen-reader text
+            tint = colors.accentInk,
+        )
+        Spacer(Modifier.width(spacing.gap8))
+        Text(
+            text = ctaLabel,
+            style = typography.bodyMEmphasis,
+            color = colors.accentInk,
         )
     }
 }

@@ -1,94 +1,97 @@
 package com.giftregistry.data.storage
 
+import io.mockk.coEvery
+import io.mockk.mockk
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
 import org.junit.Test
 
 /**
- * Phase 12 — Wave 0 RED tests for [StorageRepositoryImpl].
+ * Phase 12 — unit tests for [StorageRepositoryImpl] (D-04 / D-07; Phase 02 D-08).
  *
- * Pins (D-04 / D-05 / D-07):
- * - Happy path: `uploadCover` returns Result.success(downloadUrl) after
- *   `putBytes(...).await()` + `downloadUrl.await()` roundtrip.
- * - Failure path: `runCatching { ... }` wraps Firebase exceptions into
- *   Result.failure (Phase 02 D-08 — keep FirebaseExceptions out of domain).
- * - Path schema: `users/{uid}/registries/{registryId}/cover.jpg` per D-05.
+ * Plan 02 GREEN. The repo is now a thin `runCatching` wrapper around
+ * [StorageDataSource]; this test mocks the data source so the FirebaseStorage
+ * mocking lives in [StorageDataSourceTest] alone (D-05 path schema is asserted
+ * there).
  *
- * Wave 0: [StorageRepositoryImpl] is a stub returning Result.failure(
- * NotImplementedError). All three tests fail RED. Plan 02 Task 3 ships the
- * real impl using FirebaseStorage + putBytes + downloadUrl + runCatching.
- *
- * NOTE: The full Firebase SDK mocking (mockk on FirebaseStorage final classes)
- * is the responsibility of Plan 02 — once the impl exists, the test will
- * mock storage.reference.child(...) etc. Wave 0 keeps the assertions
- * structural so the file compiles against the empty stub.
+ * Pins (D-04 / D-07; Phase 02 D-08):
+ *   - Happy path: `uploadCover(...)` returns `Result.success(downloadUrl)`.
+ *   - Failure path: data-source exceptions become `Result.failure(...)`
+ *     carrying the original throwable — no FirebaseException leaks through.
  */
 class StorageRepositoryImplTest {
 
-    private val repo = StorageRepositoryImpl()
+    /** D-04 / D-07 happy path: `Result.success` carrying the download URL. */
+    @Test
+    fun uploadCover_happyPath_returnsDownloadUrl() = runTest {
+        val expected = "https://firebasestorage.googleapis.com/v0/b/test/o/cover.jpg?token=abc"
+        val dataSource = mockk<StorageDataSource>()
+        coEvery {
+            dataSource.uploadCoverBytes("uid-1", "reg-1", any())
+        } returns expected
+
+        val repo = StorageRepositoryImpl(dataSource)
+
+        val result = repo.uploadCover(
+            uid = "uid-1",
+            registryId = "reg-1",
+            jpegBytes = ByteArray(1024),
+        )
+
+        assertTrue("happy path must return Result.success", result.isSuccess)
+        assertEquals(expected, result.getOrNull())
+    }
 
     /**
-     * D-04 / D-07 happy path: a successful Storage upload returns the
-     * download URL string.
-     *
-     * Wave 0 RED: stub returns Result.failure(NotImplementedError). Plan 02
-     * wires `runCatching { ref.putBytes(...).await(); ref.downloadUrl.await().toString() }`.
+     * D-07 / Phase 02 D-08 failure path: exceptions thrown by [StorageDataSource]
+     * (which include FirebaseException instances when the real FirebaseStorage
+     * SDK throws) become `Result.failure(...)` so the domain never sees them.
      */
     @Test
-    fun uploadCover_happyPath_returnsDownloadUrl() {
-        val result = kotlinx.coroutines.runBlocking {
-            repo.uploadCover(uid = "uid-1", registryId = "reg-1", jpegBytes = ByteArray(1024))
-        }
-        assertTrue(
-            "D-04 happy path: uploadCover must return Result.success with a non-blank URL " +
-                "(Wave 0 RED — Plan 02 wires Firebase Storage putBytes + downloadUrl)",
-            result.isSuccess,
+    fun uploadCover_failure_returnsResultFailure() = runTest {
+        val expected = RuntimeException("storage rules denied")
+        val dataSource = mockk<StorageDataSource>()
+        coEvery {
+            dataSource.uploadCoverBytes(any(), any(), any())
+        } throws expected
+
+        val repo = StorageRepositoryImpl(dataSource)
+
+        val result = repo.uploadCover(
+            uid = "uid-1",
+            registryId = "reg-1",
+            jpegBytes = ByteArray(1024),
         )
-        assertTrue(
-            "Download URL must be non-blank",
-            result.getOrNull()?.isNotBlank() == true,
+
+        assertTrue("runCatching must wrap exceptions into Result.failure", result.isFailure)
+        assertSame(
+            "the original throwable must be preserved so callers can branch on type",
+            expected,
+            result.exceptionOrNull(),
         )
     }
 
     /**
-     * D-07 failure path: Firebase exceptions become Result.failure via runCatching.
-     * Plan 02's wrapper guarantees no FirebaseException leaks past the data layer.
-     *
-     * Wave 0 RED: stub returns Result.failure(NotImplementedError) — the test
-     * verifies the FAILURE shape, but the wrapper contract isn't proven until
-     * Plan 02 mocks an actual Firebase exception path.
+     * D-05 — path schema is asserted by [StorageDataSourceTest] which mocks
+     * FirebaseStorage directly. The repository layer doesn't construct paths
+     * any more, so this test is a forwarding contract: the repo MUST hand
+     * (uid, registryId, bytes) verbatim to the data source.
      */
     @Test
-    fun uploadCover_failure_returnsResultFailure() {
-        // Wave 0 — Plan 02 must mock storage.reference.child(...).putBytes(...).await()
-        // to throw a StorageException, then assert Result.isFailure with the same
-        // exception type. For Wave 0 we simply mark the contract as outstanding so
-        // the assertion fails RED (NotImplementedError is not the contract failure).
-        fail(
-            "Wave 0 stub — Plan 02 must mock FirebaseStorage to throw and assert " +
-                "Result.isFailure carrying the original exception (D-07 + Phase 02 D-08 runCatching)",
-        )
-    }
+    fun uploadCover_pathSchema_forwardsToDataSource() = runTest {
+        val dataSource = mockk<StorageDataSource>()
+        val capturedUid = io.mockk.slot<String>()
+        val capturedRegistryId = io.mockk.slot<String>()
+        coEvery {
+            dataSource.uploadCoverBytes(capture(capturedUid), capture(capturedRegistryId), any())
+        } returns "https://x"
 
-    /**
-     * D-05 — single-canonical path schema: re-uploads overwrite cleanly so
-     * there are no orphan blobs in Storage.
-     *
-     * Wave 0 RED: no path verification possible until Plan 02 wires the
-     * real FirebaseStorage instance and we can capture the StorageReference
-     * `.child(path)` call via mockk slot.
-     */
-    @Test
-    fun uploadCover_pathSchema() {
-        val expectedPath = "users/uid-1/registries/reg-1/cover.jpg"
-        // Plan 02 contract: mockk slot on storage.reference.child(...) captures the path.
-        // Wave 0 keeps the contract documented; assertion fails so the test stays RED.
-        assertEquals(
-            "D-05: Storage path MUST be 'users/{uid}/registries/{registryId}/cover.jpg' " +
-                "(Wave 0 RED — Plan 02 wires the StorageReference.child(...) call)",
-            expectedPath,
-            "WAVE-0-NOT-WIRED-YET",
-        )
+        val repo = StorageRepositoryImpl(dataSource)
+        repo.uploadCover(uid = "uid-9", registryId = "reg-9", jpegBytes = ByteArray(0))
+
+        assertEquals("uid-9", capturedUid.captured)
+        assertEquals("reg-9", capturedRegistryId.captured)
     }
 }

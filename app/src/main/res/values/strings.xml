@@ -217,6 +217,9 @@
     <string name="registry_filter_reserved">Reserved</string>
     <string name="registry_filter_completed">Completed</string>
 
+    <!-- quick-260428-k5u: Registry Detail "Add an item" CTA -->
+    <string name="registry_detail_add_item_cta">Add an item</string>
+
     <!-- Phase 9 status chips (STAT-01/02/03) -->
     <string name="status_chip_reserved">RESERVED</string>
     <string name="status_chip_given">✓ GIVEN</string>
