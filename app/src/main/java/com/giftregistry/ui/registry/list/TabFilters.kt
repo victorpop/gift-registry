@@ -4,15 +4,13 @@ import com.giftregistry.domain.model.Registry
 import java.util.Calendar
 
 /**
- * SCR-07: Client-side tab filter helpers for the Home screen Active / Drafts /
- * Past segmented tabs. Pure Kotlin (no Android / no Compose) so every predicate
- * is unit-testable via TabFilterPredicateTest / DraftHeuristicTest /
- * IsPrimarySelectionTest.
+ * SCR-07: Client-side tab filter helpers for the Home screen Active / Past
+ * segmented tabs. Pure Kotlin (no Android / no Compose) so every predicate is
+ * unit-testable via TabFilterPredicateTest / IsPrimarySelectionTest.
  *
  * CONTEXT.md locked decisions:
  *   Active = eventDateMs == null || eventDateMs >= startOfTodayMs (inclusive boundary)
  *   Past   = eventDateMs != null && eventDateMs < startOfTodayMs   (strict)
- *   Draft  = title.isBlank() || itemCount == 0                     (heuristic)
  *   Primary = registries.maxByOrNull { it.updatedAt }?.id          (stable first on tie)
  *
  * Calendar (not java.time.LocalDate) is used because project minSdk is 23 and
@@ -42,15 +40,6 @@ fun Registry.isActive(todayMs: Long): Boolean =
 /** Past tab predicate — strict `<` comparison. Null eventDateMs is never past. */
 fun Registry.isPast(todayMs: Long): Boolean =
     eventDateMs != null && eventDateMs < todayMs
-
-/**
- * Draft heuristic — `title.isBlank() || itemCount == 0`. CONTEXT.md approved
- * this as a client-only derivation until a real `Registry.status: 'draft'`
- * field ships (deferred to v1.2). Pass `itemCount = 0` in Plan 04 until per-
- * registry stats aggregation lands (CONTEXT.md deferred).
- */
-fun Registry.isDraft(itemCount: Int): Boolean =
-    title.isBlank() || itemCount == 0
 
 /**
  * Primary card selection rule — most-recently-updated registry ID, or null on

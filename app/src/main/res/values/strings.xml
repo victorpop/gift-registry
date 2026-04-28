@@ -285,10 +285,8 @@
     <string name="home_stats_reserved">%1$d reserved</string>
     <string name="home_stats_given">%1$d given</string>
     <string name="home_tab_active">ACTIVE</string>
-    <string name="home_tab_drafts">DRAFTS</string>
     <string name="home_tab_past">PAST</string>
     <string name="home_empty_active">No active registries yet</string>
-    <string name="home_empty_drafts">No drafts</string>
     <string name="home_empty_past">No past registries</string>
     <string name="home_avatar_content_desc">Open settings</string>
     <string name="registry_card_menu_edit">Edit</string>

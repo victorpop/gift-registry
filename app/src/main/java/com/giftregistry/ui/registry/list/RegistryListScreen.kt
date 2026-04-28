@@ -65,7 +65,6 @@ fun RegistryListScreen(
     var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
     val tabs = listOf(
         stringResource(R.string.home_tab_active),
-        stringResource(R.string.home_tab_drafts),
         stringResource(R.string.home_tab_past),
     )
 
@@ -124,8 +123,7 @@ fun RegistryListScreen(
                     val filtered = remember(registries, selectedTabIndex, todayMs) {
                         when (selectedTabIndex) {
                             0 -> registries.filter { it.isActive(todayMs) }
-                            1 -> registries.filter { it.isDraft(itemCount = 0) }  // TODO: Phase 10 stats aggregation deferred
-                            2 -> registries.filter { it.isPast(todayMs) }
+                            1 -> registries.filter { it.isPast(todayMs) }
                             else -> registries
                         }
                     }
@@ -161,7 +159,7 @@ fun RegistryListScreen(
                     if (filtered.isEmpty()) {
                         val emptyKey = when (selectedTabIndex) {
                             0 -> R.string.home_empty_active
-                            1 -> R.string.home_empty_drafts
+                            1 -> R.string.home_empty_past
                             else -> R.string.home_empty_past
                         }
                         Box(

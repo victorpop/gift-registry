@@ -296,11 +296,11 @@ private fun GoogleBannerPreview() {
     }
 }
 
-@Preview(name = "Segmented tabs — all 3 selected states", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 220)
+@Preview(name = "Segmented tabs — both selected states", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 220)
 @Composable
 private fun SegmentedTabsPreview() {
     GiftRegistryTheme {
-        val tabs = listOf("ACTIVE", "DRAFTS", "PAST")
+        val tabs = listOf("ACTIVE", "PAST")
         Column(
             modifier = Modifier
                 .background(GiftMaisonTheme.colors.paper)
@@ -309,7 +309,6 @@ private fun SegmentedTabsPreview() {
         ) {
             SegmentedTabs(tabs = tabs, selectedIndex = 0, onTabSelected = {})
             SegmentedTabs(tabs = tabs, selectedIndex = 1, onTabSelected = {})
-            SegmentedTabs(tabs = tabs, selectedIndex = 2, onTabSelected = {})
         }
     }
 }
