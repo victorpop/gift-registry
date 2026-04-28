@@ -80,6 +80,18 @@ open class FirestoreDataSource @Inject constructor(
         return ref.id
     }
 
+    /**
+     * Phase 12 D-07 — write a registry document at a CALLER-PROVIDED id.
+     * Used by the upload-then-write flow ([RegistryRepositoryImpl.createRegistry]
+     * when `registry.id` is non-blank): the ViewModel pre-mints the id via
+     * `registryRepository.newRegistryId()` so the cover-photo Storage path is
+     * known BEFORE the Firestore write happens (Pitfall 2 mitigation — zero
+     * orphan documents on upload failure).
+     */
+    suspend fun createRegistryWithId(registryId: String, data: Map<String, Any?>) {
+        firestore.collection("registries").document(registryId).set(data).await()
+    }
+
     suspend fun updateRegistry(registryId: String, data: Map<String, Any?>) {
         firestore.collection("registries").document(registryId).update(data).await()
     }

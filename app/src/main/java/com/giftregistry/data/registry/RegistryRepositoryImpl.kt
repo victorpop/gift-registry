@@ -42,8 +42,21 @@ class RegistryRepositoryImpl @Inject constructor(
     override fun observeRegistry(registryId: String): Flow<Registry?> =
         dataSource.observeRegistry(registryId).map { it?.toDomain() }
 
-    override suspend fun createRegistry(registry: Registry): Result<String> =
-        runCatching { dataSource.createRegistry(registry.toMap()) }
+    override suspend fun createRegistry(registry: Registry): Result<String> = runCatching {
+        // Phase 12 D-07 — when the caller pre-mints a registryId (via
+        // newRegistryId()) the cover-photo Storage upload has already targeted
+        // /users/{uid}/registries/{registryId}/cover.jpg. We MUST honour that
+        // id and write the document at that exact path; minting a different
+        // id here would orphan the just-uploaded cover (Pitfall 2 regression).
+        // Legacy callers (FakeRegistryRepository tests, pre-Phase-12 paths)
+        // pass `registry.id == ""`, in which case Firestore mints the id.
+        if (registry.id.isNotBlank()) {
+            dataSource.createRegistryWithId(registry.id, registry.toMap())
+            registry.id
+        } else {
+            dataSource.createRegistry(registry.toMap())
+        }
+    }
 
     override suspend fun updateRegistry(registry: Registry): Result<Unit> =
         runCatching { dataSource.updateRegistry(registry.id, registry.toUpdateMap()) }
