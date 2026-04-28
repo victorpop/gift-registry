@@ -24,6 +24,7 @@ firebase-auth = { group = "com.google.firebase", name = "firebase-auth" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 firebase-functions = { group = "com.google.firebase", name = "firebase-functions" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+firebase-storage = { group = "com.google.firebase", name = "firebase-storage" }
 hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
