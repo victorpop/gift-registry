@@ -1,6 +1,7 @@
 package com.giftregistry.data.registry
 
 import com.giftregistry.data.model.RegistryDto
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import io.mockk.every
 import io.mockk.mockk
@@ -28,6 +29,7 @@ class RegistryRepositoryImplObserveTest {
     private lateinit var invitedFlow: MutableStateFlow<List<RegistryDto>>
     private lateinit var dataSource: FirestoreDataSource
     private lateinit var functions: FirebaseFunctions
+    private lateinit var firestore: FirebaseFirestore
     private lateinit var repository: RegistryRepositoryImpl
 
     private val uid = "test-uid"
@@ -39,11 +41,14 @@ class RegistryRepositoryImplObserveTest {
 
         dataSource = mockk(relaxed = true)
         functions = mockk(relaxed = true)
+        // Phase 12 — RegistryRepositoryImpl now takes a FirebaseFirestore for
+        // newRegistryId(). These tests never call it, so a relaxed mock is enough.
+        firestore = mockk(relaxed = true)
 
         every { dataSource.observeOwnedRegistries(uid) } returns ownedFlow
         every { dataSource.observeInvitedRegistries(uid) } returns invitedFlow
 
-        repository = RegistryRepositoryImpl(dataSource, functions)
+        repository = RegistryRepositoryImpl(dataSource, functions, firestore)
     }
 
     // ------------------------------------------------------------------ Test 1

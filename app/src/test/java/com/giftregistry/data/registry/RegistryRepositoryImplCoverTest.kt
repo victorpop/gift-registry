@@ -2,9 +2,11 @@ package com.giftregistry.data.registry
 
 import com.giftregistry.data.model.RegistryDto
 import com.giftregistry.domain.model.Registry
+import com.google.firebase.firestore.CollectionReference
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import io.mockk.coEvery
-import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -41,13 +43,23 @@ class RegistryRepositoryImplCoverTest {
 
     private lateinit var dataSource: FirestoreDataSource
     private lateinit var functions: FirebaseFunctions
+    private lateinit var firestore: FirebaseFirestore
     private lateinit var repository: RegistryRepositoryImpl
 
     @Before
     fun setUp() {
         dataSource = mockk(relaxed = true)
         functions = mockk(relaxed = true)
-        repository = RegistryRepositoryImpl(dataSource, functions)
+        // FirebaseFirestore is needed so newRegistryId() (D-07) can mint a
+        // client-side document ID via firestore.collection("registries").document().id.
+        // Stub the chain so the test never touches the real Firestore SDK.
+        val collection = mockk<CollectionReference>()
+        val document = mockk<DocumentReference>()
+        firestore = mockk(relaxed = true)
+        every { firestore.collection("registries") } returns collection
+        every { collection.document() } returns document
+        every { document.id } returns "fake-firestore-minted-id-1"
+        repository = RegistryRepositoryImpl(dataSource, functions, firestore)
     }
 
     /**
@@ -174,13 +186,10 @@ class RegistryRepositoryImplCoverTest {
     )
 
     /**
-     * Wave 0 helper: returns a RegistryDto representing what a Firestore doc
-     * with an `imageUrl` field would deserialise to — once Plan 02 adds the
-     * field to RegistryDto. Wave 0's RegistryDto has NO imageUrl field, so
-     * this helper currently returns a vanilla DTO and the
-     * `toDomain_propagatesImageUrl` test fails RED on the assertion.
+     * Plan 02 GREEN helper: builds a RegistryDto with the new imageUrl field
+     * populated, mirroring what a Firestore document with an `imageUrl` field
+     * deserialises to now that RegistryDto carries the field (Pitfall 1 fix).
      */
-    @Suppress("UNUSED_PARAMETER")
     private fun sampleDtoWithImageUrlSimulated(id: String, imageUrlValue: String) =
-        RegistryDto(id = id)
+        RegistryDto(id = id, imageUrl = imageUrlValue)
 }

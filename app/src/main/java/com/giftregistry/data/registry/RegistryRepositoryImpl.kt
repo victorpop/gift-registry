@@ -3,6 +3,7 @@ package com.giftregistry.data.registry
 import com.giftregistry.data.model.RegistryDto
 import com.giftregistry.domain.model.Registry
 import com.giftregistry.domain.registry.RegistryRepository
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -14,7 +15,11 @@ import javax.inject.Singleton
 @Singleton
 class RegistryRepositoryImpl @Inject constructor(
     private val dataSource: FirestoreDataSource,
-    private val functions: FirebaseFunctions
+    private val functions: FirebaseFunctions,
+    // Phase 12 D-07 — newRegistryId() needs a Firestore handle to mint a
+    // client-side document ID before any Storage upload. Hilt provides the
+    // singleton FirebaseFirestore from AppModule (already wired with emulator).
+    private val firestore: FirebaseFirestore,
 ) : RegistryRepository {
 
     override fun observeRegistries(ownerId: String): Flow<List<Registry>> {
@@ -54,10 +59,25 @@ class RegistryRepositoryImpl @Inject constructor(
             Unit
         }
 
+    /**
+     * Phase 12 D-07 enabler — mints a fresh registry document ID via the
+     * Firestore client SDK (purely local — no network roundtrip; Firestore
+     * uses a 20-character base62 generator). The returned ID is the canonical
+     * registry ID, so the cover-photo Storage path
+     * `users/{uid}/registries/{registryId}/cover.jpg` can be constructed
+     * BEFORE any Firestore write occurs (Pitfall 2 mitigation).
+     */
+    override fun newRegistryId(): String =
+        firestore.collection("registries").document().id
+
     private fun RegistryDto.toDomain() = Registry(
         id = id, ownerId = ownerId, title = title, occasion = occasion,
         visibility = visibility, eventDateMs = eventDateMs, eventLocation = eventLocation,
         description = description, locale = locale, notificationsEnabled = notificationsEnabled,
+        // Phase 12 Pitfall 1 fix — propagate imageUrl from RegistryDto so the
+        // cover-photo URL persisted by Phase 12's Plan 04 viewmodel surfaces in
+        // the domain Registry model (and onto cards / hero placeholder logic).
+        imageUrl = imageUrl,
         // Coerce raw Firestore values to Boolean. New invites write `true`, but
         // legacy documents from the pre-FieldPath inviteToRegistry may contain a
         // nested Map at this key — in that case the user was still invited, so
@@ -77,6 +97,9 @@ class RegistryRepositoryImpl @Inject constructor(
         "visibility" to visibility, "eventDateMs" to eventDateMs,
         "eventLocation" to eventLocation, "description" to description,
         "locale" to locale, "notificationsEnabled" to notificationsEnabled,
+        // Phase 12 Pitfall 1 fix — was previously dropped on every createRegistry
+        // call so the cover URL never reached Firestore. Plan 02 Task 1.
+        "imageUrl" to imageUrl,
         "invitedUsers" to invitedUsers.ifEmpty { emptyMap<String, Boolean>() },
         "createdAt" to System.currentTimeMillis(), "updatedAt" to System.currentTimeMillis()
     )
@@ -85,6 +108,9 @@ class RegistryRepositoryImpl @Inject constructor(
         "title" to title, "occasion" to occasion, "visibility" to visibility,
         "eventDateMs" to eventDateMs, "eventLocation" to eventLocation,
         "description" to description, "notificationsEnabled" to notificationsEnabled,
+        // Phase 12 Pitfall 1 fix — owner edits to the cover from the Detail
+        // screen picker (D-13c) need to roundtrip through updateRegistry.
+        "imageUrl" to imageUrl,
         "updatedAt" to System.currentTimeMillis()
     )
 }
