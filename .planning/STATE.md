@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 12-01-PLAN.md (Wave 0 RED scaffolding)
-last_updated: "2026-04-28T11:27:49.245Z"
+stopped_at: Completed 12-03-PLAN.md (HeroImageOrPlaceholder + cards refactor + picker UI primitives)
+last_updated: "2026-04-28T11:42:51.524Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 12
   completed_phases: 11
   total_plans: 61
-  completed_plans: 57
+  completed_plans: 58
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 12 (registry-cover-photo-themed-placeholder) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-04-28
 
@@ -100,6 +100,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 11 P04 | 4min | 2 tasks | 6 files |
 | Phase 11 P05 | 5min | 2 tasks | 11 files |
 | Phase 12-registry-cover-photo-themed-placeholder P01 | 8min | 3 tasks | 19 files |
+| Phase 12-registry-cover-photo-themed-placeholder P03 | 10min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -239,6 +240,9 @@ Recent decisions affecting current work:
 - [Phase 12]: D-07 + Pitfall 2 ordering pinned via coVerifyOrder { uploadCover; createRegistry } in CreateRegistryViewModelCoverTest — Plan 04 must satisfy via VM impl, NEVER edit the test
 - [Phase 12]: firebase-storage 22.0.1 resolved via Firebase BoM 34.11.0 (no KTX); Storage Emulator port 9199 wired; storage.rules deferred to Plan 02
 - [Phase 12]: CoverImageProcessorTest @Ignored at class level — Robolectric not on testRuntimeClasspath; Plan 02 picks fake-Bitmap or instrumented variant for D-06 size invariants
+- [Phase 12-registry-cover-photo-themed-placeholder]: HeroImageOrPlaceholder accepts optional ColorFilter parameter — applied ONLY to AsyncImage branch so gradient placeholder pops at full brightness on dark-ink primary card
+- [Phase 12-registry-cover-photo-themed-placeholder]: CoverPhotoPickerInline + CoverPhotoPickerSheet are string-resource-agnostic — caller (Plan 04) passes stringResource(...) values via parameters, keeping primitives reusable in @Preview
+- [Phase 12-registry-cover-photo-themed-placeholder]: Pitfall 6 honored: 3-stop dark overlay stays at RegistryDetailHero call site gated on imageUrl != null; HeroImageOrPlaceholder owns ONLY the gradient+glyph fallback, never the dark overlay
 
 ### Pending Todos
 
@@ -280,6 +284,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-28T11:27:33.584Z
-Stopped at: Completed 12-01-PLAN.md (Wave 0 RED scaffolding)
+Last session: 2026-04-28T11:42:51.520Z
+Stopped at: Completed 12-03-PLAN.md (HeroImageOrPlaceholder + cards refactor + picker UI primitives)
 Resume file: None
