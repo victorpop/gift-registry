@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Phase 12 plans verified (5 plans, 4 waves) — ready for /gsd:execute-phase 12
-last_updated: "2026-04-28T10:45:00Z"
+stopped_at: Completed 12-01-PLAN.md (Wave 0 RED scaffolding)
+last_updated: "2026-04-28T11:27:49.245Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 12
   completed_phases: 11
-  total_plans: 57
-  completed_plans: 56
+  total_plans: 61
+  completed_plans: 57
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
-**Current focus:** Phase 09 — Shared Chrome + Status UI
+**Current focus:** Phase 12 — registry-cover-photo-themed-placeholder
 
 ## Current Position
 
-Phase: 11
-Plan: Not started
-Status: Executing Wave 1
-Last activity: 2026-04-21
+Phase: 12 (registry-cover-photo-themed-placeholder) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-04-28
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -99,6 +99,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 11 P03 | 5min | 2 tasks | 8 files |
 | Phase 11 P04 | 4min | 2 tasks | 6 files |
 | Phase 11 P05 | 5min | 2 tasks | 11 files |
+| Phase 12-registry-cover-photo-themed-placeholder P01 | 8min | 3 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -233,6 +234,11 @@ Recent decisions affecting current work:
 - [Phase 11]: Skip-save pattern: set 'Untitled draft' placeholder before onSave() to pass VM title.length 3..50; isDraft classified by itemCount==0
 - [Phase 11]: addAnotherMode flag in Composable (not ViewModel) separates save+reset from save+pop — keeps ViewModel pure; flag resets after LaunchedEffect branch fires
 - [Phase 11]: LaunchedEffect(selectedTab) resets selectedTabIndex before calling onNavigateToBrowseStores — ensures re-entry shows PasteUrl tab
+- [Phase 12]: Wave 0 RED uses stub-bodies pattern (compile-but-fail-on-assertion) — Plans 02/03/04 flip RED→GREEN by replacing stub bodies, never editing tests
+- [Phase 12]: RegistryRepository.newRegistryId() added as default-method (returns empty string) — D-07 hook without forcing edits to RegistryRepositoryImpl + FakeRegistryRepository
+- [Phase 12]: D-07 + Pitfall 2 ordering pinned via coVerifyOrder { uploadCover; createRegistry } in CreateRegistryViewModelCoverTest — Plan 04 must satisfy via VM impl, NEVER edit the test
+- [Phase 12]: firebase-storage 22.0.1 resolved via Firebase BoM 34.11.0 (no KTX); Storage Emulator port 9199 wired; storage.rules deferred to Plan 02
+- [Phase 12]: CoverImageProcessorTest @Ignored at class level — Robolectric not on testRuntimeClasspath; Plan 02 picks fake-Bitmap or instrumented variant for D-06 size invariants
 
 ### Pending Todos
 
@@ -274,6 +280,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-28T10:33:55Z
-Stopped at: Completed quick-260428-iny (Task 3 human-verify outstanding)
+Last session: 2026-04-28T11:27:33.584Z
+Stopped at: Completed 12-01-PLAN.md (Wave 0 RED scaffolding)
 Resume file: None
