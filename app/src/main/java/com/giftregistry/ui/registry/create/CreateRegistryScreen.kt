@@ -1,7 +1,5 @@
 package com.giftregistry.ui.registry.create
 
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.text.format.DateFormat as AndroidDateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -20,9 +18,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +33,9 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,7 +79,21 @@ import java.util.Locale
  *  - hiltViewModelWithNavArgs key + registryId arg
  *  - LaunchedEffect(savedRegistryId) → branched on skipMode for onSaved vs onSkip
  *  - Error surface
+ *
+ * Phase quick-260428-tx9:
+ *  - Framework android.app.DatePickerDialog / TimePickerDialog replaced with
+ *    Material3 Compose DatePickerDialog + DatePicker(state) and AlertDialog +
+ *    TimePicker(state). M3 pickers read MaterialTheme.colorScheme.primary
+ *    (= gm.accent terracotta) via DatePickerDefaults / TimePickerDefaults —
+ *    no `colors=` overrides needed. UTC↔local Calendar conversion applied to
+ *    the date picker because rememberDatePickerState exposes UTC-midnight
+ *    millis (off-by-one risk on Bucharest UTC+2/+3).
+ *  - All quick-260428-s3b behaviour preserved verbatim: InteractionSource
+ *    trigger pattern, hour/minute preservation on re-pick, eventTimeSet
+ *    StateFlow + setEventTime VM API, 24h locale awareness, edit-mode
+ *    round-trip.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateRegistryScreen(
     registryId: String? = null,
@@ -127,55 +146,33 @@ fun CreateRegistryScreen(
     val dateInteractionSource = remember { MutableInteractionSource() }
     val timeInteractionSource = remember { MutableInteractionSource() }
 
-    // QUICK-S3B-01 — DatePicker trigger. Replaces the broken Modifier.clickable
-    // on the OutlinedTextField. Date callback preserves previously-picked
-    // hour/minute when eventTimeSet=true (QUICK-S3B-02 cross-link).
+    // QUICK-TX9 — show-state flags driving the M3 Compose Date/Time pickers
+    // hoisted alongside the cover-photo sheet at the bottom of this Composable.
+    // Declared BEFORE the LaunchedEffect collectors below so the closures can
+    // capture the delegated setter.
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
+
+    // QUICK-TX9 — InteractionSource pattern preserved from s3b. The collector
+    // now flips showDatePicker; the M3 DatePickerDialog hoist (below the
+    // Scaffold) renders when true and reads MaterialTheme.colorScheme.primary
+    // (= gm.accent terracotta) via DatePickerDefaults.colors().
     LaunchedEffect(dateInteractionSource) {
         dateInteractionSource.interactions.collect { interaction ->
             if (interaction is PressInteraction.Release) {
-                val seedCal = Calendar.getInstance()
-                viewModel.eventDateMs.value?.let { seedCal.timeInMillis = it }
-                DatePickerDialog(
-                    context,
-                    { _, year, month, day ->
-                        // QUICK-S3B-02 — preserve the previously-picked hour/minute
-                        // when re-picking the date. If the user has not yet
-                        // picked a time (eventTimeSet=false), fall back to 0/0.
-                        val prevCal = Calendar.getInstance().apply {
-                            timeInMillis = viewModel.eventDateMs.value ?: 0L
-                        }
-                        val prevHour = if (eventTimeSet) prevCal.get(Calendar.HOUR_OF_DAY) else 0
-                        val prevMin = if (eventTimeSet) prevCal.get(Calendar.MINUTE) else 0
-                        val cal = Calendar.getInstance()
-                        cal.set(year, month, day, prevHour, prevMin, 0)
-                        cal.set(Calendar.MILLISECOND, 0)
-                        viewModel.eventDateMs.value = cal.timeInMillis
-                    },
-                    seedCal.get(Calendar.YEAR),
-                    seedCal.get(Calendar.MONTH),
-                    seedCal.get(Calendar.DAY_OF_MONTH),
-                ).show()
+                showDatePicker = true
             }
         }
     }
 
-    // QUICK-S3B-02 — TimePicker trigger. Gated on eventDateMs != null inside
-    // the collector (NOT via `enabled = false` on the field — disabled fields
-    // drop pointer events at the focusable layer and InteractionSource never
-    // fires). Visual disabled appearance is achieved by leaving the field's
-    // value empty until eventTimeSet=true.
+    // QUICK-TX9 — same InteractionSource pattern. Runtime gate on
+    // eventDateMs != null preserved from s3b — time picker only opens after
+    // a date has been picked. Visual disabled appearance is still achieved by
+    // leaving the field's value empty until eventTimeSet=true.
     LaunchedEffect(timeInteractionSource) {
         timeInteractionSource.interactions.collect { interaction ->
-            if (interaction is PressInteraction.Release) {
-                val anchor = viewModel.eventDateMs.value ?: return@collect
-                val seedCal = Calendar.getInstance().apply { timeInMillis = anchor }
-                TimePickerDialog(
-                    context,
-                    { _, hour, minute -> viewModel.setEventTime(hour, minute) },
-                    seedCal.get(Calendar.HOUR_OF_DAY),
-                    seedCal.get(Calendar.MINUTE),
-                    AndroidDateFormat.is24HourFormat(context),
-                ).show()
+            if (interaction is PressInteraction.Release && viewModel.eventDateMs.value != null) {
+                showTimePicker = true
             }
         }
     }
@@ -455,6 +452,109 @@ fun CreateRegistryScreen(
             headerText = stringResource(R.string.cover_photo_sheet_header),
             pickFromGalleryText = stringResource(R.string.cover_photo_pick_from_gallery),
             removeText = stringResource(R.string.cover_photo_remove),
+        )
+    }
+
+    // QUICK-TX9 — M3 Compose DatePickerDialog. Reads colorScheme.primary
+    // (= gm.accent terracotta) via DatePickerDefaults.colors().
+    //
+    // UTC handling: rememberDatePickerState.initialSelectedDateMillis is
+    // interpreted as UTC-midnight of the displayed civil day, and
+    // selectedDateMillis is returned as UTC-midnight. The rest of the app
+    // stores eventDateMs as a local-Calendar Long. We convert symmetrically:
+    // local→UTC on seed, UTC→local on confirm. Without this, devices east of
+    // UTC (e.g., Bucharest UTC+2/+3) would display the day off-by-one.
+    if (showDatePicker) {
+        val seedUtcMillis = remember(eventDateMs) {
+            eventDateMs?.let { localMs ->
+                val cal = Calendar.getInstance().apply { timeInMillis = localMs }
+                // Strip time-of-day to local midnight, then shift to UTC midnight
+                // of the same civil day.
+                val year = cal.get(Calendar.YEAR)
+                val month = cal.get(Calendar.MONTH)
+                val day = cal.get(Calendar.DAY_OF_MONTH)
+                val utc = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+                    clear()
+                    set(year, month, day, 0, 0, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                utc.timeInMillis
+            }
+        }
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = seedUtcMillis)
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let { utcMs ->
+                        // Decode the picked civil day from UTC.
+                        val utcCal = Calendar.getInstance(java.util.TimeZone.getTimeZone("UTC")).apply {
+                            timeInMillis = utcMs
+                        }
+                        val pickedYear = utcCal.get(Calendar.YEAR)
+                        val pickedMonth = utcCal.get(Calendar.MONTH)
+                        val pickedDay = utcCal.get(Calendar.DAY_OF_MONTH)
+
+                        // Preserve previously-picked hour/minute when eventTimeSet=true
+                        // (QUICK-S3B-02 contract — re-pick of the date must not clear
+                        // the time the user already picked).
+                        val prevCal = Calendar.getInstance().apply {
+                            timeInMillis = viewModel.eventDateMs.value ?: 0L
+                        }
+                        val prevHour = if (eventTimeSet) prevCal.get(Calendar.HOUR_OF_DAY) else 0
+                        val prevMin = if (eventTimeSet) prevCal.get(Calendar.MINUTE) else 0
+
+                        val localCal = Calendar.getInstance().apply {
+                            set(pickedYear, pickedMonth, pickedDay, prevHour, prevMin, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }
+                        viewModel.eventDateMs.value = localCal.timeInMillis
+                    }
+                    showDatePicker = false
+                }) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+
+    // QUICK-TX9 — M3 has no TimePickerDialog composable; standard pattern is
+    // AlertDialog { TimePicker(state) }. Reads colorScheme.primary
+    // (= gm.accent terracotta) via TimePickerDefaults.colors(). The s3b
+    // setEventTime VM API is the sole write path — unchanged.
+    if (showTimePicker) {
+        val anchor = viewModel.eventDateMs.value ?: 0L
+        val seedCal = remember(anchor) {
+            Calendar.getInstance().apply { timeInMillis = anchor }
+        }
+        val timePickerState = rememberTimePickerState(
+            initialHour = seedCal.get(Calendar.HOUR_OF_DAY),
+            initialMinute = seedCal.get(Calendar.MINUTE),
+            is24Hour = AndroidDateFormat.is24HourFormat(context),
+        )
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.setEventTime(timePickerState.hour, timePickerState.minute)
+                    showTimePicker = false
+                }) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+            text = { TimePicker(state = timePickerState) },
         )
     }
 }
