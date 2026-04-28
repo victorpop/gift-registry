@@ -1,6 +1,7 @@
 package com.giftregistry.ui.registry.detail
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,6 +65,13 @@ internal fun RegistryDetailHero(
     onShare: () -> Unit,
     onOverflow: () -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * Phase 12 D-13 — owner-only tap on the 180 dp hero opens the
+     * cover-photo picker sheet. Pass non-null only for the registry owner;
+     * guests / web viewers see no tap affordance because clickable(enabled = false)
+     * is a no-op (no ripple, no pressed state).
+     */
+    onCoverTap: (() -> Unit)? = null,
 ) {
     val colors = GiftMaisonTheme.colors
     val typography = GiftMaisonTheme.typography
@@ -86,12 +94,22 @@ internal fun RegistryDetailHero(
 
     Box(modifier = modifier.fillMaxWidth().height(180.dp)) {
         // --- Hero image OR gradient placeholder via shared composable (D-16). ---
-        HeroImageOrPlaceholder(
-            imageUrl = registry?.imageUrl,
-            occasion = registry?.occasion,
-            glyphSize = 40.sp,                       // hero uses 40 sp (preserve Phase 11 pixel contract)
-            modifier = Modifier.fillMaxSize(),
-        )
+        // D-13 — owner-only tap target on the hero opens the cover-photo picker.
+        // clickable(enabled = onCoverTap != null) is a no-op for guests / web
+        // viewers (no ripple, no pressed state). The clickable wraps the image
+        // area only — the toolbar Row below keeps its own click handlers.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(enabled = onCoverTap != null) { onCoverTap?.invoke() }
+        ) {
+            HeroImageOrPlaceholder(
+                imageUrl = registry?.imageUrl,
+                occasion = registry?.occasion,
+                glyphSize = 40.sp,                   // hero uses 40 sp (preserve Phase 11 pixel contract)
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
         // 3-stop dark overlay (ink@0x44 top, transparent 40%, ink@0xAA bottom) — ONLY when imageUrl != null (Pitfall 6 guard)
         if (registry?.imageUrl != null) {
             val inkTop = Color(0xFF2A2420).copy(alpha = 0.27f)

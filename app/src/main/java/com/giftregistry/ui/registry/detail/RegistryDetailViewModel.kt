@@ -4,17 +4,23 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.giftregistry.R
+import com.giftregistry.data.storage.CoverImageProcessor
+import com.giftregistry.domain.auth.AuthRepository
 import com.giftregistry.domain.model.GuestUser
 import com.giftregistry.domain.model.Item
 import com.giftregistry.domain.model.Registry
 import com.giftregistry.domain.preferences.GuestPreferencesRepository
+import com.giftregistry.domain.storage.StorageRepository
 import com.giftregistry.domain.usecase.ConfirmPurchaseUseCase
 import com.giftregistry.domain.usecase.DeleteItemUseCase
 import com.giftregistry.domain.usecase.DeleteRegistryUseCase
 import com.giftregistry.domain.usecase.ObserveItemsUseCase
 import com.giftregistry.domain.usecase.ObserveRegistryUseCase
 import com.giftregistry.domain.usecase.ReserveItemUseCase
+import com.giftregistry.domain.usecase.UpdateRegistryUseCase
 import com.giftregistry.ui.notifications.NotificationBus
+import com.giftregistry.ui.registry.cover.CoverPhotoSelection
+import com.giftregistry.ui.registry.cover.PresetCatalog
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -54,6 +60,11 @@ class RegistryDetailViewModel @Inject constructor(
     private val deepLinkBus: ReservationDeepLinkBus,
     private val confirmPurchaseUseCase: ConfirmPurchaseUseCase,
     private val notificationBus: NotificationBus,
+    // Phase 12 — cover-photo edit on Detail (D-13 owner-only tap)
+    private val authRepository: AuthRepository,
+    private val updateRegistryUseCase: UpdateRegistryUseCase,
+    private val storageRepository: StorageRepository,
+    private val coverImageProcessor: CoverImageProcessor,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -80,6 +91,50 @@ class RegistryDetailViewModel @Inject constructor(
             notificationBus.events.collect { push ->
                 _snackbarMessages.emit(SnackbarMessage.Push(registryName = push.registryName, registryId = push.registryId))
             }
+        }
+    }
+
+    /**
+     * Phase 12 D-13 — owner taps the hero, picker sheet emits a new selection.
+     * Maps the selection to a Firestore-persisted imageUrl following the same
+     * D-07 + Pitfall 2 strict ordering as CreateRegistryViewModel: Gallery
+     * uploads complete BEFORE the Firestore update; Preset / None branches
+     * skip the upload entirely.
+     *
+     * On Gallery upload failure the selection state is rolled back (None)
+     * and an error snackbar is emitted via the existing snackbar channel.
+     */
+    fun onCoverPhotoSelectionChanged(selection: CoverPhotoSelection) {
+        _coverPhotoSelection.value = selection
+        val current = registry.value ?: return
+        viewModelScope.launch {
+            val resolvedImageUrl: String? = when (selection) {
+                CoverPhotoSelection.None -> null
+                is CoverPhotoSelection.Preset ->
+                    PresetCatalog.encode(selection.occasion, selection.index)
+                is CoverPhotoSelection.Gallery -> {
+                    val ownerId = authRepository.currentUser?.uid ?: run {
+                        _snackbarMessages.emit(SnackbarMessage.Resource(R.string.cover_photo_upload_failed))
+                        return@launch
+                    }
+                    val jpeg = runCatching { coverImageProcessor.compress(selection.uri) }
+                        .getOrElse {
+                            _snackbarMessages.emit(SnackbarMessage.Resource(R.string.cover_photo_processing_failed))
+                            _coverPhotoSelection.value = CoverPhotoSelection.None
+                            return@launch
+                        }
+                    storageRepository.uploadCover(ownerId, registryId, jpeg)
+                        .getOrElse {
+                            _snackbarMessages.emit(SnackbarMessage.Resource(R.string.cover_photo_upload_failed))
+                            _coverPhotoSelection.value = CoverPhotoSelection.None
+                            return@launch
+                        }
+                }
+            }
+            updateRegistryUseCase(current.copy(imageUrl = resolvedImageUrl))
+                .onFailure {
+                    _snackbarMessages.emit(SnackbarMessage.Resource(R.string.cover_photo_upload_failed))
+                }
         }
     }
 
@@ -117,6 +172,55 @@ class RegistryDetailViewModel @Inject constructor(
         .observeActiveReservationId()
         .catch { emit(null) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /**
+     * Phase 12 D-13 — true when the current user owns this registry. Drives
+     * the owner-only tap target on the 180 dp hero. Guests / web viewers
+     * (`isOwner == false`) see no tap affordance because the screen passes
+     * `onCoverTap = null` when this flow emits false.
+     */
+    val isOwner: StateFlow<Boolean> = combine(
+        registry,
+        authRepository.authState,
+    ) { reg, user ->
+        reg != null && user != null && reg.ownerId == user.uid
+    }
+        .catch { emit(false) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    /**
+     * Phase 12 D-09 / D-13 — current cover-photo selection on the Detail
+     * surface. Initialised from `registry.imageUrl` (preset sentinel decodes
+     * back to Preset; URL leaves it as None — the inline preview still shows
+     * the existing image via HeroImageOrPlaceholder).
+     */
+    private val _coverPhotoSelection = MutableStateFlow<CoverPhotoSelection>(CoverPhotoSelection.None)
+    val coverPhotoSelection: StateFlow<CoverPhotoSelection> = _coverPhotoSelection.asStateFlow()
+
+    init {
+        // Phase 12 — rehydrate cover-photo selection from the observed registry's
+        // imageUrl. Preset sentinels decode to Preset(occasion, index); URLs
+        // leave selection as None (the picker sheet header / hero still render
+        // the existing image via HeroImageOrPlaceholder). This init block runs
+        // AFTER `val registry` is initialised — putting it earlier would access
+        // a null field because Kotlin runs init blocks in source order.
+        viewModelScope.launch {
+            registry.collect { reg ->
+                if (reg == null) return@collect
+                val url = reg.imageUrl
+                if (url != null && url.startsWith("preset:") &&
+                    _coverPhotoSelection.value is CoverPhotoSelection.None
+                ) {
+                    val parts = url.removePrefix("preset:").split(":")
+                    val occ = parts.getOrNull(0)
+                    val idx = parts.getOrNull(1)?.toIntOrNull()
+                    if (occ != null && occ.isNotBlank() && idx != null && idx >= 1) {
+                        _coverPhotoSelection.value = CoverPhotoSelection.Preset(occ, idx)
+                    }
+                }
+            }
+        }
+    }
 
     private val _deleteError = MutableStateFlow<String?>(null)
     val deleteError: StateFlow<String?> = _deleteError

@@ -54,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.giftregistry.R
 import com.giftregistry.domain.model.Item
 import com.giftregistry.ui.navigation.hiltViewModelWithNavArgs
+import com.giftregistry.ui.registry.cover.CoverPhotoPickerSheet
 import com.giftregistry.ui.theme.GiftMaisonTheme
 import kotlinx.coroutines.launch
 
@@ -81,6 +82,9 @@ fun RegistryDetailScreen(
     val hasActiveReservation by viewModel.hasActiveReservation.collectAsStateWithLifecycle()
     val activeReservationId by viewModel.activeReservationId.collectAsStateWithLifecycle()
     val confirmingPurchase by viewModel.confirmingPurchase.collectAsStateWithLifecycle()
+    // Phase 12 D-13 — owner gate for cover-photo tap target on hero.
+    val isOwner by viewModel.isOwner.collectAsStateWithLifecycle()
+    val coverPhotoSelection by viewModel.coverPhotoSelection.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
@@ -96,6 +100,9 @@ fun RegistryDetailScreen(
     var overflowMenuExpanded by remember { mutableStateOf(false) }
     var showDeleteRegistryDialog by remember { mutableStateOf(false) }
     var itemToDelete by remember { mutableStateOf<Item?>(null) }
+    // Phase 12 D-13 — cover-photo picker sheet open state. rememberSaveable so
+    // it survives configuration changes / process death.
+    var pickerSheetOpen by rememberSaveable { mutableStateOf(false) }
 
     // --- Phase 11 filter + lazy list state ---
     val listState = rememberLazyListState()
@@ -192,6 +199,9 @@ fun RegistryDetailScreen(
                     onBack = onBack,
                     onShare = onShareTap,
                     onOverflow = { overflowMenuExpanded = true },
+                    // D-13 owner-only tap: pass null for guests so clickable is a no-op
+                    // (no ripple, no pressed state).
+                    onCoverTap = if (isOwner) ({ pickerSheetOpen = true }) else null,
                 )
             }
 
@@ -323,6 +333,22 @@ fun RegistryDetailScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 90.dp),
+        )
+    }
+
+    // --- Phase 12 D-13: Cover photo picker sheet (owner-only) ---
+    val currentRegistry = registry
+    if (pickerSheetOpen && currentRegistry != null && isOwner) {
+        CoverPhotoPickerSheet(
+            occasion = currentRegistry.occasion,
+            currentSelection = coverPhotoSelection,
+            onSelectionChanged = { newSelection ->
+                viewModel.onCoverPhotoSelectionChanged(newSelection)
+            },
+            onDismiss = { pickerSheetOpen = false },
+            headerText = stringResource(R.string.cover_photo_sheet_header),
+            pickFromGalleryText = stringResource(R.string.cover_photo_pick_from_gallery),
+            removeText = stringResource(R.string.cover_photo_remove),
         )
     }
 

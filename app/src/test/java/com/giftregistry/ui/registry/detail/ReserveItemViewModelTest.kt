@@ -70,6 +70,11 @@ class ReserveItemViewModelTest {
             deepLinkBus = ReservationDeepLinkBus(),
             confirmPurchaseUseCase = mockk(relaxed = true),
             notificationBus = NotificationBus(),
+            // Phase 12 — cover-photo edit deps; not exercised by this test, relaxed mocks suffice.
+            authRepository = mockk(relaxed = true),
+            updateRegistryUseCase = mockk(relaxed = true),
+            storageRepository = mockk(relaxed = true),
+            coverImageProcessor = mockk(relaxed = true),
             savedStateHandle = ssh,
         )
     }
