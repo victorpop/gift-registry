@@ -7,17 +7,25 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +40,11 @@ import com.giftregistry.domain.model.Registry
 import com.giftregistry.ui.auth.AuthHeadline
 import com.giftregistry.ui.auth.GoogleBanner
 import com.giftregistry.ui.item.add.ItemPreviewCard
+import com.giftregistry.ui.registry.cover.CoverPhotoPickerInline
+import com.giftregistry.ui.registry.cover.CoverPhotoSelection
+import com.giftregistry.ui.registry.cover.HeroImageOrPlaceholder
+import com.giftregistry.ui.registry.cover.PresetCatalog
+import com.giftregistry.ui.registry.cover.PresetThumbnail
 import com.giftregistry.ui.registry.create.OccasionTileGrid
 import com.giftregistry.ui.registry.detail.FilterChipState
 import com.giftregistry.ui.registry.detail.FilterChipsRow
@@ -466,6 +479,206 @@ private fun ItemPreviewCardPreview() {
                 title = "Philips HD9200/90 Airfryer",
                 price = "189",
                 url = "https://emag.ro/philips-airfryer-product/12345",
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Phase 12 — Registry Cover Photo + Themed Placeholder preview sections
+// D-09 / D-10 / D-12 / D-14 / D-15 / D-16
+// ─────────────────────────────────────────────────────────────────────────
+
+@Preview(
+    name = "HeroImageOrPlaceholder — hero (40 sp) + card (32 sp)",
+    showBackground = true,
+    backgroundColor = 0xFFF7F2E9,
+    widthDp = 360,
+    heightDp = 420,
+)
+@Composable
+private fun HeroImageOrPlaceholderPreview() {
+    GiftRegistryTheme {
+        Column(
+            modifier = Modifier
+                .background(GiftMaisonTheme.colors.paper)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            // Hero reference (40 sp glyph) — matches RegistryDetailHero pixel contract.
+            HeroImageOrPlaceholder(
+                imageUrl = null,
+                occasion = "Wedding",
+                glyphSize = 40.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(180.dp),
+            )
+            // Card reference (32 sp glyph) — matches RegistryCardPrimary/Secondary 16:9 image area.
+            HeroImageOrPlaceholder(
+                imageUrl = null,
+                occasion = "Birthday",
+                glyphSize = 32.sp,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f),
+            )
+        }
+    }
+}
+
+@Preview(
+    name = "CoverPhotoPickerInline — 3 states",
+    showBackground = true,
+    backgroundColor = 0xFFF7F2E9,
+    widthDp = 360,
+    heightDp = 720,
+)
+@Composable
+private fun CoverPhotoPickerInlinePreview() {
+    GiftRegistryTheme {
+        val typography = GiftMaisonTheme.typography
+        val colors = GiftMaisonTheme.colors
+        Column(
+            modifier = Modifier
+                .background(colors.paper)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text("Disabled (no occasion)", style = typography.monoCaps, color = colors.inkFaint)
+            CoverPhotoPickerInline(
+                occasion = null,
+                selection = CoverPhotoSelection.None,
+                onTap = {},
+                disabledHint = "Pick an occasion to see suggested covers",
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text("Enabled + None (Wedding)", style = typography.monoCaps, color = colors.inkFaint)
+            CoverPhotoPickerInline(
+                occasion = "Wedding",
+                selection = CoverPhotoSelection.None,
+                onTap = {},
+                disabledHint = "Pick an occasion to see suggested covers",
+                modifier = Modifier.fillMaxWidth(),
+            )
+            Text("Enabled + Preset (Wedding 1)", style = typography.monoCaps, color = colors.inkFaint)
+            CoverPhotoPickerInline(
+                occasion = "Wedding",
+                selection = CoverPhotoSelection.Preset(occasion = "Wedding", index = 1),
+                onTap = {},
+                disabledHint = "Pick an occasion to see suggested covers",
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Preview(
+    name = "CoverPhotoPickerSheet (Wedding, 6 presets, first selected)",
+    showBackground = true,
+    backgroundColor = 0xFFF7F2E9,
+    widthDp = 360,
+    heightDp = 600,
+)
+@Composable
+private fun CoverPhotoPickerSheetPreview() {
+    GiftRegistryTheme {
+        val colors = GiftMaisonTheme.colors
+        val typography = GiftMaisonTheme.typography
+        val shapes = GiftMaisonTheme.shapes
+        // Render the sheet body inline as a Column — ModalBottomSheet itself
+        // does not render in @Preview, but the body composition is identical
+        // so visual contract is reviewable here.
+        Column(
+            modifier = Modifier
+                .background(colors.paper)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Text(
+                text = "CHOOSE A COVER",
+                style = typography.monoCaps,
+                color = colors.inkFaint,
+            )
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp),
+                userScrollEnabled = false,
+            ) {
+                itemsIndexed(PresetCatalog.presetsFor("Wedding")) { index, drawableId ->
+                    PresetThumbnail(
+                        drawableId = drawableId,
+                        selected = index == 0,
+                        onClick = {},
+                    )
+                }
+            }
+            Button(
+                onClick = {},
+                modifier = Modifier.fillMaxWidth(),
+                shape = shapes.pill,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = colors.ink,
+                    contentColor = colors.paper,
+                ),
+            ) {
+                Text(text = "Pick from gallery", style = typography.bodyMEmphasis)
+            }
+            TextButton(
+                onClick = {},
+                modifier = Modifier.align(Alignment.End),
+            ) {
+                Text(
+                    text = "Remove cover photo",
+                    style = typography.bodyM,
+                    color = colors.inkSoft,
+                )
+            }
+        }
+    }
+}
+
+@Preview(
+    name = "RegistryCard placeholder — Primary (Wedding) + Secondary (Baby)",
+    showBackground = true,
+    backgroundColor = 0xFFF7F2E9,
+    widthDp = 360,
+    heightDp = 600,
+)
+@Composable
+private fun RegistryCardPlaceholdersPreview() {
+    GiftRegistryTheme {
+        Column(
+            modifier = Modifier
+                .background(GiftMaisonTheme.colors.paper)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            // D-15 visible-bug regression check: imageUrl == null must render
+            // gradient + glyph placeholder (was empty box pre-Phase-12).
+            RegistryCardPrimary(
+                registry = Registry(
+                    id = "1",
+                    title = "Sarah's Wedding",
+                    occasion = "Wedding",
+                    imageUrl = null,
+                ),
+                onClick = {},
+                onLongClick = {},
+            )
+            RegistryCardSecondary(
+                registry = Registry(
+                    id = "2",
+                    title = "Welcome Baby Lia",
+                    occasion = "Baby",
+                    imageUrl = null,
+                ),
+                onClick = {},
+                onLongClick = {},
             )
         }
     }
