@@ -48,14 +48,16 @@ created: 2026-04-27
 
 ## Wave 0 Requirements
 
-> Failing-test stubs (RED) created in Wave 0 — Wave 1 implementations flip them GREEN. Pattern proven in Phases 8–11.
+> Failing-test stubs (RED) created in Wave 0 — Wave 1 / Wave 2 implementations flip them GREEN. Pattern proven in Phases 8–11. Filenames below match Plan 12-01's authoritative `<files>` list (8 RED test files total).
 
-- [ ] `app/src/test/java/com/giftregistry/ui/registry/cover/PresetCatalogTest.kt` — `preset:Wedding:3` round-trip resolves to a valid `R.drawable.preset_*` ID; unknown sentinel returns null
-- [ ] `app/src/test/java/com/giftregistry/ui/registry/cover/CoverPhotoSelectionTest.kt` — sealed class transitions: `None → Preset → Gallery → None`; preset cleared when occasion changes (D-11)
-- [ ] `app/src/test/java/com/giftregistry/data/registry/RegistryDtoImageUrlTest.kt` — RED test for the bug surfaced in research: `RegistryDto` round-trips `imageUrl`, `toMap()` and `toUpdateMap()` include the field
-- [ ] `app/src/test/java/com/giftregistry/ui/registry/create/CreateRegistryViewModelCoverTest.kt` — `onSave()` awaits cover upload before emitting `savedRegistryId`; gallery upload failure surfaces in `error` flow without emitting `savedRegistryId`
-- [ ] `app/src/test/java/com/giftregistry/data/storage/StorageRepositoryTest.kt` — resize → upload → download URL roundtrip with mocked Firebase Storage
-- [ ] `app/src/test/java/com/giftregistry/ui/registry/create/CoverPickerOccasionGateTest.kt` — picker disabled when `occasion == null` (D-12); enabled when set; preset cleared on occasion change
+- [ ] `app/src/test/java/com/giftregistry/ui/registry/cover/PresetCatalogTest.kt` — `preset:Wedding:3` round-trip resolves to a valid `R.drawable.preset_*` ID; unknown sentinel returns null (D-02, D-05)
+- [ ] `app/src/test/java/com/giftregistry/ui/registry/cover/ResolveImageModelTest.kt` — null/URL/preset-sentinel routing for Coil 3 model parameter (D-05, D-16)
+- [ ] `app/src/test/java/com/giftregistry/ui/registry/cover/CoverPhotoSelectionTest.kt` — sealed-interface equality, default state is `None`, `Gallery(uri)` carries the Uri (D-11 supports)
+- [ ] `app/src/test/java/com/giftregistry/ui/registry/cover/CoverPhotoPickerEnabledTest.kt` — picker disabled when `occasion == null` / blank / whitespace (D-12)
+- [ ] `app/src/test/java/com/giftregistry/ui/registry/create/CreateRegistryViewModelCoverTest.kt` — `onSave()` uploads BEFORE writing the registry document (D-07 + Pitfall 2 strict ordering via `coVerifyOrder { uploadCover; createRegistryUseCase }`); gallery upload failure surfaces in `error` flow WITHOUT emitting `savedRegistryId`; preset selection skips upload and encodes as `preset:Occasion:index`; occasion change clears preset selection (D-11)
+- [ ] `app/src/test/java/com/giftregistry/data/registry/RegistryRepositoryImplCoverTest.kt` — RED tests for Pitfall 1 (RegistryDto + toMap/toUpdateMap roundtrip imageUrl) plus `newRegistryId_returnsNonBlankString` (D-07 enabler — Plan 12-02 Task 1 plumbs the helper for upload-then-write)
+- [ ] `app/src/test/java/com/giftregistry/data/storage/StorageRepositoryImplTest.kt` — resize → upload → download URL roundtrip with mocked Firebase Storage; happy path + failure path (D-04, D-05, D-07)
+- [ ] `app/src/test/java/com/giftregistry/data/storage/CoverImageProcessorTest.kt` — decodeAndCompress size invariant (D-06); `@Ignored` on Wave 0 if Robolectric is absent from the toolchain (Plan 12-02 decides; instrumented variant deferred to Plan 05 follow-up)
 
 ---
 
