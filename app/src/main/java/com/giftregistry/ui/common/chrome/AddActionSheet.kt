@@ -32,7 +32,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import com.giftregistry.R
 import com.giftregistry.ui.theme.GiftMaisonTheme
-import com.giftregistry.ui.theme.bottomSheetShadow
 
 /**
  * CHROME-03: Add-action bottom sheet — 22 dp top corners, drag handle,
@@ -72,12 +71,11 @@ fun AddActionSheet(
         dragHandle = {
             Box(
                 modifier = Modifier
-                    .padding(top = spacing.edgeWide)
+                    .padding(vertical = 12.dp)
                     .size(width = 36.dp, height = 4.dp)
                     .background(colors.line, GiftMaisonTheme.shapes.pill),
             )
         },
-        modifier = Modifier.bottomSheetShadow(),
     ) {
         Column(
             modifier = Modifier
