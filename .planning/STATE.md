@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 12-03-PLAN.md (HeroImageOrPlaceholder + cards refactor + picker UI primitives)
-last_updated: "2026-04-28T11:42:51.524Z"
+stopped_at: Completed 12-02-PLAN.md (Pitfall 1 fix + 36 drawables + Storage data layer + storage.rules)
+last_updated: "2026-04-28T11:47:20.999Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 12
   completed_phases: 11
   total_plans: 61
-  completed_plans: 58
+  completed_plans: 59
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 12 (registry-cover-photo-themed-placeholder) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-04-28
 
@@ -101,6 +101,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 11 P05 | 5min | 2 tasks | 11 files |
 | Phase 12-registry-cover-photo-themed-placeholder P01 | 8min | 3 tasks | 19 files |
 | Phase 12-registry-cover-photo-themed-placeholder P03 | 10min | 3 tasks | 7 files |
+| Phase 12-registry-cover-photo-themed-placeholder P02 | 9min | 4 tasks | 52 files |
 
 ## Accumulated Context
 
@@ -243,6 +244,11 @@ Recent decisions affecting current work:
 - [Phase 12-registry-cover-photo-themed-placeholder]: HeroImageOrPlaceholder accepts optional ColorFilter parameter — applied ONLY to AsyncImage branch so gradient placeholder pops at full brightness on dark-ink primary card
 - [Phase 12-registry-cover-photo-themed-placeholder]: CoverPhotoPickerInline + CoverPhotoPickerSheet are string-resource-agnostic — caller (Plan 04) passes stringResource(...) values via parameters, keeping primitives reusable in @Preview
 - [Phase 12-registry-cover-photo-themed-placeholder]: Pitfall 6 honored: 3-stop dark overlay stays at RegistryDetailHero call site gated on imageUrl != null; HeroImageOrPlaceholder owns ONLY the gradient+glyph fallback, never the dark overlay
+- [Phase 12-registry-cover-photo-themed-placeholder]: Pitfall 1 imageUrl roundtrip fixed in RegistryDto + RegistryRepositoryImpl.toMap/toUpdateMap/toDomain — cover URL persists through Firestore create/update/observe
+- [Phase 12-registry-cover-photo-themed-placeholder]: RegistryRepositoryImpl.newRegistryId() wired via firestore.collection('registries').document().id with FirebaseFirestore injected as third constructor param — D-07 enabler for Plan 12-04 upload-then-write
+- [Phase 12-registry-cover-photo-themed-placeholder]: StorageDataSource split holds the D-05 path schema; StorageRepositoryImpl is a thin runCatching wrapper — keeps FirebaseExceptions out of the domain (Phase 02 D-08)
+- [Phase 12-registry-cover-photo-themed-placeholder]: 36 placeholder JPEGs generated with Pillow (1280x720, ~12 KB each, GiftMaison palette base ± 12 brightness per index) — CONTEXT D-02 fallback acceptable; curation follow-up todo logged
+- [Phase 12-registry-cover-photo-themed-placeholder]: storage.rules cross-service rules use firestore.get() to mirror firestore.rules canReadRegistry — same legacy-doc defaults for visibility/invitedUsers; deploy deferred to Plan 12-05 human checkpoint
 
 ### Pending Todos
 
@@ -284,6 +290,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-28T11:42:51.520Z
-Stopped at: Completed 12-03-PLAN.md (HeroImageOrPlaceholder + cards refactor + picker UI primitives)
+Last session: 2026-04-28T11:47:20.994Z
+Stopped at: Completed 12-02-PLAN.md (Pitfall 1 fix + 36 drawables + Storage data layer + storage.rules)
 Resume file: None
