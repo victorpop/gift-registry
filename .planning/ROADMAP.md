@@ -269,6 +269,6 @@ Plans:
 - [x] 12-01-PLAN.md -- Wave 0: 8 failing pure-Kotlin RED tests + 6 stub files + firebase-storage dep + storage emulator wiring (D-02/05/06/07/11/12/14/16 RED)
 - [x] 12-02-PLAN.md -- Wave 1: Pitfall 1 fix (RegistryDto.imageUrl + RegistryRepositoryImpl mappers) + 36 placeholder JPEGs + PresetCatalog populated + StorageRepository/CoverImageProcessor impls + StorageModule + storage.rules
 - [x] 12-03-PLAN.md -- Wave 1: HeroImageOrPlaceholder + CoverPhotoPickerInline + CoverPhotoPickerSheet + PresetThumbnail; refactor RegistryCard primary/secondary + RegistryDetailHero to consume the shared composable
-- [ ] 12-04-PLAN.md -- Wave 2: CreateRegistryViewModel + Screen wiring (inline picker above OccasionTileGrid; sheet host; create-mode two-writes-zero-orphans upload); RegistryDetailScreen owner-only tap target; 10 cover_photo_* strings × 2 locales
+- [x] 12-04-PLAN.md -- Wave 2: CreateRegistryViewModel + Screen wiring (inline picker above OccasionTileGrid; sheet host; create-mode two-writes-zero-orphans upload); RegistryDetailScreen owner-only tap target; 10 cover_photo_* strings × 2 locales
 - [ ] 12-05-PLAN.md -- Wave 3: 4 StyleGuidePreview sections + on-device UAT (12-check checklist) + storage.rules deploy (human checkpoint)
 **UI hint**: yes

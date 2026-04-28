@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 12-02-PLAN.md (Pitfall 1 fix + 36 drawables + Storage data layer + storage.rules)
-last_updated: "2026-04-28T11:47:20.999Z"
+stopped_at: Completed 12-04-PLAN.md (cover-photo wiring; CreateRegistry + Detail surfaces wired; D-07 + D-11 + D-13 honoured)
+last_updated: "2026-04-28T12:06:21.739Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 12
   completed_phases: 11
   total_plans: 61
-  completed_plans: 59
+  completed_plans: 60
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 12 (registry-cover-photo-themed-placeholder) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-04-28
 
@@ -102,6 +102,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 12-registry-cover-photo-themed-placeholder P01 | 8min | 3 tasks | 19 files |
 | Phase 12-registry-cover-photo-themed-placeholder P03 | 10min | 3 tasks | 7 files |
 | Phase 12-registry-cover-photo-themed-placeholder P02 | 9min | 4 tasks | 52 files |
+| Phase 12-registry-cover-photo-themed-placeholder P04 | 11min | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -249,6 +250,11 @@ Recent decisions affecting current work:
 - [Phase 12-registry-cover-photo-themed-placeholder]: StorageDataSource split holds the D-05 path schema; StorageRepositoryImpl is a thin runCatching wrapper — keeps FirebaseExceptions out of the domain (Phase 02 D-08)
 - [Phase 12-registry-cover-photo-themed-placeholder]: 36 placeholder JPEGs generated with Pillow (1280x720, ~12 KB each, GiftMaison palette base ± 12 brightness per index) — CONTEXT D-02 fallback acceptable; curation follow-up todo logged
 - [Phase 12-registry-cover-photo-themed-placeholder]: storage.rules cross-service rules use firestore.get() to mirror firestore.rules canReadRegistry — same legacy-doc defaults for visibility/invitedUsers; deploy deferred to Plan 12-05 human checkpoint
+- [Phase 12-registry-cover-photo-themed-placeholder]: CreateRegistryViewModel onSave pre-mints registryId via registryRepository.newRegistryId(), uploads BEFORE Firestore write, returns early on failure (zero orphan documents)
+- [Phase 12-registry-cover-photo-themed-placeholder]: RegistryRepositoryImpl.createRegistry honours pre-set registry.id via new FirestoreDataSource.createRegistryWithId; legacy id='' callers fall through to auto-mint
+- [Phase 12-registry-cover-photo-themed-placeholder]: D-13 owner-only tap on RegistryDetailHero implemented via nullable onCoverTap callback — guests pass null, clickable(enabled = false) is a no-op (no ripple, no pressed state)
+- [Phase 12-registry-cover-photo-themed-placeholder]: CreateRegistryViewModelCoverTest contract assertions (coVerifyOrder, exactly=0, failure assertions) preserved verbatim; only Wave 0 fail() markers + simulated state replaced with VM-driven exercise
+- [Phase 12-registry-cover-photo-themed-placeholder]: Cover-photo selection rehydration on Detail VM placed in second init { } block AFTER val registry — Kotlin runs init blocks in source order, before subsequent property initializers
 
 ### Pending Todos
 
@@ -290,6 +296,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-28T11:47:20.994Z
-Stopped at: Completed 12-02-PLAN.md (Pitfall 1 fix + 36 drawables + Storage data layer + storage.rules)
+Last session: 2026-04-28T12:06:21.735Z
+Stopped at: Completed 12-04-PLAN.md (cover-photo wiring; CreateRegistry + Detail surfaces wired; D-07 + D-11 + D-13 honoured)
 Resume file: None
