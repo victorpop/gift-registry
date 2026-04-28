@@ -1,8 +1,11 @@
 package com.giftregistry.ui.registry.create
 
 import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import android.text.format.DateFormat as AndroidDateFormat
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -101,6 +104,81 @@ fun CreateRegistryScreen(
 
     val context = LocalContext.current
     val dateFormatter = remember { SimpleDateFormat("MMM d, yyyy", Locale.getDefault()) }
+
+    // quick-260428-s3b — eventTimeSet drives the time-field display AND the
+    // date picker's "preserve previously-picked hour/minute" branch.
+    val eventTimeSet by viewModel.eventTimeSet.collectAsStateWithLifecycle()
+
+    // quick-260428-s3b — locale-aware time formatter. is24HourFormat reads the
+    // device-level "Use 24-hour format" preference; mismatched format vs. the
+    // device's clock convention would feel jarring on the registry detail.
+    val timeFormatter = remember(context) {
+        if (AndroidDateFormat.is24HourFormat(context)) {
+            SimpleDateFormat("HH:mm", Locale.getDefault())
+        } else {
+            SimpleDateFormat("h:mm a", Locale.getDefault())
+        }
+    }
+
+    // quick-260428-s3b — InteractionSource pattern (ref: Compose docs, "TextField
+    // as button"). Modifier.clickable on an OutlinedTextField is consumed by the
+    // field's own pointer-input handlers (focus + ripple) and never fires —
+    // PressInteraction.Release captured here is the documented escape hatch.
+    val dateInteractionSource = remember { MutableInteractionSource() }
+    val timeInteractionSource = remember { MutableInteractionSource() }
+
+    // QUICK-S3B-01 — DatePicker trigger. Replaces the broken Modifier.clickable
+    // on the OutlinedTextField. Date callback preserves previously-picked
+    // hour/minute when eventTimeSet=true (QUICK-S3B-02 cross-link).
+    LaunchedEffect(dateInteractionSource) {
+        dateInteractionSource.interactions.collect { interaction ->
+            if (interaction is PressInteraction.Release) {
+                val seedCal = Calendar.getInstance()
+                viewModel.eventDateMs.value?.let { seedCal.timeInMillis = it }
+                DatePickerDialog(
+                    context,
+                    { _, year, month, day ->
+                        // QUICK-S3B-02 — preserve the previously-picked hour/minute
+                        // when re-picking the date. If the user has not yet
+                        // picked a time (eventTimeSet=false), fall back to 0/0.
+                        val prevCal = Calendar.getInstance().apply {
+                            timeInMillis = viewModel.eventDateMs.value ?: 0L
+                        }
+                        val prevHour = if (eventTimeSet) prevCal.get(Calendar.HOUR_OF_DAY) else 0
+                        val prevMin = if (eventTimeSet) prevCal.get(Calendar.MINUTE) else 0
+                        val cal = Calendar.getInstance()
+                        cal.set(year, month, day, prevHour, prevMin, 0)
+                        cal.set(Calendar.MILLISECOND, 0)
+                        viewModel.eventDateMs.value = cal.timeInMillis
+                    },
+                    seedCal.get(Calendar.YEAR),
+                    seedCal.get(Calendar.MONTH),
+                    seedCal.get(Calendar.DAY_OF_MONTH),
+                ).show()
+            }
+        }
+    }
+
+    // QUICK-S3B-02 — TimePicker trigger. Gated on eventDateMs != null inside
+    // the collector (NOT via `enabled = false` on the field — disabled fields
+    // drop pointer events at the focusable layer and InteractionSource never
+    // fires). Visual disabled appearance is achieved by leaving the field's
+    // value empty until eventTimeSet=true.
+    LaunchedEffect(timeInteractionSource) {
+        timeInteractionSource.interactions.collect { interaction ->
+            if (interaction is PressInteraction.Release) {
+                val anchor = viewModel.eventDateMs.value ?: return@collect
+                val seedCal = Calendar.getInstance().apply { timeInMillis = anchor }
+                TimePickerDialog(
+                    context,
+                    { _, hour, minute -> viewModel.setEventTime(hour, minute) },
+                    seedCal.get(Calendar.HOUR_OF_DAY),
+                    seedCal.get(Calendar.MINUTE),
+                    AndroidDateFormat.is24HourFormat(context),
+                ).show()
+            }
+        }
+    }
 
     // Skip mode: set true when Skip button is tapped; LaunchedEffect routes to onSkip instead of onSaved.
     var skipMode by remember { mutableStateOf(false) }
@@ -295,43 +373,36 @@ fun CreateRegistryScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(spacing.gap10),
                 ) {
-                    // Date field — existing DatePickerDialog logic preserved
+                    // Date field — QUICK-S3B-01 fix: InteractionSource-driven.
+                    // Modifier.clickable on an OutlinedTextField is consumed by
+                    // the field's own pointer-input layer; PressInteraction.Release
+                    // collected in the LaunchedEffect above is the documented
+                    // escape hatch.
                     OutlinedTextField(
                         value = eventDateMs?.let { dateFormatter.format(Date(it)) } ?: "",
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.registry_event_date_label)) },
                         shape = shapes.radius12,
-                        modifier = Modifier
-                            .weight(1f)
-                            .clickable {
-                                val calendar = Calendar.getInstance()
-                                eventDateMs?.let { calendar.timeInMillis = it }
-                                DatePickerDialog(
-                                    context,
-                                    { _, year, month, day ->
-                                        val cal = Calendar.getInstance()
-                                        cal.set(year, month, day, 0, 0, 0)
-                                        cal.set(Calendar.MILLISECOND, 0)
-                                        viewModel.eventDateMs.value = cal.timeInMillis
-                                    },
-                                    calendar.get(Calendar.YEAR),
-                                    calendar.get(Calendar.MONTH),
-                                    calendar.get(Calendar.DAY_OF_MONTH),
-                                ).show()
-                            },
+                        interactionSource = dateInteractionSource,
+                        modifier = Modifier.weight(1f),
                         colors = giftMaisonFieldColors(),
                     )
-                    // Time field — placeholder (viewModel.eventTimeMs not in VM v1.1; deferred to v1.2)
-                    // TODO v1.2: wire to viewModel.eventTimeMs when the field ships
+                    // Time field — QUICK-S3B-02. Stays enabled=true (disabled
+                    // fields drop InteractionSource events). Empty value until
+                    // eventTimeSet flips true. The runtime gate on eventDateMs
+                    // lives inside the LaunchedEffect collector above.
+                    val timeDisplay = if (eventDateMs != null && eventTimeSet) {
+                        timeFormatter.format(Date(eventDateMs!!))
+                    } else ""
                     OutlinedTextField(
-                        value = "",
+                        value = timeDisplay,
                         onValueChange = {},
                         readOnly = true,
                         label = { Text(stringResource(R.string.registry_event_time_label)) },
                         shape = shapes.radius12,
+                        interactionSource = timeInteractionSource,
                         modifier = Modifier.weight(1f),
-                        enabled = false,
                         colors = giftMaisonFieldColors(),
                     )
                 }
