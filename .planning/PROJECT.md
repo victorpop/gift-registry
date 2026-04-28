@@ -49,6 +49,7 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 - ✓ Givers are redirected to retailer immediately upon reservation — Phase 4
 - ✓ URL transformer identifies merchant and appends correct affiliate tag — Phase 3
 - ✓ Owners can browse popular Romanian retailers in an in-app WebView and add products via persistent "Add to list" CTA — Phase 7 (automated; 8 items pending real-device UAT). Replaces the retired EMAG catalog API scope (no public catalog API available)
+- ✓ Registry cover photos: bundled occasion presets + gallery upload via Firebase Storage; themed gradient + glyph placeholder on cards and hero when imageUrl is null (fixes visible empty-card bug) — Phase 12 (automated; storage rules deploy + real preset curation deferred via todos)
 
 ### Active
 
