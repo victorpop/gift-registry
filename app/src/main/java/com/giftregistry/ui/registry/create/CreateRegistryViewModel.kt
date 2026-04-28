@@ -17,6 +17,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,6 +43,16 @@ class CreateRegistryViewModel @Inject constructor(
     val title = MutableStateFlow("")
     val occasion = MutableStateFlow("")
     val eventDateMs = MutableStateFlow<Long?>(null)
+
+    /**
+     * Phase quick-260428-s3b — true once the user has explicitly picked a
+     * time-of-day. Distinguishes "meaningful 00:00 (midnight, picked)" from
+     * "unset hour/minute". Persistence remains a single Long in [eventDateMs];
+     * this flag is purely UI state for the time-field display and the date
+     * picker's preserve-time-of-day branch.
+     */
+    val eventTimeSet = MutableStateFlow(false)
+
     val eventLocation = MutableStateFlow("")
     val description = MutableStateFlow("")
     val visibility = MutableStateFlow("public")
@@ -77,6 +88,19 @@ class CreateRegistryViewModel @Inject constructor(
                     title.value = registry.title
                     occasion.value = registry.occasion
                     eventDateMs.value = registry.eventDateMs
+                    // QUICK-S3B-03 — flip eventTimeSet=true when the loaded
+                    // timestamp encodes a non-midnight time-of-day. Detect via
+                    // Calendar (NOT via `% 86_400_000L`, which is timezone-
+                    // incorrect for non-UTC zones).
+                    val loadedMs = registry.eventDateMs
+                    if (loadedMs != null) {
+                        val cal = Calendar.getInstance().apply { timeInMillis = loadedMs }
+                        val hod = cal.get(Calendar.HOUR_OF_DAY)
+                        val min = cal.get(Calendar.MINUTE)
+                        if (hod != 0 || min != 0) {
+                            eventTimeSet.value = true
+                        }
+                    }
                     eventLocation.value = registry.eventLocation ?: ""
                     description.value = registry.description ?: ""
                     visibility.value = registry.visibility
@@ -194,6 +218,29 @@ class CreateRegistryViewModel @Inject constructor(
 
             isSaving.value = false
         }
+    }
+
+    /**
+     * QUICK-S3B-02 — encode a user-picked hour/minute into the existing
+     * [eventDateMs] Long. Gated on [eventDateMs] being non-null: a time-of-day
+     * without a date anchor is meaningless, so this returns silently. On
+     * success, mutates only the HOUR_OF_DAY / MINUTE portion (preserving
+     * year/month/day) and flips [eventTimeSet]=true.
+     *
+     * No domain or persistence change — `Registry.eventDateMs: Long?` already
+     * round-trips hour/minute through Firestore unmodified.
+     */
+    fun setEventTime(hour: Int, minute: Int) {
+        val current = eventDateMs.value ?: return
+        val cal = Calendar.getInstance().apply {
+            timeInMillis = current
+            set(Calendar.HOUR_OF_DAY, hour)
+            set(Calendar.MINUTE, minute)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        eventDateMs.value = cal.timeInMillis
+        eventTimeSet.value = true
     }
 
     fun clearError() {
