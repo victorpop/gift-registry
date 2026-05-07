@@ -13,7 +13,8 @@ import { useResolveReservation } from '../features/reservation/useResolveReserva
  *   3. On success -> navigate to /registry/:registryId?autoReserveItemId=:itemId (replace).
  *   4. On error -> navigate to / (replace).
  *
- * Visible UI: centered "Checking your reservation…" text while the callable is in flight.
+ * Visible UI: centered "Checking your reservation…" text + accent pulsing dot
+ * (gm-pulse keyframe from Plan 00) on a paper bg while the callable is in flight.
  * No other UI; this is a transient redirect page.
  *
  * Guard: hasFiredRef prevents React 18 StrictMode double-invocation from firing twice.
@@ -56,14 +57,20 @@ export default function ReReservePage() {
   }, [isReady, reservationId, navigate, resolve])
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface px-6">
-      <span
-        role="status"
-        aria-live="polite"
-        className="text-base font-normal text-surface-on"
-      >
-        {t('reservation.resolving')}
-      </span>
+    <div className="min-h-screen flex items-center justify-center bg-gm-paper px-4 sm:px-7 lg:px-10">
+      <div className="flex flex-col items-center gap-4 max-w-md text-center">
+        <span
+          aria-hidden="true"
+          className="inline-block w-2 h-2 rounded-full bg-gm-accent animate-gm-pulse"
+        />
+        <span
+          role="status"
+          aria-live="polite"
+          className="font-body text-[15px] sm:text-[16px] text-gm-inkSoft leading-[1.55]"
+        >
+          {t('reservation.resolving')}
+        </span>
+      </div>
     </div>
   )
 }

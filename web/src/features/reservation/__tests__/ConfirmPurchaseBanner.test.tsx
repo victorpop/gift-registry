@@ -23,17 +23,22 @@ describe("ConfirmPurchaseBanner", () => {
     showToastMock.mockReset()
   })
 
-  it("renders heading and CTA with font-bold classes and 48px min-height", () => {
+  it("renders heading and CTA with the GiftMaison Btn accent contract", () => {
     httpsCallableMock.mockReturnValue(vi.fn())
     render(<ConfirmPurchaseBanner reservationId="res1" />)
     expect(screen.getByRole("status")).toBeInTheDocument()
     const button = screen.getByRole("button")
-    // Class contract — exact tokens matter for the visual regression.
-    expect(button.className).toContain("font-bold")
-    expect(button.className).toContain("min-h-[48px]")
-    expect(button.className).toContain("bg-primary")
-    // Never use font-semibold on this project.
+    // Phase 13 visual contract: ConfirmPurchaseBanner CTA renders via the
+    // <Btn variant="accent" size="md"> atom (gm.* tokens, not Phase 5 primary/font-bold).
+    expect(button.className).toContain("font-medium")
+    expect(button.className).toContain("bg-gm-accent")
+    expect(button.className).toContain("text-gm-accentInk")
+    expect(button.className).toContain("rounded-full")
+    // Never use font-semibold on this project — Btn enforces font-medium.
     expect(button.className).not.toContain("font-semibold")
+    // Phase 5 tokens must be gone.
+    expect(button.className).not.toContain("bg-primary")
+    expect(button.className).not.toContain("font-bold")
   })
 
   it("calls confirmPurchase callable with the supplied reservationId when clicked", async () => {
