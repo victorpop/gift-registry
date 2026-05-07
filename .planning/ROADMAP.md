@@ -23,6 +23,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 9: Shared Chrome + Status UI** - Bottom nav, centre FAB, Add-action bottom sheet, and the Reserved/Given/Open/Purchased status treatments shipped as shared UI the owner screens assemble from (completed 2026-04-21)
 - [x] **Phase 10: Onboarding + Home Redesign** - Owner-facing Onboarding/sign up (06) and Home/all-registries (07) screens match the handoff pixel-accurately with the new design system (completed 2026-04-21)
 - [x] **Phase 11: Registry Detail + Create + Add Item Redesign** - Registry detail (08), Create registry (09), and Add item via URL (10) screens match the handoff pixel-accurately (completed 2026-04-21)
+- [ ] **Phase 13: Web Fallback Visual Refresh** - Restyle the existing Phase 5 web fallback to match the GiftMaison design language so the giver-facing web flow visually aligns with the redesigned Android owner flow (handoff to be provided)
+- [ ] **Phase 14: Web Fallback Live Deploy + Guest UAT** - Register Firebase Web app, ship the redesigned web bundle to gift-registry-ro.web.app with backing Cloud Functions/rules deployed, and close WEB-01..04 human-UAT items via end-to-end guest flow validation
 
 ## Phase Details
 
@@ -273,3 +275,23 @@ Plans:
 - [x] 12-04-PLAN.md -- Wave 2: CreateRegistryViewModel + Screen wiring (inline picker above OccasionTileGrid; sheet host; create-mode two-writes-zero-orphans upload); RegistryDetailScreen owner-only tap target; 10 cover_photo_* strings × 2 locales
 - [x] 12-05-PLAN.md -- Wave 3: 4 StyleGuidePreview sections + on-device UAT (12-check checklist) + storage.rules deploy (human checkpoint)
 **UI hint**: yes
+
+### Phase 13: Web Fallback Visual Refresh
+
+**Goal:** Restyle the existing Phase 5 web fallback (giver flow: registry view, reserve, retailer redirect, re-reserve deep link) to match the GiftMaison design language shipped on Android in Phases 8-12, per a web-specific design handoff to be provided. Functional behaviour, routing, and Firebase wiring stay unchanged — this is a visual layer refresh on the existing React/Vite codebase.
+**Requirements**: TBD (mapped during planning once handoff is in)
+**Depends on:** Phase 12
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:discuss-phase 13 once handoff is provided, then /gsd:plan-phase 13)
+
+### Phase 14: Web Fallback Live Deploy + Guest UAT
+
+**Goal:** Get the redesigned web fallback rendering at https://gift-registry-ro.web.app against the production gift-registry-ro Firebase project (Firebase Web app registered, real env config wired, App Check posture matched), unblock the Cloud Functions deploy pipeline, and close the 7 outstanding WEB-01..04 human-UAT items by running an end-to-end guest reservation flow against prod.
+**Requirements**: WEB-01, WEB-02, WEB-03, WEB-04 (human-UAT closure)
+**Depends on:** Phase 13
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:discuss-phase 14, then /gsd:plan-phase 14)

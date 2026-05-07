@@ -110,6 +110,8 @@ Progress: [░░░░░░░░░░] 0%
 ### Roadmap Evolution
 
 - Phase 12 added: Registry Cover Photo & Themed Placeholder
+- Phase 13 added: Web Fallback Live Deploy for guest experience (2026-04-30)
+- Phase 13 renamed → "Web Fallback Visual Refresh"; Phase 14 added: "Web Fallback Live Deploy + Guest UAT" (2026-04-30, scope split — visual refresh per upcoming web design handoff, then deploy+UAT)
 
 ### Decisions
 
