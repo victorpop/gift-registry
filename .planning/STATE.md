@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
-status: verifying
-stopped_at: Phase 13 planned (8 plans, 5 waves, verified iter 2/3)
-last_updated: "2026-05-07T19:51:15.094Z"
-last_activity: 2026-04-28
+status: executing
+stopped_at: Completed 13-00-PLAN.md
+last_updated: "2026-05-07T19:57:37.244Z"
+last_activity: 2026-05-07
 progress:
   total_phases: 14
   completed_phases: 12
   total_plans: 69
-  completed_plans: 61
+  completed_plans: 62
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
-**Current focus:** Phase 12 — registry-cover-photo-themed-placeholder
+**Current focus:** Phase 13 — web-fallback-visual-refresh
 
 ## Current Position
 
-Phase: 12
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-04-28
+Phase: 13 (web-fallback-visual-refresh) — EXECUTING
+Plan: 2 of 8
+Status: Ready to execute
+Last activity: 2026-05-07
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -104,6 +104,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 12-registry-cover-photo-themed-placeholder P02 | 9min | 4 tasks | 52 files |
 | Phase 12-registry-cover-photo-themed-placeholder P04 | 11min | 3 tasks | 12 files |
 | Phase 12-registry-cover-photo-themed-placeholder P05 | 12min | 3 tasks | 4 files |
+| Phase 13 P00 | 2 min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -268,6 +269,10 @@ Recent decisions affecting current work:
 - [Phase 12-registry-cover-photo-themed-placeholder]: Plan 12-05: 12-VALIDATION.md signed off (status=approved, nyquist_compliant=true, wave_0_complete=true); Per-Task Verification Map has 15 rows; 7 of 8 Wave 0 RED suites GREEN; all 16 Decision IDs satisfied; Pitfalls 1+2+5+6+7 pinned
 - [Phase quick-260507-uzv]: Owner-only UI affordances on RegistryDetailScreen gated via two-layer pattern: (1) trigger callback set to null at the call site (e.g. `onOverflow = if (isOwner) (...) else null`), AND (2) downstream menu/sheet Box wrapped in `if (isOwner) { ... }` for defence in depth — mirrors the existing D-13 `onCoverTap` nullable-callback convention, no new auth abstraction, no VM/strings/server-rule changes
 - [Phase quick-260507-veb]: Three more owner-only RegistryDetailScreen affordances (top-bar Share OpenInNew icon, ShareBanner pill, AddItemTopCta '+ Add an item' CTA) gated via the same viewModel.isOwner StateFlow already used by quick-260507-uzv (kebab) + Phase 12 D-13 (cover-photo tap); RegistryDetailHero.onShare signature: () -> Unit -> (() -> Unit)? = null with IconButton wrapped in if (onShare != null) — third sibling to onOverflow + onCoverTap nullable callbacks; ShareBanner + AddItemTopCta LazyColumn items wrapped in if (isOwner) { item(...) { ... } } so non-owners never register those keys; Spacer(Modifier.weight(1f)) retained between Back and the now-conditional Share IconButton (kebab stays far-right for owners); zero changes to ViewModel, AuthRepository, ShareBanner, firestore.rules, storage.rules, Cloud Functions, strings.xml; no new tests (RegistryDetailViewModelIsOwnerTest already pins isOwner contract); StyleGuidePreview.kt's two RegistryDetailHero call sites also use named args and compile cleanly under the parameter reorder; Task 2 device verification deferred and combined with the still-pending quick-260507-uzv Task 2
+- [Phase 13]: [Phase 13-web-fallback-visual-refresh P00]: Tailwind gm.* tokens resolve to var(--gm-*) custom properties (D-07 indirection) — v1.2 occasion cascade can swap values at registry-detail root with zero class renames
+- [Phase 13]: [Phase 13-web-fallback-visual-refresh P00]: Single shared @keyframes gm-pulse re-declared inside prefers-reduced-motion @media block — Tailwind animate-gm-pulse utility resolves to whichever definition wins; simpler than UI-SPEC's two-name variant, equivalent in behaviour
+- [Phase 13]: [Phase 13-web-fallback-visual-refresh P00]: D-01 visual-only scope envelope anchored — Phase 13 ships visual-layer code only; no SSR/slug routing/cookies/OG-fn/re-reserve/4-occasion-cascade/backend changes; diff scope confined to web/tailwind.config.ts + web/src/index.css + web/index.html
+- [Phase 13]: [Phase 13-web-fallback-visual-refresh P00]: Phase 5 legacy palette (primary/surface/destructive/outline) retained in tailwind.config.ts during cutover so all 107 existing tests stay green; legacy removal audit deferred to Phase 14
 
 ### Pending Todos
 
@@ -315,6 +320,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-07T19:51:15.088Z
-Stopped at: Phase 13 planned (8 plans, 5 waves, verified iter 2/3)
-Resume file: .planning/phases/13-web-fallback-visual-refresh/13-00-PLAN.md
+Last session: 2026-05-07T19:57:37.239Z
+Stopped at: Completed 13-00-PLAN.md
+Resume file: None
