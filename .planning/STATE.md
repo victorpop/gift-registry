@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 13-04-PLAN.md
-last_updated: "2026-05-07T20:18:37.154Z"
+stopped_at: Completed 13-05-PLAN.md
+last_updated: "2026-05-07T20:26:19.551Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 14
   completed_phases: 12
   total_plans: 69
-  completed_plans: 67
+  completed_plans: 68
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 13 (web-fallback-visual-refresh) — EXECUTING
-Plan: 7 of 8
+Plan: 8 of 8
 Status: Ready to execute
 Last activity: 2026-05-07
 
@@ -110,6 +110,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13-web-fallback-visual-refresh P02 | 8min | 2 tasks | 6 files |
 | Phase 13-web-fallback-visual-refresh P06 | 4min | 4 tasks | 8 files |
 | Phase 13-web-fallback-visual-refresh P04 | 8min | 3 tasks | 7 files |
+| Phase 13-web-fallback-visual-refresh P05 | 6min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -296,6 +297,10 @@ Recent decisions affecting current work:
 - [Phase 13-web-fallback-visual-refresh]: Plan 13-04: Hero headline (RegistryHeader) kept upright (no italic-accent emphasis span) — UI-SPEC D-13 reads italic-accent as wordmark + screens 02/03 only; the screens with explicit pre/emphasis/post i18n triples (Plans 13-05 / 13-06) own the italic emphasis, RegistryHeader honours D-13 literally
 - [Phase 13-web-fallback-visual-refresh]: Plan 13-04: Lifted-filter-state pattern — RegistryPage owns useState<ItemFilter>('all'); FilterChips controlled via active+onChange; ItemGrid receives filter prop and applies item.status === filter predicate inline; counts via useMemo(itemsQ.data) drive optional FilterChips badges + ProgressStrip totalChosen
 - [Phase 13-web-fallback-visual-refresh]: Plan 13-04: ItemCard purchased status keeps Pill at top-left (NOT bottom-left per the ASCII contract) — outer opacity-[0.55] + image grayscale carry the purchased signal; consistency across statuses preserves grid visual rhythm; Plan 07 may revisit if visual review surfaces a regression
+- [Phase 13-web-fallback-visual-refresh]: [Phase 13-05] Minute-cached aria-live string instance via lastMinutesRef + cachedAriaTextRef pair — text-node identity preserved between minute ticks so screen readers re-announce only on minute flip
+- [Phase 13-web-fallback-visual-refresh]: [Phase 13-05] Native <details> element for HowTimerWorks mobile collapsible — chosen over useState for zero-JS accessibility-built-in primitive; lg:hidden summary + hidden lg:block heading split keeps desktop always-open
+- [Phase 13-web-fallback-visual-refresh]: [Phase 13-05] ReservationBanner.tsx kept as deprecated re-export of StickyReserveBanner — 4 test suites vi.mock the path, deferred deletion to Phase 14 cleanup
+- [Phase 13-web-fallback-visual-refresh]: [Phase 13-05] ConfirmPurchaseBanner gains optional minutesLeft prop (default 30) — confirm_body interpolates {{minutes}}, ReserveDetailSection passes live countdown.minutes
 
 ### Pending Todos
 
@@ -343,6 +348,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-07T20:18:37.149Z
-Stopped at: Completed 13-04-PLAN.md
+Last session: 2026-05-07T20:26:19.547Z
+Stopped at: Completed 13-05-PLAN.md
 Resume file: None
