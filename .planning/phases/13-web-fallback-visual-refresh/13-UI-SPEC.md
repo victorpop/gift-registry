@@ -1,10 +1,13 @@
 ---
 phase: 13
 slug: web-fallback-visual-refresh
-status: draft
+status: approved
 shadcn_initialized: false
 preset: not applicable
 created: 2026-04-30
+reviewed_at: 2026-05-07
+reviewed_by: gsd-ui-checker
+review_verdict: APPROVED (5 PASS, 1 FLAG — component-internal padding exception now documented inline)
 ---
 
 # Phase 13 — UI Design Contract
@@ -82,6 +85,12 @@ Multiples of 4. Derived from handoff "Spacing / radii / shadows" + responsive ta
 - Tap targets: ≥ 44 px on mobile, ≥ 40 px on tablet, ≥ 36 px on desktop (handoff "Responsive behaviour" + a11y).
 - Sticky CTAs on mobile: 8–12 px above the safe-area inset (`env(safe-area-inset-bottom)`); banner backdrop has 1 px `gm.line` top-border.
 - Convert modal as bottom sheet on mobile is **deferred to follow-up phase** (screen 04 OUT of scope per CONTEXT D-03).
+
+**Component-internal padding exceptions (intentional, non-grid):**
+- `<Btn>` internal paddings: `sm` = 7/12 px, `md` = 11/18 px, `lg` = 14/22 px (vertical / horizontal). Sourced verbatim from `design_handoff_web_giver_flow/reference/web-screens.jsx` `Btn` atom. Tuned for optical text-alignment within pill-shaped (radius 999) buttons; they are component-internal and do NOT affect page-grid alignment. The page-level spacing scale above is fully ×4-multiple.
+- Sticky reserve banner vertical 14 px (rendered between handoff `ink` bg and `paper` text rows). Same rationale: optical alignment of the pulsing dot + countdown + CTA row inside a flat full-width banner; component-internal, not a grid value.
+
+Both exceptions are explicit, traceable to the prototype contract, and bounded to component internals. They do not propagate into page-level layout, gap, or stacking values.
 
 ---
 
