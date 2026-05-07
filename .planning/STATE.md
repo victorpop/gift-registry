@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: verifying
-stopped_at: Quick task 260507-uce complete (code) — Task 2 device verification pending
-last_updated: "2026-05-07T18:59:42.868Z"
+stopped_at: Quick task 260507-uzv complete (code) — Task 2 device verification pending
+last_updated: "2026-05-07T19:29:17.031Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 14
   completed_phases: 12
-  total_plans: 61
+  total_plans: 68
   completed_plans: 61
   percent: 0
 ---
@@ -266,6 +266,7 @@ Recent decisions affecting current work:
 - [Phase 12-registry-cover-photo-themed-placeholder]: Plan 12-05: 4 StyleGuidePreview @Preview sections shipped (HeroImageOrPlaceholder hero+card, CoverPhotoPickerInline 3 states, CoverPhotoPickerSheet inline-body, RegistryCard placeholder regression check) — Phase 12 visual contracts now reviewable in Studio without booting an emulator
 - [Phase 12-registry-cover-photo-themed-placeholder]: Plan 12-05: storage rules live deploy DEFERRED via structured todo (.planning/todos/pending/2026-04-28-deploy-phase-12-storage-rules.md) — user resume signal was 'approved — storage deploy skipped'; production cover-photo upload traffic blocked until the deploy lands; preset selection paths unaffected
 - [Phase 12-registry-cover-photo-themed-placeholder]: Plan 12-05: 12-VALIDATION.md signed off (status=approved, nyquist_compliant=true, wave_0_complete=true); Per-Task Verification Map has 15 rows; 7 of 8 Wave 0 RED suites GREEN; all 16 Decision IDs satisfied; Pitfalls 1+2+5+6+7 pinned
+- [Phase quick-260507-uzv]: Owner-only UI affordances on RegistryDetailScreen gated via two-layer pattern: (1) trigger callback set to null at the call site (e.g. `onOverflow = if (isOwner) (...) else null`), AND (2) downstream menu/sheet Box wrapped in `if (isOwner) { ... }` for defence in depth — mirrors the existing D-13 `onCoverTap` nullable-callback convention, no new auth abstraction, no VM/strings/server-rule changes
 
 ### Pending Todos
 
@@ -308,9 +309,10 @@ Recent decisions affecting current work:
 | 260428-tx9 | Replace framework android.app.DatePickerDialog / TimePickerDialog with Material3 Compose DatePickerDialog + DatePicker(state) and AlertDialog { TimePicker(state) } on Create/Edit Registry — pickers now inherit GiftMaison terracotta via MaterialTheme.colorScheme.primary (LightColorScheme.primary = gm.accent in Theme.kt:36) instead of bleeding the Android system Material green/teal; UTC↔local-Calendar conversion in DatePickerDialog confirmButton guards against Bucharest UTC+2/+3 off-by-one civil-day; @OptIn(ExperimentalMaterial3Api::class) at @Composable level; OK/Cancel via stringResource(android.R.string.ok / .cancel) — zero new strings.xml keys; all s3b behaviour preserved verbatim (InteractionSource trigger, hour/minute preservation on re-pick, eventTimeSet StateFlow + setEventTime VM API, 24h locale awareness, edit-mode round-trip); Task 2 human-verify outstanding | 2026-04-28 | 08c66da | [260428-tx9-replace-framework-datepickerdialog-timep](./quick/260428-tx9-replace-framework-datepickerdialog-timep/) |
 | 260428-v0q | Make bottom nav persistent across all post-auth destinations — invert `Any?.showsBottomNav()` from 2-key visible-whitelist (HomeKey + RegistryDetailKey only) to 4-case hidden-whitelist (null, AuthKey, OnboardingKey, ReReserveDeepLink); fixes user's reported bug where tapping YOU hid the chrome on Settings, plus extends the same contract to Notifications, Stores, and all forms (CreateRegistry, EditRegistry, AddItem, EditItem); BottomNavVisibilityTest pins all 14 nav-key cases (4 hidden, 10 visible — every key in AppNavKeys.kt); zero touches to AppNavigation.kt, AppNavKeys.kt, GiftMaisonBottomNav.kt, or string resources; Task 2 human-verify outstanding (8 device scenarios) | 2026-04-28 | a486ca5 | [260428-v0q-make-bottom-nav-persistent-across-all-po](./quick/260428-v0q-make-bottom-nav-persistent-across-all-po/) |
 | 260507-uce | Fix AddItemScreen "Choose a registry" picker to show only ACTIVE registries — `AddItemViewModel.registriesForPicker` now applies `Registry.isActive(startOfTodayMs())` via `.map { }` BEFORE `.catch.stateIn`, reusing the same `TabFilters.kt` predicate that powers the Lists screen Active tab (single source of truth, no new convention); past registries (e.g. "test", "A&V Wedding", "Secret Santa") no longer appear; `todayMs` recomputed per emission so screens kept open across midnight re-evaluate naturally; filter sits before `.catch` so error fallback still emits an empty list (drives the "Create a registry first" empty-state); ViewModel-layer fix (not repository) preserves `RegistryListViewModel`'s Past tab; new `AddItemViewModelPickerFilterTest` (4/4 GREEN) pins contract via local-helper-mirroring-production-filter pattern modelled on `TabFilterPredicateTest`; zero touches to TabFilters/RegistryListScreen/RegistryListViewModel/AddItemScreen/strings.xml; Task 2 human-verify outstanding (device walkthrough on bug-reproducing account) | 2026-05-07 | 65dec78 | [260507-uce-fix-add-item-registry-dropdown-showing-p](./quick/260507-uce-fix-add-item-registry-dropdown-showing-p/) |
+| 260507-uzv | Hide owner-only overflow menu actions (Edit / Share / Invite / Delete + kebab) from non-owners on RegistryDetailScreen — `RegistryDetailHero.onOverflow` signature: `() -> Unit` → `(() -> Unit)? = null` (mirrors existing `onCoverTap` D-13 nullable convention in same file); kebab IconButton wrapped in `if (onOverflow != null)`; call site passes `onOverflow = if (isOwner) ({ overflowMenuExpanded = true }) else null` (mirrors existing D-13 cover-tap line two below); entire DropdownMenu Box wrapped in `if (isOwner) { ... }` for defence in depth; reuses pre-existing `RegistryDetailViewModel.isOwner` StateFlow (Phase 12 D-13) — no VM/AuthRepository/Firestore-rules/Cloud-Functions/strings.xml touches; new `RegistryDetailViewModelIsOwnerTest` (4/4 GREEN) pins contract: match→true, mismatch→false, null-registry→false, null-user→false; Eagerly + initial-false + .catch{emit(false)} means non-owner UI is the safe default during load (no flash of owner-only items); top-bar Share icon, hero share-pill, ShareBanner, D-13 cover-photo tap, ConfirmPurchaseBanner all unchanged per spec; Task 2 device verification outstanding (owner sees kebab + 4 actions; invitee sees neither) | 2026-05-07 | ed1f180 | [260507-uzv-hide-owner-only-overflow-menu-actions-fr](./quick/260507-uzv-hide-owner-only-overflow-menu-actions-fr/) |
 
 ## Session Continuity
 
-Last session: 2026-05-07T18:59:42.863Z
-Stopped at: Quick task 260507-uce complete (code) — Task 2 device verification pending
+Last session: 2026-05-07T19:28:44.530Z
+Stopped at: Quick task 260507-uzv complete (code) — Task 2 device verification pending
 Resume file: None
