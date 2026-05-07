@@ -21,6 +21,17 @@ export function useToast() {
   return ctx
 }
 
+/**
+ * Toast notification provider (Phase 13 visual: bg-gm-paper / text-gm-ink / border-gm-line
+ * card with variant-coloured left border accent). Behavioural contract is unchanged from
+ * Phase 5: showToast(title, variant?) appends an item, role="alert" Toast.Root provides
+ * a11y announcement, viewport pinned bottom-center.
+ *
+ * Variant token map:
+ *   success → border-l-gm-accent (terracotta — used by ConfirmPurchaseBanner success)
+ *   error   → border-l-gm-warn   (warm amber — used by reservation conflict / generic errors)
+ *   neutral → border-l-gm-line   (faint divider — non-actionable info)
+ */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([])
 
@@ -36,18 +47,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {children}
         {items.map((t) => {
           const borderClass =
-            t.variant === 'success'  ? 'border-l-primary' :
-            t.variant === 'error'    ? 'border-l-destructive' :
-                                       'border-l-outline'
+            t.variant === 'success'  ? 'border-l-gm-accent' :
+            t.variant === 'error'    ? 'border-l-gm-warn' :
+                                       'border-l-gm-line'
           return (
             <Toast.Root
               key={t.id}
               onOpenChange={(open) => {
                 if (!open) setItems((prev) => prev.filter((x) => x.id !== t.id))
               }}
-              className={`bg-surface text-surface-on rounded-md shadow-lg p-4 border-l-4 ${borderClass} data-[state=open]:animate-in data-[state=closed]:animate-out`}
+              className={`bg-gm-paper text-gm-ink border border-gm-line rounded-gm-card shadow-lg p-4 border-l-4 ${borderClass} data-[state=open]:animate-in data-[state=closed]:animate-out`}
             >
-              <Toast.Title className="text-base font-semibold leading-tight">{t.title}</Toast.Title>
+              <Toast.Title className="font-body text-[14px] font-medium leading-[1.35] text-gm-ink">{t.title}</Toast.Title>
             </Toast.Root>
           )
         })}

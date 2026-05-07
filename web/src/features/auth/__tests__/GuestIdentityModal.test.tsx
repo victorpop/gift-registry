@@ -2,6 +2,20 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '../../../i18n'
+
+// Phase 13: GuestIdentityModal imports atoms via the giftmaison barrel which
+// transitively imports TopNav -> useAuth -> firebase/auth (jsdom auth/invalid-api-key
+// crash without these mocks). Same pattern Plan 13-06 used for AuthModal.test.tsx.
+vi.mock('../../../firebase', () => ({
+  app: {},
+  db: {},
+  functions: { __mock: true },
+  auth: {},
+}))
+vi.mock('../useAuth', () => ({
+  useAuth: () => ({ user: null, isReady: true }),
+}))
+
 import GuestIdentityModal from '../GuestIdentityModal'
 import { GUEST_IDENTITY_STORAGE_KEY } from '../useGuestIdentity'
 
