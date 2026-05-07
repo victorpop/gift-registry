@@ -197,7 +197,11 @@ fun RegistryDetailScreen(
                     registry = registry,
                     listState = listState,
                     onBack = onBack,
-                    onShare = onShareTap,
+                    // quick-260507-veb — owner-only top-bar Share icon: pass
+                    // null for non-owners so the IconButton is omitted from
+                    // the composition (mirrors the kebab + cover-tap pattern
+                    // two lines below).
+                    onShare = if (isOwner) onShareTap else null,
                     // quick-260507-uzv — owner-only overflow: pass null for non-owners
                     // so the kebab IconButton is omitted from the composition.
                     onOverflow = if (isOwner) ({ overflowMenuExpanded = true }) else null,
@@ -211,11 +215,18 @@ fun RegistryDetailScreen(
                 StatsStrip(items = items)
             }
 
-            item(key = "share") {
-                ShareBanner(
-                    registryId = registryId,
-                    onShared = { scope.launch { snackbarHostState.showSnackbar(linkCopiedMsg) } },
-                )
+            // quick-260507-veb — ShareBanner pill ("Tap to copy or share") is
+            // owner-only. Non-owners (signed-in invitees) see no share affordances.
+            // `if` blocks inside a LazyListScope lambda conditionally register
+            // items at composition time — same pattern as the empty-filter
+            // block below.
+            if (isOwner) {
+                item(key = "share") {
+                    ShareBanner(
+                        registryId = registryId,
+                        onShared = { scope.launch { snackbarHostState.showSnackbar(linkCopiedMsg) } },
+                    )
+                }
             }
 
             item(key = "filter") {
@@ -228,8 +239,14 @@ fun RegistryDetailScreen(
 
             // quick-260428-k5u: prominent Add Item CTA above items list. Tap → AddItemKey
             // with fromAddSheet=false (default) → picker HIDDEN per quick-260428-iny contract.
-            item(key = "add-item-cta") {
-                AddItemTopCta(onClick = onNavigateToAddItem)
+            //
+            // quick-260507-veb — gated on owner. Non-owners cannot add items
+            // (Cloud Function rejects non-owners), so hiding the CTA aligns
+            // the client UI with the server's ownership contract.
+            if (isOwner) {
+                item(key = "add-item-cta") {
+                    AddItemTopCta(onClick = onNavigateToAddItem)
+                }
             }
 
             // Phase 6 (UI-SPEC Contract 1): confirm-purchase banner for givers with active reservation

@@ -62,8 +62,16 @@ internal fun RegistryDetailHero(
     registry: Registry?,
     listState: LazyListState,
     onBack: () -> Unit,
-    onShare: () -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * Quick task 260507-veb — owner-only top-bar Share IconButton
+     * (OpenInNew) on the hero toolbar. Pass non-null only when the viewer
+     * owns the registry; for non-owners pass null and the icon is omitted
+     * from the composition (no icon, no tap target). Mirrors the [onOverflow]
+     * and [onCoverTap] nullable-callback convention used elsewhere in this
+     * file for owner-only affordances.
+     */
+    onShare: (() -> Unit)? = null,
     /**
      * Quick task 260507-uzv — owner-only kebab IconButton on the hero
      * toolbar. Pass non-null only when the viewer owns the registry; for
@@ -182,17 +190,25 @@ internal fun RegistryDetailHero(
                     tint = if (toolbarAlpha > 0.5f) colors.ink else colors.paper,
                 )
             }
+            // quick-260507-veb — Spacer MUST stay so the kebab is pushed to the
+            // far right when the Share icon is hidden for non-owners. Without
+            // this, the kebab would slide left next to the back arrow for
+            // owners (regression on owner UX).
             Spacer(Modifier.weight(1f))
-            IconButton(onClick = onShare) {
-                Icon(
-                    imageVector = Icons.Default.OpenInNew,
-                    contentDescription = stringResource(R.string.registry_detail_share_button_desc),
-                    tint = if (toolbarAlpha > 0.5f) colors.ink else colors.paper,
-                )
+            // quick-260507-veb — top-bar Share renders only for owners
+            // (non-null callback). Non-owners see only Back (and nothing on
+            // the right) because the kebab below is also owner-gated.
+            if (onShare != null) {
+                IconButton(onClick = onShare) {
+                    Icon(
+                        imageVector = Icons.Default.OpenInNew,
+                        contentDescription = stringResource(R.string.registry_detail_share_button_desc),
+                        tint = if (toolbarAlpha > 0.5f) colors.ink else colors.paper,
+                    )
+                }
             }
-            // quick-260507-uzv — kebab renders only for owners (non-null callback).
-            // Non-owners see nothing here; the trailing Share IconButton above is
-            // intentionally NOT gated (top-bar Share is available to anyone).
+            // quick-260507-uzv — kebab renders only for owners (non-null
+            // callback). Non-owners see nothing here.
             if (onOverflow != null) {
                 IconButton(onClick = onOverflow) {
                     Icon(
