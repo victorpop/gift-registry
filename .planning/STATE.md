@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-05-07T20:03:45.682Z"
+stopped_at: Completed 13-02-PLAN.md
+last_updated: "2026-05-07T20:05:05.596Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 14
   completed_phases: 12
   total_plans: 69
-  completed_plans: 64
+  completed_plans: 65
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 13 (web-fallback-visual-refresh) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 Status: Ready to execute
 Last activity: 2026-05-07
 
@@ -107,6 +107,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13 P00 | 2 min | 3 tasks | 3 files |
 | Phase 13-web-fallback-visual-refresh P03 | 3min | 3 tasks | 4 files |
 | Phase 13-web-fallback-visual-refresh P01 | 3min | 2 tasks | 7 files |
+| Phase 13-web-fallback-visual-refresh P02 | 8min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -280,6 +281,11 @@ Recent decisions affecting current work:
 - [Phase 13-web-fallback-visual-refresh]: Plan 13-03: Used literal Unicode characters (not \u escapes) in new web_* namespaces — the existing file inconsistently mixed literal and escaped chars (e.g. ro.json had literal 'Redirecționare' alongside escaped 'încarcă'); after Task 1 verify passed cleanly with literal chars, kept literal chars throughout for readability — JSON parsers handle both identically; future plans should not regress to mixed encoding
 - [Phase 13-web-fallback-visual-refresh]: Plan 13-03: 104-key parity between en.json and ro.json verified by node flatKeys diff; legacy seed at web/i18n/*.json byte-identical to web/src/i18n/*.json via plain cp (Phase 5 D-locked decision); future plans MUST run diff -q web/src/i18n/*.json web/i18n/*.json AND flatKeys parity check before committing any i18n change
 - [Phase 13]: [Phase 13-web-fallback-visual-refresh P01]: 6 GiftMaison atoms (Wordmark/Pill/Btn/Field/PulseDot/MonoCaption) shipped as pure-presentational React components in web/src/components/giftmaison/ — Tailwind utilities only, no inline rgb/hex except documented bg-[oklch(...)] arbitrary values for Pill ok/warn tones; PulseDot halo via shadow-[0_0_0_Npx_var(--gm-accentSoft)] preserves D-07 occasion-cascade indirection; Field forwardRef enables react-hook-form register() spread; Btn drops Phase 5 focus:ring-* in favour of focus-visible:outline-gm-accent per UI-SPEC; barrel index.ts merged with parallel Plan 02 chrome exports (TopNav/Footer/StickyMobileBar) — intended end-state for Phase 13
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-02: TopNav.onSignInClick optional callback unifies modal (RegistryPage) + route (AuthScreen) sign-in flows in one component
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-02: Footer ships i18n defaultValue fallbacks for web_footer.copyright/terms/privacy — renders correctly before Plan 03 keys land, defaultValue branches become unreachable post-Plan-03
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-02: StickyMobileBar uses Tailwind arbitrary value pb-[calc(env(safe-area-inset-bottom)+12px)] for safe-area inset — Tailwind 3.4 square-bracket arbitrary utility supports env() in calc()
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-02: LanguageSwitcher single-button toggle (EN / RO active highlight) preserved over prototype's two-button shape — keeps Phase 5 5-test contract anchored on click→language change green, fewer DOM nodes
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-02: AppRootPage chosen as first design-system canary — minimal traffic + zero feature dependencies = lowest-risk first end-to-end render of Plan 00 tokens + Plan 01 atoms + Plan 02 chrome
 
 ### Pending Todos
 
@@ -327,6 +333,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-07T20:03:45.677Z
-Stopped at: Completed 13-01-PLAN.md
+Last session: 2026-05-07T20:05:05.591Z
+Stopped at: Completed 13-02-PLAN.md
 Resume file: None
