@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 13-06-PLAN.md
-last_updated: "2026-05-07T20:16:59.714Z"
+stopped_at: Completed 13-04-PLAN.md
+last_updated: "2026-05-07T20:18:37.154Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 14
   completed_phases: 12
   total_plans: 69
-  completed_plans: 66
+  completed_plans: 67
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 13 (web-fallback-visual-refresh) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 Status: Ready to execute
 Last activity: 2026-05-07
 
@@ -109,6 +109,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13-web-fallback-visual-refresh P01 | 3min | 2 tasks | 7 files |
 | Phase 13-web-fallback-visual-refresh P02 | 8min | 2 tasks | 6 files |
 | Phase 13-web-fallback-visual-refresh P06 | 4min | 4 tasks | 8 files |
+| Phase 13-web-fallback-visual-refresh P04 | 8min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -291,6 +292,10 @@ Recent decisions affecting current work:
 - [Phase 13-web-fallback-visual-refresh]: Plan 13-06: GuestSkipCard does NOT pin itself — atom is decoupled from breakpoint logic; AuthScreen renders it twice (hidden lg:block desktop inline + StickyMobileBar sm:hidden mobile-pinned) so a single React node covers both viewports without prop drilling; D-05 'must be reachable in 1 tap' satisfied via the StickyMobileBar wrapper
 - [Phase 13-web-fallback-visual-refresh]: Plan 13-06: Self-host /auth-editorial.jpg (Unsplash photo-1513694203232-719a280e022f, 1200x801 progressive JPEG ~92 KB) at web/public/ — production has no runtime images.unsplash.com dependency, Vite emits to hosting/public/ on every build; og-default.png shipped as real Pillow-rendered 1200x630 placeholder with italic giftmaison wordmark + terracotta accent period (NOT 1x1 transparent fallback) since Pillow was available
 - [Phase 13-web-fallback-visual-refresh]: Plan 13-06: AuthModal.test.tsx adds vi.mock('../../../firebase') + vi.mock('../useAuth') because the restyled modal imports atoms via the giftmaison barrel which transitively imports TopNav -> useAuth -> firebase/auth (jsdom auth/invalid-api-key crash); plan's verify chain mandated the literal barrel import, so test-side mock was the resolution path (not barrel-bypass); pattern reusable for any future component pulling the giftmaison barrel into a jsdom test
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-04: ItemCard.tsx imports atoms directly from giftmaison/Pill / /PulseDot / /MonoCaption (not the barrel) — barrel re-exports TopNav→useAuth→firebase/auth, which crashes ItemCard.test.tsx in jsdom without firebase mocks; direct imports keep the unit-test import graph firebase-free
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-04: Hero headline (RegistryHeader) kept upright (no italic-accent emphasis span) — UI-SPEC D-13 reads italic-accent as wordmark + screens 02/03 only; the screens with explicit pre/emphasis/post i18n triples (Plans 13-05 / 13-06) own the italic emphasis, RegistryHeader honours D-13 literally
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-04: Lifted-filter-state pattern — RegistryPage owns useState<ItemFilter>('all'); FilterChips controlled via active+onChange; ItemGrid receives filter prop and applies item.status === filter predicate inline; counts via useMemo(itemsQ.data) drive optional FilterChips badges + ProgressStrip totalChosen
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-04: ItemCard purchased status keeps Pill at top-left (NOT bottom-left per the ASCII contract) — outer opacity-[0.55] + image grayscale carry the purchased signal; consistency across statuses preserves grid visual rhythm; Plan 07 may revisit if visual review surfaces a regression
 
 ### Pending Todos
 
@@ -338,6 +343,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-07T20:16:37.677Z
-Stopped at: Completed 13-06-PLAN.md
+Last session: 2026-05-07T20:18:37.149Z
+Stopped at: Completed 13-04-PLAN.md
 Resume file: None
