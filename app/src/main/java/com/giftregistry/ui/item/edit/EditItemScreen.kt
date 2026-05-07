@@ -1,5 +1,6 @@
 package com.giftregistry.ui.item.edit
 
+import android.content.Intent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,22 +26,31 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.giftregistry.R
+import com.giftregistry.domain.model.ItemStatus
 import com.giftregistry.ui.navigation.hiltViewModelWithNavArgs
+import com.giftregistry.ui.registry.detail.GuestIdentitySheet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,11 +76,56 @@ fun EditItemScreen(
     val error by viewModel.error.collectAsStateWithLifecycle()
     val savedSuccessfully by viewModel.savedSuccessfully.collectAsStateWithLifecycle()
     // quick-260507-vrp — drives the dual-mode UI: owner = full-edit form;
-    // invitee = read-only fields (+ Reserve / Mark-as-purchased actions in Task 3).
+    // invitee = read-only fields + Reserve / Mark-as-purchased actions.
     val isOwner by viewModel.isOwner.collectAsStateWithLifecycle()
+    val activeReservationId by viewModel.activeReservationId.collectAsStateWithLifecycle()
+    val isReserving by viewModel.isReserving.collectAsStateWithLifecycle()
+    val confirmingPurchase by viewModel.confirmingPurchase.collectAsStateWithLifecycle()
+    val item by viewModel.itemFlow.collectAsStateWithLifecycle()
+
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
+    var showGuestSheet by remember { mutableStateOf(false) }
+
+    val unavailableMsg = stringResource(R.string.reservation_error_unavailable)
+    val genericErrorMsg = stringResource(R.string.reservation_error_generic)
 
     LaunchedEffect(savedSuccessfully) {
         if (savedSuccessfully) onBack()
+    }
+
+    // quick-260507-vrp — collect reservation events and dispatch to UI side
+    // effects. Mirrors RegistryDetailScreen.kt:137-155 verbatim (Intent.ACTION_VIEW
+    // for OpenRetailer, sheet open for ShowGuestSheet, snackbar for ShowConflictError).
+    LaunchedEffect(Unit) {
+        viewModel.reservationEvents.collect { event ->
+            when (event) {
+                is EditItemViewModel.ReservationEvent.OpenRetailer -> {
+                    runCatching {
+                        context.startActivity(Intent(Intent.ACTION_VIEW, event.affiliateUrl.toUri()))
+                    }
+                }
+                EditItemViewModel.ReservationEvent.ShowGuestSheet -> {
+                    showGuestSheet = true
+                }
+                is EditItemViewModel.ReservationEvent.ShowConflictError -> {
+                    val msg = if (event.code == "ITEM_UNAVAILABLE") unavailableMsg else genericErrorMsg
+                    snackbarHostState.showSnackbar(msg)
+                }
+            }
+        }
+    }
+
+    // quick-260507-vrp — collect confirm-purchase snackbar resIds. On success
+    // (R.string.reservation_confirm_purchase_success) the screen pops back so
+    // the invitee returns to RegistryDetailScreen and sees the status flip.
+    LaunchedEffect(Unit) {
+        viewModel.snackbarMessages.collect { resId ->
+            snackbarHostState.showSnackbar(context.getString(resId))
+            if (resId == R.string.reservation_confirm_purchase_success) {
+                onBack()
+            }
+        }
     }
 
     Scaffold(
@@ -86,7 +141,8 @@ fun EditItemScreen(
                     }
                 }
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { paddingValues ->
         if (isLoading) {
             Box(
@@ -302,8 +358,68 @@ fun EditItemScreen(
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
-                // Task 3 will append Reserve + Mark-as-purchased buttons here.
+
+                // quick-260507-vrp Task 3 — Reserve + Mark-as-purchased actions.
+                // Reuses the SAME ReserveItemUseCase + ConfirmPurchaseUseCase
+                // pipeline as RegistryDetailScreen — zero new reserve/purchase
+                // code paths. Status gates mirror RegistryDetailScreen's
+                // existing reserve gating (item.status == AVAILABLE) and the
+                // ConfirmPurchaseBanner gate (RESERVED && activeReservationId != null).
+                val currentItem = item
+                val canReserve = currentItem?.status == ItemStatus.AVAILABLE && !isReserving
+                val canConfirmPurchase = currentItem?.status == ItemStatus.RESERVED &&
+                    activeReservationId != null && !confirmingPurchase
+
+                Button(
+                    onClick = { viewModel.onReserveClicked(itemId) },
+                    enabled = canReserve,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    if (isReserving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(16.dp)
+                                .padding(end = 8.dp),
+                        )
+                    }
+                    Text(stringResource(R.string.reservation_reserve_button))
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Button(
+                    onClick = {
+                        val rid = activeReservationId
+                        if (rid != null) viewModel.onConfirmPurchase(rid)
+                    },
+                    enabled = canConfirmPurchase,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    if (confirmingPurchase) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(16.dp)
+                                .padding(end = 8.dp),
+                        )
+                    }
+                    Text(stringResource(R.string.reservation_confirm_purchase_cta))
+                }
             }
         }
+    }
+
+    // quick-260507-vrp — guest identity sheet, mirrors RegistryDetailScreen.kt:384-393.
+    // Triggered by ReservationEvent.ShowGuestSheet when the invitee taps Reserve
+    // without a saved guest identity in DataStore. After submit, the sheet flips
+    // back, the VM persists the GuestUser, and performReservation runs with it.
+    if (showGuestSheet) {
+        GuestIdentitySheet(
+            initial = null,
+            onDismiss = { showGuestSheet = false },
+            onSubmit = { guest ->
+                showGuestSheet = false
+                viewModel.onGuestIdentitySubmitted(guest)
+            },
+        )
     }
 }

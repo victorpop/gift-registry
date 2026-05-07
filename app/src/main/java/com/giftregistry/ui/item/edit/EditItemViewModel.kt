@@ -248,19 +248,73 @@ class EditItemViewModel @Inject constructor(
         .catch { emit(null) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    // RED stubs — no-ops so the test file compiles. GREEN follow-up replaces
-    // these with the real reservation orchestration that mirrors
-    // RegistryDetailViewModel.performReservation + onConfirmPurchase.
     fun onReserveClicked(itemId: String) {
-        // RED: intentionally empty — tests assert specific events / use case
-        // invocations that this stub does not produce.
+        if (_isReserving.value) return
+        viewModelScope.launch {
+            val guest = guestPreferencesRepository.getGuestIdentity()
+            if (guest == null) {
+                pendingReserveItemId = itemId
+                _reservationEvents.send(ReservationEvent.ShowGuestSheet)
+                return@launch
+            }
+            performReservation(itemId, guest)
+        }
     }
 
     fun onGuestIdentitySubmitted(guest: GuestUser) {
-        // RED stub.
+        viewModelScope.launch {
+            guestPreferencesRepository.saveGuestIdentity(guest)
+            val targetItemId = pendingReserveItemId ?: return@launch
+            pendingReserveItemId = null
+            performReservation(targetItemId, guest)
+        }
     }
 
+    private suspend fun performReservation(itemId: String, guest: GuestUser) {
+        _isReserving.value = true
+        try {
+            // Pass the signed-in user's UID so the server-side reservation record
+            // has it for analytics. The public web giver flow runs anonymously
+            // and passes null; on Android invitee path we have a UID.
+            val giverId = authRepository.currentUser?.uid
+            reserveItemUseCase(registryId, itemId, guest, giverId = giverId)
+                .onSuccess { result ->
+                    // Persist reservationId so Mark-as-purchased can pass the
+                    // correct server-side ID to confirmPurchase (items/{id} and
+                    // reservations/{id} are different Firestore collections).
+                    // Survives process death.
+                    guestPreferencesRepository.setActiveReservationId(result.reservationId)
+                    _reservationEvents.send(ReservationEvent.OpenRetailer(result.affiliateUrl))
+                }
+                .onFailure { err ->
+                    val code = err.message?.takeIf { it.isNotBlank() } ?: "RESERVATION_FAILED"
+                    _reservationEvents.send(ReservationEvent.ShowConflictError(code))
+                }
+        } finally {
+            _isReserving.value = false
+        }
+    }
+
+    /**
+     * Invitee taps Mark-as-purchased on EditItemScreen. Calls ConfirmPurchaseUseCase;
+     * emits a snackbar on success or failure. On success, clears activeReservationId
+     * (the screen pops back via the EditItemScreen LaunchedEffect that watches
+     * snackbarMessages for the success resId).
+     */
     fun onConfirmPurchase(reservationId: String) {
-        // RED stub.
+        viewModelScope.launch {
+            _confirmingPurchase.value = true
+            val result = confirmPurchaseUseCase(reservationId)
+            _confirmingPurchase.value = false
+            result.fold(
+                onSuccess = {
+                    guestPreferencesRepository.setActiveReservationId(null)
+                    _snackbarMessages.emit(com.giftregistry.R.string.reservation_confirm_purchase_success)
+                },
+                onFailure = {
+                    _snackbarMessages.emit(com.giftregistry.R.string.reservation_confirm_purchase_error)
+                },
+            )
+        }
     }
 }
