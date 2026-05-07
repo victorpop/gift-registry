@@ -63,8 +63,15 @@ internal fun RegistryDetailHero(
     listState: LazyListState,
     onBack: () -> Unit,
     onShare: () -> Unit,
-    onOverflow: () -> Unit,
     modifier: Modifier = Modifier,
+    /**
+     * Quick task 260507-uzv — owner-only kebab IconButton on the hero
+     * toolbar. Pass non-null only when the viewer owns the registry; for
+     * non-owners pass null and the kebab is omitted from the composition
+     * (no icon, no tap target). Mirrors the [onCoverTap] nullable pattern
+     * already used in this file for the D-13 cover-photo tap target.
+     */
+    onOverflow: (() -> Unit)? = null,
     /**
      * Phase 12 D-13 — owner-only tap on the 180 dp hero opens the
      * cover-photo picker sheet. Pass non-null only for the registry owner;
@@ -183,12 +190,17 @@ internal fun RegistryDetailHero(
                     tint = if (toolbarAlpha > 0.5f) colors.ink else colors.paper,
                 )
             }
-            IconButton(onClick = onOverflow) {
-                Icon(
-                    imageVector = Icons.Default.MoreVert,
-                    contentDescription = stringResource(R.string.registry_detail_overflow_desc),
-                    tint = if (toolbarAlpha > 0.5f) colors.ink else colors.paper,
-                )
+            // quick-260507-uzv — kebab renders only for owners (non-null callback).
+            // Non-owners see nothing here; the trailing Share IconButton above is
+            // intentionally NOT gated (top-bar Share is available to anyone).
+            if (onOverflow != null) {
+                IconButton(onClick = onOverflow) {
+                    Icon(
+                        imageVector = Icons.Default.MoreVert,
+                        contentDescription = stringResource(R.string.registry_detail_overflow_desc),
+                        tint = if (toolbarAlpha > 0.5f) colors.ink else colors.paper,
+                    )
+                }
             }
         }
     }

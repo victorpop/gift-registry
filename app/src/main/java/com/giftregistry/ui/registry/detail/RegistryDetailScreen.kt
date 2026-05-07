@@ -198,7 +198,9 @@ fun RegistryDetailScreen(
                     listState = listState,
                     onBack = onBack,
                     onShare = onShareTap,
-                    onOverflow = { overflowMenuExpanded = true },
+                    // quick-260507-uzv — owner-only overflow: pass null for non-owners
+                    // so the kebab IconButton is omitted from the composition.
+                    onOverflow = if (isOwner) ({ overflowMenuExpanded = true }) else null,
                     // D-13 owner-only tap: pass null for guests so clickable is a no-op
                     // (no ripple, no pressed state).
                     onCoverTap = if (isOwner) ({ pickerSheetOpen = true }) else null,
@@ -271,59 +273,68 @@ fun RegistryDetailScreen(
         }
 
         // --- Overflow DropdownMenu (PRESERVED: Edit / Share / Invite / Delete) ---
-        // Anchored at top-end below the hero toolbar icon row (~56 dp)
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 56.dp, end = 8.dp),
-        ) {
-            DropdownMenu(
-                expanded = overflowMenuExpanded,
-                onDismissRequest = { overflowMenuExpanded = false },
+        // Anchored at top-end below the hero toolbar icon row (~56 dp).
+        //
+        // quick-260507-uzv — gated on `isOwner`. The kebab trigger is also nulled
+        // out at the RegistryDetailHero call site for non-owners, so this block is
+        // unreachable for them; wrapping the Box in `if (isOwner)` is defence in
+        // depth (the Box itself never enters the composition for non-owners, so
+        // even if `overflowMenuExpanded` were somehow flipped true, the menu has
+        // nowhere to anchor).
+        if (isOwner) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 56.dp, end = 8.dp),
             ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.registry_edit_title)) },
-                    leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-                    onClick = {
-                        overflowMenuExpanded = false
-                        onNavigateToEditRegistry()
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.registry_share_button)) },
-                    leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) },
-                    onClick = {
-                        overflowMenuExpanded = false
-                        onShareTap()
-                    },
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.registry_invite_title)) },
-                    leadingIcon = { Icon(Icons.Default.PersonAdd, contentDescription = null) },
-                    onClick = {
-                        overflowMenuExpanded = false
-                        onNavigateToInvite()
-                    },
-                )
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = stringResource(R.string.common_delete),
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
-                        )
-                    },
-                    onClick = {
-                        overflowMenuExpanded = false
-                        showDeleteRegistryDialog = true
-                    },
-                )
+                DropdownMenu(
+                    expanded = overflowMenuExpanded,
+                    onDismissRequest = { overflowMenuExpanded = false },
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.registry_edit_title)) },
+                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+                        onClick = {
+                            overflowMenuExpanded = false
+                            onNavigateToEditRegistry()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.registry_share_button)) },
+                        leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) },
+                        onClick = {
+                            overflowMenuExpanded = false
+                            onShareTap()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.registry_invite_title)) },
+                        leadingIcon = { Icon(Icons.Default.PersonAdd, contentDescription = null) },
+                        onClick = {
+                            overflowMenuExpanded = false
+                            onNavigateToInvite()
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = {
+                            Text(
+                                text = stringResource(R.string.common_delete),
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error,
+                            )
+                        },
+                        onClick = {
+                            overflowMenuExpanded = false
+                            showDeleteRegistryDialog = true
+                        },
+                    )
+                }
             }
         }
 
