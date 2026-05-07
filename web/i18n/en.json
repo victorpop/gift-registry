@@ -8,7 +8,7 @@
     "cancel": "Cancel",
     "save": "Save",
     "delete": "Delete",
-    "loading": "Loading\u2026",
+    "loading": "Loading…",
     "error_generic": "Something went wrong. Please try again.",
     "retry": "Retry",
     "back": "Back"
@@ -43,14 +43,14 @@
     "status_available": "Available",
     "status_reserved": "Reserved",
     "status_purchased": "Purchased",
-    "banner_text": "You reserved {{itemName}} \u2014 {{minutes}} min left",
+    "banner_text": "You reserved {{itemName}} — {{minutes}} min left",
     "banner_view": "View on {{retailer}}",
     "conflict": "Someone just reserved this gift. Try another.",
-    "success": "Gift reserved! Redirecting to retailer\u2026",
-    "resolving": "Checking your reservation\u2026",
+    "success": "Gift reserved! Redirecting to retailer…",
+    "resolving": "Checking your reservation…",
     "confirm_purchase_heading": "Did you complete the purchase?",
     "confirm_purchase_cta": "I completed the purchase",
-    "confirm_purchase_loading": "Confirming\u2026",
+    "confirm_purchase_loading": "Confirming…",
     "confirm_purchase_success": "Purchase confirmed. Thank you!",
     "confirm_purchase_error": "Could not confirm. Please try again."
   },
@@ -59,5 +59,74 @@
   },
   "settings": {
     "email_language_label": "Email language"
+  },
+  "web_nav": {
+    "locale_toggle": "EN / RO"
+  },
+  "web_footer": {
+    "copyright": "© giftmaison 2026",
+    "terms": "terms",
+    "privacy": "privacy"
+  },
+  "web_hero": {
+    "public_pill": "PUBLIC LINK",
+    "private_pill": "PRIVATE",
+    "occasion_housewarming": "⌂ HOUSEWARMING",
+    "progress_label": "PROGRESS",
+    "progress_copy": "{{n}} of {{total}} chosen",
+    "share_button": "Share this registry",
+    "section_title": "The list",
+    "section_item_count": "— {{n}} items",
+    "filter_all": "All",
+    "reserve_cta": "Reserve this gift →"
+  },
+  "web_reserve": {
+    "banner_heading_pre": "You reserved ",
+    "banner_heading_emphasis": "{{itemName}}",
+    "banner_heading_post": ".",
+    "banner_subline_pre": "Finish your purchase at ",
+    "banner_subline_retailer": "{{retailer}}",
+    "banner_subline_separator": "  ·  ",
+    "banner_subline_countdown": "{{mmss}} remaining",
+    "banner_aria_live": "{{minutes}} minutes remaining",
+    "release_cta": "Release reservation",
+    "continue_cta": "Continue to {{retailer}} →",
+    "detail_caption": "YOUR RESERVATION · STEP 2 OF 2",
+    "detail_headline_pre": "Nice one. ",
+    "detail_headline_emphasis": "Now finish the purchase",
+    "detail_headline_post": " at the retailer.",
+    "item_pill": "◉ RESERVED FOR YOU",
+    "time_label": "TIME TO PURCHASE",
+    "confirm_heading": "Bought it? Mark it as purchased.",
+    "confirm_body": "This releases the timer and lets the owner know. Otherwise the item frees up in {{minutes}} minutes.",
+    "how_timer_heading": "HOW THE TIMER WORKS",
+    "how_timer_step1_h": "Now",
+    "how_timer_step1_b": "Nobody else can reserve this gift.",
+    "how_timer_step2_h": "You buy it at {{retailer}}",
+    "how_timer_step2_b": "Use any payment method. We never see your card.",
+    "how_timer_step3_h": "Tap \"I completed the purchase\"",
+    "how_timer_step3_b": "It locks as given, with your name visible only to the owner.",
+    "how_timer_step4_h": "Or 30 minutes pass",
+    "how_timer_step4_b": "No action, no worries — the item releases and we email you a one-tap re-reserve link."
+  },
+  "web_pill": {
+    "available": "AVAILABLE",
+    "reserved": "RESERVED",
+    "purchased": "✓ PURCHASED",
+    "reserved_banner": "{{minutes}} MIN LEFT — auto-releases if not purchased"
+  },
+  "web_auth": {
+    "caption": "YOU'RE INVITED TO A REGISTRY",
+    "headline_pre": "",
+    "headline_emphasis": "Pick up",
+    "headline_post": " where you left off",
+    "subline": "Sign in so you keep your reservations across devices — or skip ahead as a guest and we'll only ask for your name.",
+    "show_password": "SHOW",
+    "hide_password": "HIDE",
+    "guest_skip_title": "Just here to reserve a gift?",
+    "guest_skip_body": "Continue as guest — we'll only ask for your name.",
+    "guest_skip_cta": "Skip →",
+    "editorial_quote": "“Best housewarming gift? Something they'd never buy themselves but secretly wanted.”",
+    "editorial_attribution": "— ANONYMOUS"
   }
 }
