@@ -65,6 +65,9 @@ fun EditItemScreen(
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
     val savedSuccessfully by viewModel.savedSuccessfully.collectAsStateWithLifecycle()
+    // quick-260507-vrp — drives the dual-mode UI: owner = full-edit form;
+    // invitee = read-only fields (+ Reserve / Mark-as-purchased actions in Task 3).
+    val isOwner by viewModel.isOwner.collectAsStateWithLifecycle()
 
     LaunchedEffect(savedSuccessfully) {
         if (savedSuccessfully) onBack()
@@ -107,122 +110,200 @@ fun EditItemScreen(
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    value = url,
-                    onValueChange = { viewModel.url.value = it },
-                    label = { Text(stringResource(R.string.item_add_url_label)) },
-                    placeholder = { Text(stringResource(R.string.item_add_url_hint)) },
-                    modifier = Modifier.weight(1f),
-                    singleLine = true
-                )
-                OutlinedButton(
-                    onClick = { viewModel.onFetchMetadata() },
-                    enabled = !isFetchingOg && url.isNotBlank()
-                ) {
-                    Text("Fetch")
-                }
-            }
-
-            if (isFetchingOg) {
+            // quick-260507-vrp — dual-mode rendering. Owner branch is THE
+            // existing form body verbatim, no behavioural change. Invitee
+            // branch renders the same fields with enabled=false (no Save,
+            // no Delete, no Fetch button). Task 3 appends Reserve +
+            // Mark-as-purchased action buttons to the invitee branch.
+            if (isOwner) {
+                // ---- OWNER MODE: full edit (unchanged from pre-vrp) ----
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                    OutlinedTextField(
+                        value = url,
+                        onValueChange = { viewModel.url.value = it },
+                        label = { Text(stringResource(R.string.item_add_url_label)) },
+                        placeholder = { Text(stringResource(R.string.item_add_url_hint)) },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true
+                    )
+                    OutlinedButton(
+                        onClick = { viewModel.onFetchMetadata() },
+                        enabled = !isFetchingOg && url.isNotBlank()
+                    ) {
+                        Text("Fetch")
+                    }
+                }
+
+                if (isFetchingOg) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                        Text(
+                            text = stringResource(R.string.item_add_fetching_metadata),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                if (ogFetchFailed) {
                     Text(
-                        text = stringResource(R.string.item_add_fetching_metadata),
+                        text = stringResource(R.string.item_og_fetch_failed),
+                        color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-            }
 
-            if (ogFetchFailed) {
-                Text(
-                    text = stringResource(R.string.item_og_fetch_failed),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { viewModel.title.value = it },
+                    label = { Text(stringResource(R.string.item_title_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
-            }
 
-            OutlinedTextField(
-                value = title,
-                onValueChange = { viewModel.title.value = it },
-                label = { Text(stringResource(R.string.item_title_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = price,
-                onValueChange = { viewModel.price.value = it },
-                label = { Text(stringResource(R.string.item_price_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            if (imageUrl.isNotBlank()) {
-                val previewFallback = rememberVectorPainter(Icons.Default.Image)
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = stringResource(R.string.item_image_content_desc),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .clip(RoundedCornerShape(8.dp)),
-                    contentScale = ContentScale.Fit,
-                    placeholder = previewFallback,
-                    error = previewFallback,
-                    fallback = previewFallback,
+                OutlinedTextField(
+                    value = price,
+                    onValueChange = { viewModel.price.value = it },
+                    label = { Text(stringResource(R.string.item_price_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
-            }
 
-            OutlinedTextField(
-                value = imageUrl,
-                onValueChange = { viewModel.imageUrl.value = it },
-                label = { Text(stringResource(R.string.item_image_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = notes,
-                onValueChange = { viewModel.notes.value = it },
-                label = { Text(stringResource(R.string.item_notes_label)) },
-                placeholder = { Text(stringResource(R.string.item_notes_hint)) },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2,
-                maxLines = 4
-            )
-
-            if (error != null) {
-                Text(
-                    text = error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            Button(
-                onClick = viewModel::onSave,
-                enabled = !isSaving && !isFetchingOg,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (isSaving) {
-                    CircularProgressIndicator(
+                if (imageUrl.isNotBlank()) {
+                    val previewFallback = rememberVectorPainter(Icons.Default.Image)
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = stringResource(R.string.item_image_content_desc),
                         modifier = Modifier
-                            .size(16.dp)
-                            .padding(end = 8.dp)
+                            .fillMaxWidth()
+                            .height(120.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Fit,
+                        placeholder = previewFallback,
+                        error = previewFallback,
+                        fallback = previewFallback,
                     )
                 }
-                Text(stringResource(R.string.common_save))
-            }
 
-            Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = imageUrl,
+                    onValueChange = { viewModel.imageUrl.value = it },
+                    label = { Text(stringResource(R.string.item_image_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = { viewModel.notes.value = it },
+                    label = { Text(stringResource(R.string.item_notes_label)) },
+                    placeholder = { Text(stringResource(R.string.item_notes_hint)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                    maxLines = 4
+                )
+
+                if (error != null) {
+                    Text(
+                        text = error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
+                Button(
+                    onClick = viewModel::onSave,
+                    enabled = !isSaving && !isFetchingOg,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (isSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(16.dp)
+                                .padding(end = 8.dp)
+                        )
+                    }
+                    Text(stringResource(R.string.common_save))
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+            } else {
+                // ---- INVITEE MODE: read-only fields (no Save, no Delete, no Fetch) ----
+                // Skips the URL+Fetch Row, isFetchingOg / ogFetchFailed indicators,
+                // and the `error` text — all of those are owner-side concerns
+                // (only onSave + onFetchMetadata produce them, and invitees
+                // call neither). Task 3 appends Reserve + Mark-as-purchased.
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = {},
+                    label = { Text(stringResource(R.string.item_title_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    enabled = false,
+                )
+
+                OutlinedTextField(
+                    value = price,
+                    onValueChange = {},
+                    label = { Text(stringResource(R.string.item_price_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    enabled = false,
+                )
+
+                if (imageUrl.isNotBlank()) {
+                    val previewFallback = rememberVectorPainter(Icons.Default.Image)
+                    AsyncImage(
+                        model = imageUrl,
+                        contentDescription = stringResource(R.string.item_image_content_desc),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(120.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Fit,
+                        placeholder = previewFallback,
+                        error = previewFallback,
+                        fallback = previewFallback,
+                    )
+                }
+
+                OutlinedTextField(
+                    value = imageUrl,
+                    onValueChange = {},
+                    label = { Text(stringResource(R.string.item_image_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    enabled = false,
+                )
+
+                OutlinedTextField(
+                    value = notes,
+                    onValueChange = {},
+                    label = { Text(stringResource(R.string.item_notes_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                    maxLines = 4,
+                    enabled = false,
+                )
+
+                OutlinedTextField(
+                    value = url,
+                    onValueChange = {},
+                    label = { Text(stringResource(R.string.item_add_url_label)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    enabled = false,
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+                // Task 3 will append Reserve + Mark-as-purchased buttons here.
+            }
         }
     }
 }

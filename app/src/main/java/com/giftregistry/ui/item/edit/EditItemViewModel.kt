@@ -15,9 +15,13 @@ import com.giftregistry.domain.usecase.ReserveItemUseCase
 import com.giftregistry.domain.usecase.UpdateItemUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -50,10 +54,40 @@ class EditItemViewModel @Inject constructor(
     val price = MutableStateFlow("")
     val notes = MutableStateFlow("")
 
-    // quick-260507-vrp — RED stub: always false. Replaced in GREEN with
-    // the real combine(registry, authState) wiring that mirrors
-    // RegistryDetailViewModel.isOwner (RegistryDetailViewModel.kt:182-189).
-    val isOwner: StateFlow<Boolean> = MutableStateFlow(false).asStateFlow()
+    /**
+     * quick-260507-vrp — observes the registry that owns this item so the
+     * UI layer can derive ownership without a separate VM lookup. Mirrors
+     * the RegistryDetailViewModel.registry field (line 141-143). Eagerly
+     * + initial-null + .catch{emit(null)} keeps the UI safe during load
+     * and Firestore errors.
+     */
+    val registry: StateFlow<Registry?> = observeRegistry(registryId)
+        .catch { emit(null) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /**
+     * quick-260507-vrp — true when the signed-in user owns the registry
+     * that this item belongs to. Drives the dual-mode UI on EditItemScreen:
+     * owner mode = full edit (Save / Delete reachable from per-item kebab
+     * on the Detail row); invitee mode = read-only fields + Reserve /
+     * Mark-as-purchased actions reusing the same use cases the giver flow
+     * already uses on RegistryDetailScreen. Mirrors
+     * RegistryDetailViewModel.isOwner (RegistryDetailViewModel.kt:182-189)
+     * line-for-line so both surfaces use the same ownership predicate as
+     * the server (functions/src/registry/inviteToRegistry.ts:50).
+     *
+     * Eagerly + initial-false + .catch{emit(false)} means non-owner UI is
+     * the safe default during load — owner-only edit affordances never
+     * flash for an invitee.
+     */
+    val isOwner: StateFlow<Boolean> = combine(
+        registry,
+        authRepository.authState,
+    ) { reg, user ->
+        reg != null && user != null && reg.ownerId == user.uid
+    }
+        .catch { emit(false) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
