@@ -3,9 +3,15 @@ package com.giftregistry.ui.item.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.giftregistry.domain.auth.AuthRepository
 import com.giftregistry.domain.model.Item
+import com.giftregistry.domain.model.Registry
+import com.giftregistry.domain.preferences.GuestPreferencesRepository
+import com.giftregistry.domain.usecase.ConfirmPurchaseUseCase
 import com.giftregistry.domain.usecase.FetchOgMetadataUseCase
 import com.giftregistry.domain.usecase.ObserveItemsUseCase
+import com.giftregistry.domain.usecase.ObserveRegistryUseCase
+import com.giftregistry.domain.usecase.ReserveItemUseCase
 import com.giftregistry.domain.usecase.UpdateItemUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,7 +26,18 @@ class EditItemViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val updateItem: UpdateItemUseCase,
     private val observeItems: ObserveItemsUseCase,
-    private val fetchOgMetadata: FetchOgMetadataUseCase
+    private val fetchOgMetadata: FetchOgMetadataUseCase,
+    // quick-260507-vrp — invitee dual-mode UI dependencies. AuthRepository +
+    // ObserveRegistryUseCase drive isOwner; ReserveItemUseCase +
+    // ConfirmPurchaseUseCase + GuestPreferencesRepository drive the giver
+    // actions on EditItemScreen invitee mode (Task 3). All five are already
+    // provided in the existing Hilt graph used by RegistryDetailViewModel —
+    // no module changes needed.
+    private val authRepository: AuthRepository,
+    private val observeRegistry: ObserveRegistryUseCase,
+    private val reserveItemUseCase: ReserveItemUseCase,
+    private val confirmPurchaseUseCase: ConfirmPurchaseUseCase,
+    private val guestPreferencesRepository: GuestPreferencesRepository,
 ) : ViewModel() {
 
     val registryId: String = savedStateHandle["registryId"] ?: ""
@@ -32,6 +49,11 @@ class EditItemViewModel @Inject constructor(
     val imageUrl = MutableStateFlow("")
     val price = MutableStateFlow("")
     val notes = MutableStateFlow("")
+
+    // quick-260507-vrp — RED stub: always false. Replaced in GREEN with
+    // the real combine(registry, authState) wiring that mirrors
+    // RegistryDetailViewModel.isOwner (RegistryDetailViewModel.kt:182-189).
+    val isOwner: StateFlow<Boolean> = MutableStateFlow(false).asStateFlow()
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
