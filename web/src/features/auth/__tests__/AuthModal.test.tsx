@@ -10,6 +10,19 @@ const providerMocks = vi.hoisted(() => ({
 }))
 vi.mock('../authProviders', () => providerMocks)
 
+// AuthModal now imports atoms via the giftmaison barrel which transitively pulls in
+// TopNav → useAuth → firebase/auth. Stub out the firebase module + auth state hook so
+// the modal can render in jsdom without a real Firebase config (Phase 13-06 Task 3).
+vi.mock('../../../firebase', () => ({
+  auth: { _kind: 'fakeAuth' },
+  app: { _kind: 'fakeApp' },
+  db: { _kind: 'fakeDb' },
+  functions: { _kind: 'fakeFunctions' },
+}))
+vi.mock('../useAuth', () => ({
+  useAuth: () => ({ user: null, isReady: true }),
+}))
+
 import AuthModal from '../AuthModal'
 
 describe('AuthModal', () => {
