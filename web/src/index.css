@@ -3,7 +3,44 @@
 @tailwind utilities;
 
 :root {
+  /* Phase 5 legacy — kept for cutover. */
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
+
+  /* Phase 13 Housewarming tokens (CONTEXT D-02, D-07).
+     sRGB hex below is the rendered value. The oklch() source-of-truth is in
+     design_handoff_web_giver_flow/reference/theme.jsx + tailwind.config.ts comments.
+     v1.2 occasion cascade will swap these custom-property values at the
+     registry-detail root without rewriting any class names. */
+  --gm-paper:      #F7F2E9;
+  --gm-paperDeep:  #EDE5D5;
+  --gm-ink:        #2A2420;
+  --gm-inkSoft:    #6A5E52;
+  --gm-inkFaint:   #9C8E7F;
+  --gm-line:       #DDD4C4;
+  --gm-accent:     #C8623A;
+  --gm-accentInk:  #FCF8EF;
+  --gm-accentSoft: #F3DED0;
+  --gm-second:     #4F7050;
+  --gm-secondSoft: #D7E2CE;
+  --gm-ok:         #4F9668;
+  --gm-warn:       #D29447;
+}
+
+/* Phase 13 — single shared pulse keyframe (CONTEXT D-11).
+   Applied to: sticky banner pulse dot (10 px), Reserved item-card pill leading
+   dot (8 px), in-card reserved banner leading dot (8 px). Cadence 1.4 s alternate
+   matches Android Phase 9 PulsingDot constants — cross-app consistency. */
+@keyframes gm-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.5; transform: scale(0.85); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Reduced-motion fallback — fade only, no scale. */
+  @keyframes gm-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: 0.5; transform: scale(1); }
+  }
 }
