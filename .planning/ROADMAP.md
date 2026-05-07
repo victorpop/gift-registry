@@ -278,13 +278,20 @@ Plans:
 
 ### Phase 13: Web Fallback Visual Refresh
 
-**Goal:** Restyle the existing Phase 5 web fallback (giver flow: registry view, reserve, retailer redirect, re-reserve deep link) to match the GiftMaison design language shipped on Android in Phases 8-12, per a web-specific design handoff to be provided. Functional behaviour, routing, and Firebase wiring stay unchanged — this is a visual layer refresh on the existing React/Vite codebase.
-**Requirements**: TBD (mapped during planning once handoff is in)
+**Goal:** Restyle the existing Phase 5 web fallback (giver flow: registry view, reserve, retailer redirect, re-reserve deep link) to match the GiftMaison design language shipped on Android in Phases 8-12, per the web-specific design handoff at `design_handoff_web_giver_flow/`. Functional behaviour, routing, and Firebase wiring stay unchanged — this is a visual layer refresh on the existing React/Vite codebase.
+**Requirements**: D-01..D-18 (CONTEXT decisions; WEB-01..04 already complete in Phase 5 — this phase is the *visual* refresh of them)
 **Depends on:** Phase 12
-**Plans:** 0 plans
+**Plans:** 8 plans
 
 Plans:
-- [ ] TBD (run /gsd:discuss-phase 13 once handoff is provided, then /gsd:plan-phase 13)
+- [ ] 13-00-PLAN.md — Wave 1 foundation: Tailwind extension + :root --gm-* CSS vars + Google Fonts preconnect + body class swap + gm-pulse keyframe with reduced-motion fallback
+- [ ] 13-01-PLAN.md — Wave 2 atoms: Wordmark + Pill + Btn + Field + PulseDot + MonoCaption (web/src/components/giftmaison/) + barrel index
+- [ ] 13-02-PLAN.md — Wave 2 chrome: TopNav + Footer + StickyMobileBar + restyled LanguageSwitcher + AppRootPage canary
+- [ ] 13-03-PLAN.md — Wave 2 i18n: ~50 new keys in 6 web_* namespaces (en + ro + legacy seed at web/i18n/)
+- [ ] 13-04-PLAN.md — Wave 3 Screen 01 Registry detail: RegistryHeader + ProgressStrip + FilterChips + restyled ItemCard + ItemGrid + RegistryPage rewire (preserves auto-reserve plumbing)
+- [ ] 13-05-PLAN.md — Wave 4 Screen 02 Reserve: StickyReserveBanner (replaces ReservationBanner) + HowTimerWorks + ReserveDetailSection + restyled ConfirmPurchaseBanner; rendered in-page on /registry/:id when active
+- [ ] 13-06-PLAN.md — Wave 3 Screen 03 Auth: AuthScreen full-page (/sign-in route) + EditorialPhoto + GuestSkipCard + restyled AuthModal + og-default.png placeholder
+- [ ] 13-07-PLAN.md — Wave 5 polish + UAT: ReReservePage + NotFoundPage + GuestIdentityModal + ToastProvider token-pass + full Vitest re-baselining + human visual UAT (mobile + desktop, locale + reduced-motion + a11y)
 
 ### Phase 14: Web Fallback Live Deploy + Guest UAT
 
