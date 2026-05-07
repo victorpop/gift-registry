@@ -10,8 +10,8 @@ import ProgressStrip from '../features/registry/ProgressStrip'
 import FilterChips, { type ItemFilter } from '../features/registry/FilterChips'
 import NotFoundPage from './NotFoundPage'
 import ReserveButton from '../features/reservation/ReserveButton'
-import ReservationBanner from '../features/reservation/ReservationBanner'
-import { ConfirmPurchaseBanner } from '../features/reservation/ConfirmPurchaseBanner'
+import StickyReserveBanner from '../features/reservation/StickyReserveBanner'
+import ReserveDetailSection from '../features/reservation/ReserveDetailSection'
 import AuthModal from '../features/auth/AuthModal'
 import GuestIdentityModal from '../features/auth/GuestIdentityModal'
 import { useAuth } from '../features/auth/useAuth'
@@ -179,14 +179,10 @@ export default function RegistryPage() {
     <div className="min-h-screen flex flex-col bg-gm-paper">
       <TopNav onSignInClick={() => setAuthModalOpen(true)} />
 
-      {/* Existing Phase 5 ReservationBanner stays mounted — Plan 05 will replace
-          with the new sticky banner. Keeping it here keeps Phase 5 tests green. */}
-      <ReservationBanner />
-      {active && (
-        <ConfirmPurchaseBanner reservationId={active.reservationId} />
-      )}
+      <StickyReserveBanner />
 
       <main className="flex-1">
+        {active && <ReserveDetailSection registryId={id!} />}
         {isInitialLoading ? (
           <>
             <section className="px-4 sm:px-7 lg:px-10 pt-10 pb-8 max-w-7xl mx-auto w-full">
