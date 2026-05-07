@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.giftregistry.domain.auth.AuthRepository
+import com.giftregistry.domain.model.GuestUser
 import com.giftregistry.domain.model.Item
 import com.giftregistry.domain.model.Registry
 import com.giftregistry.domain.preferences.GuestPreferencesRepository
@@ -14,13 +15,20 @@ import com.giftregistry.domain.usecase.ObserveRegistryUseCase
 import com.giftregistry.domain.usecase.ReserveItemUseCase
 import com.giftregistry.domain.usecase.UpdateItemUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -173,4 +181,86 @@ class EditItemViewModel @Inject constructor(
     }
 
     fun clearError() { _error.value = null }
+
+    // -----------------------------------------------------------------------
+    // quick-260507-vrp Task 3 — invitee giver actions: Reserve + Mark-as-purchased
+    // -----------------------------------------------------------------------
+    //
+    // Plumbing mirrors RegistryDetailViewModel.kt:232-328 (ReservationEvent +
+    // performReservation + onConfirmPurchase) so both surfaces deliver
+    // identical UI side effects. Two adjustments vs. the Detail ViewModel:
+    //   - snackbar payload is a raw Int resId (no SnackbarMessage sealed type
+    //     because EditItemScreen does not consume FCM push events)
+    //   - giverId passed to ReserveItemUseCase is authRepository.currentUser?.uid
+    //     (signed-in invitees have a UID; the public web giver flow always
+    //     passes null because it runs anonymously)
+
+    /**
+     * Side-effect events emitted from reserve flow. Mirrors
+     * [com.giftregistry.ui.registry.detail.RegistryDetailViewModel.ReservationEvent]
+     * — both VMs feed identical UI side effects so duplicate the 4-line
+     * declaration rather than promoting it to a top-level domain type.
+     */
+    sealed interface ReservationEvent {
+        data class OpenRetailer(val affiliateUrl: String) : ReservationEvent
+        data object ShowGuestSheet : ReservationEvent
+        data class ShowConflictError(val code: String) : ReservationEvent
+    }
+
+    private val _reservationEvents = Channel<ReservationEvent>(Channel.BUFFERED)
+    val reservationEvents: Flow<ReservationEvent> = _reservationEvents.receiveAsFlow()
+
+    private val _isReserving = MutableStateFlow(false)
+    val isReserving: StateFlow<Boolean> = _isReserving.asStateFlow()
+
+    private var pendingReserveItemId: String? = null
+
+    /**
+     * Resource-id snackbar channel. Receives R.string.reservation_confirm_purchase_success
+     * on confirm-purchase success and R.string.reservation_confirm_purchase_error
+     * on failure. EditItemScreen collects this to show snackbars and to pop
+     * back on success.
+     */
+    private val _snackbarMessages = MutableSharedFlow<Int>(replay = 0, extraBufferCapacity = 1)
+    val snackbarMessages: SharedFlow<Int> = _snackbarMessages.asSharedFlow()
+
+    private val _confirmingPurchase = MutableStateFlow(false)
+    val confirmingPurchase: StateFlow<Boolean> = _confirmingPurchase.asStateFlow()
+
+    /**
+     * Active reservation id read from DataStore. Drives the Mark-as-purchased
+     * button gate in invitee mode: button is enabled only when
+     * `item.status == RESERVED && activeReservationId != null` (mirrors the
+     * ConfirmPurchaseBanner gate on RegistryDetailScreen).
+     */
+    val activeReservationId: StateFlow<String?> = guestPreferencesRepository
+        .observeActiveReservationId()
+        .catch { emit(null) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    /**
+     * Reactive item observation for status gating on the Reserve / Mark-as-purchased
+     * buttons. Separate from the init-block one-shot lookup because the buttons
+     * must update reactively when the Cloud Function flips status RESERVED → PURCHASED.
+     */
+    val itemFlow: StateFlow<Item?> = observeItems(registryId)
+        .map { items -> items.firstOrNull { it.id == itemId } }
+        .catch { emit(null) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    // RED stubs — no-ops so the test file compiles. GREEN follow-up replaces
+    // these with the real reservation orchestration that mirrors
+    // RegistryDetailViewModel.performReservation + onConfirmPurchase.
+    fun onReserveClicked(itemId: String) {
+        // RED: intentionally empty — tests assert specific events / use case
+        // invocations that this stub does not produce.
+    }
+
+    fun onGuestIdentitySubmitted(guest: GuestUser) {
+        // RED stub.
+    }
+
+    fun onConfirmPurchase(reservationId: String) {
+        // RED stub.
+    }
 }
