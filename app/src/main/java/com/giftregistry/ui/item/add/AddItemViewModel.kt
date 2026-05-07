@@ -10,6 +10,8 @@ import com.giftregistry.domain.model.Registry
 import com.giftregistry.domain.usecase.AddItemUseCase
 import com.giftregistry.domain.usecase.FetchOgMetadataUseCase
 import com.giftregistry.domain.usecase.ObserveRegistriesUseCase
+import com.giftregistry.ui.registry.list.isActive
+import com.giftregistry.ui.registry.list.startOfTodayMs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -63,16 +65,31 @@ class AddItemViewModel @Inject constructor(
     val initialRegistryId: String = savedStateHandle["initialRegistryId"] ?: ""
 
     /**
-     * The signed-in user's registries — drives the picker dropdown when
+     * The signed-in user's ACTIVE registries — drives the picker dropdown when
      * `fromAddSheet=true`. Mirrors RegistryListViewModel's flatMapLatest pattern.
      * Empty list flips the picker into its zero-registry empty-state branch
      * (renders an inline "Create a registry first" affordance).
+     *
+     * quick-260507-uce: filter through `Registry.isActive(todayMs)` BEFORE the
+     * `.catch { ... }.stateIn(...)` so error fallback still emits an empty list.
+     * The same predicate powers the Lists screen Active tab — single source of
+     * truth in `com.giftregistry.ui.registry.list.TabFilters` (NEVER redefine).
+     * Past registries (eventDateMs < startOfTodayMs) must not appear here.
+     *
+     * `todayMs` is captured INSIDE the `map { }` block (per emission), not once
+     * outside it, so a screen kept open past midnight re-evaluates "active"
+     * naturally on the next Firestore emission. This mirrors how
+     * `RegistryListScreen` recomputes via `remember(registries, ...)`.
      */
     val registriesForPicker: StateFlow<List<Registry>> =
         authRepository.authState
             .flatMapLatest { user ->
                 if (user == null) flowOf(emptyList())
                 else observeRegistries(user.uid)
+            }
+            .map { registries ->
+                val todayMs = startOfTodayMs()
+                registries.filter { it.isActive(todayMs) }
             }
             .catch { emit(emptyList()) }
             .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
