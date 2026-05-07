@@ -1,63 +1,132 @@
 {
   "app": {
     "name": "Registru de Cadouri",
-    "subtitle": "Descarc\u0103 pentru Android"
+    "subtitle": "Descarcă pentru Android"
   },
   "common": {
     "ok": "OK",
-    "cancel": "Anuleaz\u0103",
-    "save": "Salveaz\u0103",
-    "delete": "\u0218terge",
-    "loading": "Se \u00eencarc\u0103\u2026",
-    "error_generic": "Ceva a mers prost. \u00cencearc\u0103 din nou.",
-    "retry": "Re\u00eencearc\u0103",
-    "back": "\u00cenapoi"
+    "cancel": "Anulează",
+    "save": "Salvează",
+    "delete": "Șterge",
+    "loading": "Se încarcă…",
+    "error_generic": "Ceva a mers prost. Încearcă din nou.",
+    "retry": "Reîncearcă",
+    "back": "Înapoi"
   },
   "auth": {
     "sign_in_title": "Autentificare",
-    "sign_up_title": "Creeaz\u0103 Cont",
-    "continue_as_guest": "Continu\u0103 ca Oaspete",
-    "continue_as_guest_link": "Continu\u0103 ca oaspete",
+    "sign_up_title": "Creează Cont",
+    "continue_as_guest": "Continuă ca Oaspete",
+    "continue_as_guest_link": "Continuă ca oaspete",
     "email_label": "Email",
-    "password_label": "Parol\u0103",
-    "sign_in_google": "Continu\u0103 cu Google",
+    "password_label": "Parolă",
+    "sign_in_google": "Continuă cu Google",
     "or_separator": "sau",
     "guest_first_name": "Prenume",
     "guest_last_name": "Nume de familie",
-    "guest_modal_title": "Cine e\u0219ti?",
-    "guest_modal_body": "Introdu numele \u0219i emailul t\u0103u ca proprietarul registrului s\u0103 \u0219tie cine ofer\u0103 cadoul.",
+    "guest_modal_title": "Cine ești?",
+    "guest_modal_body": "Introdu numele și emailul tău ca proprietarul registrului să știe cine oferă cadoul.",
     "sign_in_link": "Autentificare"
   },
   "registry": {
     "create_title": "Registru Nou",
     "occasion_label": "Ocazie",
     "not_found_title": "Registru indisponibil",
-    "not_found_body": "Acest registru poate fi \u0219ters sau nu ai acces la el.",
-    "empty_title": "\u00cenc\u0103 nimic aici",
-    "empty_body": "Proprietarul registrului nu a ad\u0103ugat cadouri \u00eenc\u0103. Revino mai t\u00e2rziu."
+    "not_found_body": "Acest registru poate fi șters sau nu ai acces la el.",
+    "empty_title": "Încă nimic aici",
+    "empty_body": "Proprietarul registrului nu a adăugat cadouri încă. Revino mai târziu."
   },
   "reservation": {
     "timer_label": "Rezervat pentru {{minutes}} minute",
-    "expired": "Rezervare expirat\u0103",
-    "reserve_item": "Rezerv\u0103 Cadoul",
+    "expired": "Rezervare expirată",
+    "reserve_item": "Rezervă Cadoul",
     "status_available": "Disponibil",
     "status_reserved": "Rezervat",
-    "status_purchased": "Cump\u0103rat",
-    "banner_text": "Ai rezervat {{itemName}} \u2014 {{minutes}} min r\u0103mase",
+    "status_purchased": "Cumpărat",
+    "banner_text": "Ai rezervat {{itemName}} — {{minutes}} min rămase",
     "banner_view": "Vezi pe {{retailer}}",
-    "conflict": "Cineva tocmai a rezervat acest cadou. \u00cencearc\u0103 altul.",
-    "success": "Cadou rezervat! Redirecționare c\u0103tre magazin\u2026",
-    "resolving": "Se verific\u0103 rezervarea\u2026",
-    "confirm_purchase_heading": "Ai finalizat achizi\u021bia?",
-    "confirm_purchase_cta": "Am finalizat achizi\u021bia",
-    "confirm_purchase_loading": "Se confirm\u0103\u2026",
-    "confirm_purchase_success": "Achizi\u021bie confirmat\u0103. Mul\u021bumim!",
-    "confirm_purchase_error": "Nu s-a putut confirma. \u00cencearc\u0103 din nou."
+    "conflict": "Cineva tocmai a rezervat acest cadou. Încearcă altul.",
+    "success": "Cadou rezervat! Redirecționare către magazin…",
+    "resolving": "Se verifică rezervarea…",
+    "confirm_purchase_heading": "Ai finalizat achiziția?",
+    "confirm_purchase_cta": "Am finalizat achiziția",
+    "confirm_purchase_loading": "Se confirmă…",
+    "confirm_purchase_success": "Achiziție confirmată. Mulțumim!",
+    "confirm_purchase_error": "Nu s-a putut confirma. Încearcă din nou."
   },
   "notifications": {
-    "purchase_snackbar": "Un cadou din {{registryName}} a fost cump\u0103rat!"
+    "purchase_snackbar": "Un cadou din {{registryName}} a fost cumpărat!"
   },
   "settings": {
     "email_language_label": "Limba emailurilor"
+  },
+  "web_nav": {
+    "locale_toggle": "EN / RO"
+  },
+  "web_footer": {
+    "copyright": "© giftmaison 2026",
+    "terms": "termeni",
+    "privacy": "confidențialitate"
+  },
+  "web_hero": {
+    "public_pill": "LINK PUBLIC",
+    "private_pill": "PRIVAT",
+    "occasion_housewarming": "⌂ INAUGURARE",
+    "progress_label": "PROGRES",
+    "progress_copy": "{{n}} din {{total}} alese",
+    "share_button": "Distribuie acest registru",
+    "section_title": "Lista",
+    "section_item_count": "— {{n}} articole",
+    "filter_all": "Toate",
+    "reserve_cta": "Rezervă acest cadou →"
+  },
+  "web_reserve": {
+    "banner_heading_pre": "Ai rezervat ",
+    "banner_heading_emphasis": "{{itemName}}",
+    "banner_heading_post": ".",
+    "banner_subline_pre": "Finalizează achiziția la ",
+    "banner_subline_retailer": "{{retailer}}",
+    "banner_subline_separator": "  ·  ",
+    "banner_subline_countdown": "{{mmss}} rămase",
+    "banner_aria_live": "{{minutes}} minute rămase",
+    "release_cta": "Eliberează rezervarea",
+    "continue_cta": "Continuă pe {{retailer}} →",
+    "detail_caption": "REZERVAREA TA · PASUL 2 DIN 2",
+    "detail_headline_pre": "Foarte bine. ",
+    "detail_headline_emphasis": "Finalizează acum achiziția",
+    "detail_headline_post": " la magazin.",
+    "item_pill": "◉ REZERVAT PENTRU TINE",
+    "time_label": "TIMP PÂNĂ LA ACHIZIȚIE",
+    "confirm_heading": "Ai cumpărat? Marchează ca achiziționat.",
+    "confirm_body": "Acest lucru oprește cronometrul și anunță proprietarul. Altfel articolul se eliberează în {{minutes}} minute.",
+    "how_timer_heading": "CUM FUNCȚIONEAZĂ CRONOMETRUL",
+    "how_timer_step1_h": "Acum",
+    "how_timer_step1_b": "Nimeni altcineva nu poate rezerva acest cadou.",
+    "how_timer_step2_h": "Cumperi la {{retailer}}",
+    "how_timer_step2_b": "Folosește orice metodă de plată. Nu îți vedem cardul.",
+    "how_timer_step3_h": "Apasă „Am finalizat achiziția”",
+    "how_timer_step3_b": "Se blochează ca oferit, numele tău e vizibil doar pentru proprietar.",
+    "how_timer_step4_h": "Sau trec 30 de minute",
+    "how_timer_step4_b": "Fără acțiune, fără griji — articolul se eliberează și îți trimitem prin email un link de re-rezervare."
+  },
+  "web_pill": {
+    "available": "DISPONIBIL",
+    "reserved": "REZERVAT",
+    "purchased": "✓ CUMPĂRAT",
+    "reserved_banner": "MAI {{minutes}} MIN — se eliberează dacă nu e cumpărat"
+  },
+  "web_auth": {
+    "caption": "EȘTI INVITAT LA UN REGISTRU",
+    "headline_pre": "",
+    "headline_emphasis": "Continuă",
+    "headline_post": " de unde ai rămas",
+    "subline": "Autentifică-te ca să-ți păstrezi rezervările pe toate dispozitivele — sau continuă ca oaspete și îți cerem doar numele.",
+    "show_password": "ARATĂ",
+    "hide_password": "ASCUNDE",
+    "guest_skip_title": "Doar aici să rezervi un cadou?",
+    "guest_skip_body": "Continuă ca oaspete — îți cerem doar numele.",
+    "guest_skip_cta": "Sari →",
+    "editorial_quote": "„Cel mai bun cadou de inaugurare? Ceva ce nu și-ar cumpăra singuri dar își doreau în secret.”",
+    "editorial_attribution": "— ANONIM"
   }
 }
