@@ -3,6 +3,7 @@ package com.giftregistry.ui.registry.detail
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -60,8 +61,10 @@ import java.net.URI
 internal fun RegistryItemRow(
     item: Item,
     isLast: Boolean,
+    onTap: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    showOverflow: Boolean = true,
     modifier: Modifier = Modifier,
 ) {
     val colors = GiftMaisonTheme.colors
@@ -77,6 +80,7 @@ internal fun RegistryItemRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .clickable(onClick = onTap)
             .drawBehind {
                 if (!isLast) {
                     drawLine(
@@ -138,60 +142,67 @@ internal fun RegistryItemRow(
         // Right column: StatusChip + always-visible overflow button
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             StatusChip(status = item.status, expiresAt = item.expiresAt)
-            Spacer(Modifier.height(spacing.gap8))
-            Box {
-                IconButton(
-                    onClick = { menuExpanded = true },
-                    modifier = Modifier.size(44.dp),
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(26.dp)
-                            .clip(shapes.pill)
-                            .border(BorderStroke(1.dp, colors.line), shapes.pill),
-                        contentAlignment = Alignment.Center,
+            // quick-260507-vrp — kebab overflow is owner-only. Non-owners (invitees)
+            // tap the row itself to navigate to EditItemScreen (read-only) where the
+            // Reserve / Mark-as-purchased actions live; they have no Edit / Delete
+            // affordances. StatusChip stays outside the gate — invitees still need
+            // to see status. Mirrors the owner-gate pattern from quick-260507-uzv.
+            if (showOverflow) {
+                Spacer(Modifier.height(spacing.gap8))
+                Box {
+                    IconButton(
+                        onClick = { menuExpanded = true },
+                        modifier = Modifier.size(44.dp),
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.MoreVert,
-                            contentDescription = stringResource(R.string.registry_detail_item_overflow_desc),
-                            tint = colors.inkSoft,
-                            modifier = Modifier.size(16.dp),
+                        Box(
+                            modifier = Modifier
+                                .size(26.dp)
+                                .clip(shapes.pill)
+                                .border(BorderStroke(1.dp, colors.line), shapes.pill),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = stringResource(R.string.registry_detail_item_overflow_desc),
+                                tint = colors.inkSoft,
+                                modifier = Modifier.size(16.dp),
+                            )
+                        }
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false },
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.item_edit_title)) },
+                            leadingIcon = {
+                                Icon(Icons.Default.Edit, contentDescription = null)
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onEdit()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = stringResource(R.string.common_delete),
+                                    color = MaterialTheme.colorScheme.error,
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onDelete()
+                            },
                         )
                     }
-                }
-                DropdownMenu(
-                    expanded = menuExpanded,
-                    onDismissRequest = { menuExpanded = false },
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.item_edit_title)) },
-                        leadingIcon = {
-                            Icon(Icons.Default.Edit, contentDescription = null)
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            onEdit()
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = stringResource(R.string.common_delete),
-                                color = MaterialTheme.colorScheme.error,
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                            )
-                        },
-                        onClick = {
-                            menuExpanded = false
-                            onDelete()
-                        },
-                    )
                 }
             }
         }

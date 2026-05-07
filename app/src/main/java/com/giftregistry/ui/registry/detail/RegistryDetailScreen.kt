@@ -278,8 +278,17 @@ fun RegistryDetailScreen(
                 RegistryItemRow(
                     item = item,
                     isLast = idx == filteredItems.lastIndex,
+                    // quick-260507-vrp — row-level tap navigates to EditItemScreen
+                    // for BOTH owners and invitees (same EditItemKey route).
+                    // Owner sees full-edit form; invitee sees read-only form +
+                    // Reserve / Mark-as-purchased actions (Tasks 2 + 3).
+                    onTap = { onNavigateToEditItem(item.id) },
                     onEdit = { onNavigateToEditItem(item.id) },
                     onDelete = { itemToDelete = item },
+                    // quick-260507-vrp — per-item kebab is owner-only. Reuses the
+                    // same `isOwner` StateFlow already collected at line 86 (Phase
+                    // 12 D-13 + quick-260507-uzv). Invitees see no kebab on any row.
+                    showOverflow = isOwner,
                 )
             }
 
