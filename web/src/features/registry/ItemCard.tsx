@@ -1,6 +1,10 @@
 import { useTranslation } from 'react-i18next'
 import type { Item, ItemStatus } from '../../lib/firestore-mapping'
-import { Pill, PulseDot, MonoCaption } from '../../components/giftmaison'
+// Import atoms directly (not via barrel) to avoid pulling TopNav→useAuth→firebase
+// into ItemCard's import graph — keeps ItemCard.test.tsx (jsdom, no firebase mock) green.
+import { Pill } from '../../components/giftmaison/Pill'
+import { PulseDot } from '../../components/giftmaison/PulseDot'
+import { MonoCaption } from '../../components/giftmaison/MonoCaption'
 import { useCountdown } from '../reservation/useCountdown'
 
 interface Props {

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useRegistryQuery } from '../features/registry/useRegistryQuery'
@@ -6,8 +6,9 @@ import { useItemsQuery } from '../features/registry/useItemsQuery'
 import RegistryHeader from '../features/registry/RegistryHeader'
 import ItemGrid from '../features/registry/ItemGrid'
 import SkeletonCard from '../features/registry/SkeletonCard'
+import ProgressStrip from '../features/registry/ProgressStrip'
+import FilterChips, { type ItemFilter } from '../features/registry/FilterChips'
 import NotFoundPage from './NotFoundPage'
-import LanguageSwitcher from '../components/LanguageSwitcher'
 import ReserveButton from '../features/reservation/ReserveButton'
 import ReservationBanner from '../features/reservation/ReservationBanner'
 import { ConfirmPurchaseBanner } from '../features/reservation/ConfirmPurchaseBanner'
@@ -19,6 +20,7 @@ import { useCreateReservation } from '../features/reservation/useCreateReservati
 import { useActiveReservation } from '../features/reservation/useActiveReservation'
 import { useToast } from '../components/ToastProvider'
 import { mapHttpsErrorToI18nKey } from '../lib/error-mapping'
+import { TopNav, Footer, MonoCaption } from '../components/giftmaison'
 
 const SKELETON_COUNT = 6
 
@@ -36,6 +38,7 @@ export default function RegistryPage() {
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [guestModalOpen, setGuestModalOpen] = useState(false)
   const [pendingAutoReserveItemId, setPendingAutoReserveItemId] = useState<string | null>(null)
+  const [filter, setFilter] = useState<ItemFilter>('all')
   // Ref guard: prevents auto-reserve from firing more than once per page mount.
   // Also protects against React 18 StrictMode double-effect invocation.
   const autoReserveFiredRef = useRef(false)
@@ -152,6 +155,18 @@ export default function RegistryPage() {
     })
   }
 
+  // Counts per status — drives FilterChips count badges (optional UX).
+  const counts = useMemo(() => {
+    const all = itemsQ.data?.length ?? 0
+    const reserved = itemsQ.data?.filter(i => i.status === 'reserved').length ?? 0
+    const purchased = itemsQ.data?.filter(i => i.status === 'purchased').length ?? 0
+    const available = all - reserved - purchased
+    return { all, available, reserved, purchased } as Record<ItemFilter, number>
+  }, [itemsQ.data])
+
+  const totalChosen = (counts.reserved ?? 0) + (counts.purchased ?? 0)
+  const total = counts.all ?? 0
+
   // WEB-D-13 + WEB-D-14: registry === null (not-found OR permission-denied) → 404.
   // No distinction between cases — prevents private registry enumeration.
   if (registryQ.data === null) {
@@ -161,58 +176,79 @@ export default function RegistryPage() {
   const isInitialLoading = registryQ.data === undefined
 
   return (
-    <div className="min-h-screen bg-surface">
-      <nav className="h-12 bg-surface-variant flex items-center justify-between px-4 sticky top-0 z-20">
-        <span className="text-base font-semibold text-surface-on">{t('app.name')}</span>
-        <div className="flex items-center gap-4">
-          {!user && (
-            <button
-              type="button"
-              onClick={() => setAuthModalOpen(true)}
-              className="text-sm font-normal text-surface-on underline hover:text-primary"
-            >
-              {t('auth.sign_in_link')}
-            </button>
-          )}
-          <LanguageSwitcher />
-        </div>
-      </nav>
+    <div className="min-h-screen flex flex-col bg-gm-paper">
+      <TopNav onSignInClick={() => setAuthModalOpen(true)} />
 
+      {/* Existing Phase 5 ReservationBanner stays mounted — Plan 05 will replace
+          with the new sticky banner. Keeping it here keeps Phase 5 tests green. */}
       <ReservationBanner />
       {active && (
         <ConfirmPurchaseBanner reservationId={active.reservationId} />
       )}
 
-      {isInitialLoading ? (
-        <>
-          <div className="max-w-2xl mx-auto px-4 pt-16 pb-8">
-            <div className="h-8 w-2/3 rounded bg-surface-variant animate-pulse" />
-            <div className="h-4 w-1/2 rounded bg-surface-variant animate-pulse mt-3" />
-          </div>
-          <div className="max-w-2xl mx-auto px-4 pb-16 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
-              <SkeletonCard key={i} />
-            ))}
-          </div>
-        </>
-      ) : (
-        <>
-          <RegistryHeader registry={registryQ.data} />
-          {itemsQ.data && itemsQ.data.length > 0 ? (
-            <ItemGrid
-              items={itemsQ.data}
-              renderReserve={(item) => (
-                <ReserveButton registryId={registryQ.data!.id} item={item} />
+      <main className="flex-1">
+        {isInitialLoading ? (
+          <>
+            <section className="px-4 sm:px-7 lg:px-10 pt-10 pb-8 max-w-7xl mx-auto w-full">
+              <div className="h-8 w-2/3 rounded bg-gm-paperDeep animate-pulse" />
+              <div className="h-4 w-1/2 rounded bg-gm-paperDeep animate-pulse mt-3" />
+            </section>
+            <section className="px-4 sm:px-7 lg:px-10 pb-12 max-w-7xl mx-auto w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
+              {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </section>
+          </>
+        ) : (
+          <>
+            {/* Hero + progress strip — stacked on mobile, side-by-side from lg: */}
+            <section className="px-4 sm:px-7 lg:px-10 pt-8 sm:pt-10 lg:pt-12 pb-8 lg:pb-9 border-b border-gm-line max-w-7xl mx-auto w-full">
+              <div className="flex flex-col lg:flex-row lg:gap-10 lg:items-end lg:justify-between gap-6">
+                <RegistryHeader registry={registryQ.data} />
+                <ProgressStrip totalChosen={totalChosen} total={total} />
+              </div>
+            </section>
+
+            {/* Section title + filter chips */}
+            <section className="px-4 sm:px-7 lg:px-10 pt-8 max-w-7xl mx-auto w-full">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-5">
+                <h2 className="font-display text-[24px] lg:text-[34px] text-gm-ink leading-[1.05] tracking-[-0.5px] m-0">
+                  {t('web_hero.section_title')}{' '}
+                  <MonoCaption size="sm" tone="faint">
+                    {t('web_hero.section_item_count', { n: total })}
+                  </MonoCaption>
+                </h2>
+                <FilterChips active={filter} onChange={setFilter} counts={counts} />
+              </div>
+
+              {/* Item grid OR empty state */}
+              {itemsQ.data && itemsQ.data.length > 0 ? (
+                <ItemGrid
+                  items={itemsQ.data}
+                  filter={filter}
+                  renderReserve={(item) => (
+                    <ReserveButton registryId={registryQ.data!.id} item={item} />
+                  )}
+                />
+              ) : (
+                <div className="text-center py-16">
+                  <h3 className="font-display text-[24px] lg:text-[34px] text-gm-ink leading-[1.05] tracking-[-0.5px]">
+                    {t('registry.empty_title')}
+                  </h3>
+                  <p className="mt-3 font-body text-[15px] sm:text-[16px] text-gm-inkSoft leading-[1.55] max-w-md mx-auto">
+                    {t('registry.empty_body')}
+                  </p>
+                </div>
               )}
-            />
-          ) : (
-            <div className="max-w-2xl mx-auto px-4 pb-16 text-center">
-              <h2 className="text-xl font-semibold text-surface-on leading-tight">{t('registry.empty_title')}</h2>
-              <p className="mt-2 text-base font-normal text-surface-onVariant leading-relaxed">{t('registry.empty_body')}</p>
-            </div>
-          )}
-        </>
-      )}
+            </section>
+
+            {/* Bottom spacing */}
+            <div className="h-12 sm:h-16" aria-hidden="true" />
+          </>
+        )}
+      </main>
+
+      <Footer />
 
       <AuthModal
         open={authModalOpen}
