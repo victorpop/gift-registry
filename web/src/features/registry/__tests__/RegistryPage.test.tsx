@@ -120,7 +120,11 @@ describe('RegistryPage', () => {
     mocks.useItemsQuery.mockReturnValue({ data: [availableItem], isLoading: false })
     renderPage()
     expect(screen.getByText('Test Wedding Registry')).toBeInTheDocument()
-    expect(screen.getByText(/Wedding · /)).toBeInTheDocument()
+    // Phase 13: occasion + date split across pills + mono caption (separate DOM nodes).
+    // Pill renders the occasion (uppercase) and a separate MonoCaption renders
+    // "· {formatted date}". Assert each independently.
+    expect(screen.getByText('WEDDING')).toBeInTheDocument()
+    expect(screen.getByText(/June 1, 2026/)).toBeInTheDocument()
     expect(screen.getByText('Coffee Grinder')).toBeInTheDocument()
   })
 

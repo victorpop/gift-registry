@@ -24,35 +24,42 @@ function makeItem(overrides: Partial<Item> = {}): Item {
 }
 
 describe('ItemCard', () => {
-  it('renders title, price, and image alt=title for available item', () => {
+  it('renders title, price, currency, and image alt=title for available item', () => {
     render(<ItemCard item={makeItem()} />)
     expect(screen.getByText('Coffee Grinder')).toBeInTheDocument()
-    expect(screen.getByText('49.99 RON')).toBeInTheDocument()
+    // Phase 13: price + currency render in two spans (price body + currency mono).
+    // Use the data-testid="price" span and assert its text content.
+    const priceEl = screen.getByTestId('price')
+    expect(priceEl.textContent).toContain('49.99')
+    expect(priceEl.textContent).toContain('RON')
     expect(screen.getByAltText('Coffee Grinder')).toBeInTheDocument()
   })
 
-  it('shows Available badge with surface-variant bg for available status', () => {
+  it('shows Available pill (neutral tone, gm-paperDeep bg) for available status', () => {
     render(<ItemCard item={makeItem({ status: 'available' })} />)
-    const badge = screen.getByTestId('status-badge')
-    expect(badge).toHaveAttribute('data-status', 'available')
-    expect(badge).toHaveTextContent('Available')
-    expect(badge.className).toContain('bg-surface-variant')
+    // Phase 13: status pill is a <Pill tone="neutral" size="sm"> atom; pill copy
+    // is uppercase ("AVAILABLE") via i18n web_pill.available. Assert visible copy
+    // + the data-status attribute on the article wrapper.
+    expect(screen.getByText('AVAILABLE')).toBeInTheDocument()
+    expect(screen.getByTestId('item-card')).toHaveAttribute('data-status', 'available')
   })
 
-  it('shows Reserved badge with bg-primary for reserved status', () => {
+  it('shows Reserved pill (accent tone, gm-accentSoft bg) for reserved status', () => {
     render(<ItemCard item={makeItem({ status: 'reserved' })} />)
-    const badge = screen.getByTestId('status-badge')
-    expect(badge).toHaveAttribute('data-status', 'reserved')
-    expect(badge).toHaveTextContent('Reserved')
-    expect(badge.className).toContain('bg-primary')
+    // Phase 13 D-06: pill copy is "RESERVED" uppercase (no name suffix); also
+    // rendered as the in-card banner with "{n} MIN LEFT" copy when expiresAt set.
+    expect(screen.getByText('RESERVED')).toBeInTheDocument()
+    expect(screen.getByTestId('item-card')).toHaveAttribute('data-status', 'reserved')
   })
 
-  it('shows Purchased badge with bg-surface-on for purchased status', () => {
+  it('shows Purchased pill (ok tone) + opacity-0.55 article for purchased status', () => {
     render(<ItemCard item={makeItem({ status: 'purchased' })} />)
-    const badge = screen.getByTestId('status-badge')
-    expect(badge).toHaveAttribute('data-status', 'purchased')
-    expect(badge).toHaveTextContent('Purchased')
-    expect(badge.className).toContain('bg-surface-on')
+    // Phase 13 D-06: pill copy is "✓ PURCHASED" (no giver name).
+    expect(screen.getByText(/PURCHASED/)).toBeInTheDocument()
+    const card = screen.getByTestId('item-card')
+    expect(card).toHaveAttribute('data-status', 'purchased')
+    // Outer opacity carries the purchased signal per Phase 13 D-17.
+    expect(card.className).toContain('opacity-[0.55]')
   })
 
   it('renders reserve-slot when status is available', () => {
@@ -77,11 +84,13 @@ describe('ItemCard', () => {
 
   it('renders price without currency when currency is null', () => {
     render(<ItemCard item={makeItem({ price: 25, currency: null })} />)
-    expect(screen.getByText('25')).toBeInTheDocument()
+    const priceEl = screen.getByTestId('price')
+    expect(priceEl.textContent).toContain('25')
   })
 
   it('omits price block when price is null', () => {
     render(<ItemCard item={makeItem({ price: null, currency: null })} />)
     expect(screen.queryByText(/RON/)).not.toBeInTheDocument()
+    expect(screen.queryByTestId('price')).not.toBeInTheDocument()
   })
 })
