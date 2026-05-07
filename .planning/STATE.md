@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: verifying
-stopped_at: Phase 13 UI-SPEC approved
-last_updated: "2026-05-07T18:57:00.669Z"
+stopped_at: Quick task 260507-uce complete (code) — Task 2 device verification pending
+last_updated: "2026-05-07T18:59:42.868Z"
 last_activity: 2026-04-28
 progress:
   total_phases: 14
@@ -307,9 +307,10 @@ Recent decisions affecting current work:
 | 260428-s3b | Fix Event Date + Time fields on Create/Edit Registry — InteractionSource pattern replaces broken Modifier.clickable on date field (was no-op due to TextField pointer-input swallow); add TimePickerDialog wired via same pattern with runtime gate inside collector (enabled=true so InteractionSource fires); ViewModel gets eventTimeSet StateFlow + setEventTime(hour, minute) encoding into existing eventDateMs Long; edit-mode hydration flips eventTimeSet=true on non-midnight Calendar-decoded timestamps; 5 new VM unit tests pin the contract; no domain/persistence/string changes; Task 3 human-verify outstanding | 2026-04-28 | c133ac5 | [260428-s3b-fix-event-date-time-fields-on-createregi](./quick/260428-s3b-fix-event-date-time-fields-on-createregi/) |
 | 260428-tx9 | Replace framework android.app.DatePickerDialog / TimePickerDialog with Material3 Compose DatePickerDialog + DatePicker(state) and AlertDialog { TimePicker(state) } on Create/Edit Registry — pickers now inherit GiftMaison terracotta via MaterialTheme.colorScheme.primary (LightColorScheme.primary = gm.accent in Theme.kt:36) instead of bleeding the Android system Material green/teal; UTC↔local-Calendar conversion in DatePickerDialog confirmButton guards against Bucharest UTC+2/+3 off-by-one civil-day; @OptIn(ExperimentalMaterial3Api::class) at @Composable level; OK/Cancel via stringResource(android.R.string.ok / .cancel) — zero new strings.xml keys; all s3b behaviour preserved verbatim (InteractionSource trigger, hour/minute preservation on re-pick, eventTimeSet StateFlow + setEventTime VM API, 24h locale awareness, edit-mode round-trip); Task 2 human-verify outstanding | 2026-04-28 | 08c66da | [260428-tx9-replace-framework-datepickerdialog-timep](./quick/260428-tx9-replace-framework-datepickerdialog-timep/) |
 | 260428-v0q | Make bottom nav persistent across all post-auth destinations — invert `Any?.showsBottomNav()` from 2-key visible-whitelist (HomeKey + RegistryDetailKey only) to 4-case hidden-whitelist (null, AuthKey, OnboardingKey, ReReserveDeepLink); fixes user's reported bug where tapping YOU hid the chrome on Settings, plus extends the same contract to Notifications, Stores, and all forms (CreateRegistry, EditRegistry, AddItem, EditItem); BottomNavVisibilityTest pins all 14 nav-key cases (4 hidden, 10 visible — every key in AppNavKeys.kt); zero touches to AppNavigation.kt, AppNavKeys.kt, GiftMaisonBottomNav.kt, or string resources; Task 2 human-verify outstanding (8 device scenarios) | 2026-04-28 | a486ca5 | [260428-v0q-make-bottom-nav-persistent-across-all-po](./quick/260428-v0q-make-bottom-nav-persistent-across-all-po/) |
+| 260507-uce | Fix AddItemScreen "Choose a registry" picker to show only ACTIVE registries — `AddItemViewModel.registriesForPicker` now applies `Registry.isActive(startOfTodayMs())` via `.map { }` BEFORE `.catch.stateIn`, reusing the same `TabFilters.kt` predicate that powers the Lists screen Active tab (single source of truth, no new convention); past registries (e.g. "test", "A&V Wedding", "Secret Santa") no longer appear; `todayMs` recomputed per emission so screens kept open across midnight re-evaluate naturally; filter sits before `.catch` so error fallback still emits an empty list (drives the "Create a registry first" empty-state); ViewModel-layer fix (not repository) preserves `RegistryListViewModel`'s Past tab; new `AddItemViewModelPickerFilterTest` (4/4 GREEN) pins contract via local-helper-mirroring-production-filter pattern modelled on `TabFilterPredicateTest`; zero touches to TabFilters/RegistryListScreen/RegistryListViewModel/AddItemScreen/strings.xml; Task 2 human-verify outstanding (device walkthrough on bug-reproducing account) | 2026-05-07 | 65dec78 | [260507-uce-fix-add-item-registry-dropdown-showing-p](./quick/260507-uce-fix-add-item-registry-dropdown-showing-p/) |
 
 ## Session Continuity
 
-Last session: 2026-05-07T18:57:00.658Z
-Stopped at: Phase 13 UI-SPEC approved
-Resume file: .planning/phases/13-web-fallback-visual-refresh/13-UI-SPEC.md
+Last session: 2026-05-07T18:59:42.863Z
+Stopped at: Quick task 260507-uce complete (code) — Task 2 device verification pending
+Resume file: None
