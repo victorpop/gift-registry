@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 13-00-PLAN.md
-last_updated: "2026-05-07T19:57:37.244Z"
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-05-07T20:03:45.682Z"
 last_activity: 2026-05-07
 progress:
   total_phases: 14
   completed_phases: 12
   total_plans: 69
-  completed_plans: 62
+  completed_plans: 64
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 13 (web-fallback-visual-refresh) — EXECUTING
-Plan: 2 of 8
+Plan: 4 of 8
 Status: Ready to execute
 Last activity: 2026-05-07
 
@@ -105,6 +105,8 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 12-registry-cover-photo-themed-placeholder P04 | 11min | 3 tasks | 12 files |
 | Phase 12-registry-cover-photo-themed-placeholder P05 | 12min | 3 tasks | 4 files |
 | Phase 13 P00 | 2 min | 3 tasks | 3 files |
+| Phase 13-web-fallback-visual-refresh P03 | 3min | 3 tasks | 4 files |
+| Phase 13-web-fallback-visual-refresh P01 | 3min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -273,6 +275,11 @@ Recent decisions affecting current work:
 - [Phase 13]: [Phase 13-web-fallback-visual-refresh P00]: Single shared @keyframes gm-pulse re-declared inside prefers-reduced-motion @media block — Tailwind animate-gm-pulse utility resolves to whichever definition wins; simpler than UI-SPEC's two-name variant, equivalent in behaviour
 - [Phase 13]: [Phase 13-web-fallback-visual-refresh P00]: D-01 visual-only scope envelope anchored — Phase 13 ships visual-layer code only; no SSR/slug routing/cookies/OG-fn/re-reserve/4-occasion-cascade/backend changes; diff scope confined to web/tailwind.config.ts + web/src/index.css + web/index.html
 - [Phase 13]: [Phase 13-web-fallback-visual-refresh P00]: Phase 5 legacy palette (primary/surface/destructive/outline) retained in tailwind.config.ts during cutover so all 107 existing tests stay green; legacy removal audit deferred to Phase 14
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-03: Banner heading shipped as triple (banner_heading_pre/emphasis/post) and banner subline as quadruple (banner_subline_pre/retailer/separator/countdown) replacing the v1.0 single-interpolated-string design — Plan 13-05 StickyReserveBanner can wrap item names in italic Display spans and render countdown digits in a separately-testable element without .replace() chains; mirrors detail_headline_* triple convention; trailing/leading whitespace lives inside _pre/_post slots so consumer concatenates without manual whitespace handling
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-03: web_auth.headline_pre kept empty string ('') because both EN and RO headlines start with the italic span (Pick up / Continuă) — empty pre slot is the contract that pinpoints whether the italic emphasis renders first; web_reserve.banner_subline_separator='  ·  ' (two-space middle-dot two-space) lives as own slot so RO can swap separator without touching pre/post
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-03: Used literal Unicode characters (not \u escapes) in new web_* namespaces — the existing file inconsistently mixed literal and escaped chars (e.g. ro.json had literal 'Redirecționare' alongside escaped 'încarcă'); after Task 1 verify passed cleanly with literal chars, kept literal chars throughout for readability — JSON parsers handle both identically; future plans should not regress to mixed encoding
+- [Phase 13-web-fallback-visual-refresh]: Plan 13-03: 104-key parity between en.json and ro.json verified by node flatKeys diff; legacy seed at web/i18n/*.json byte-identical to web/src/i18n/*.json via plain cp (Phase 5 D-locked decision); future plans MUST run diff -q web/src/i18n/*.json web/i18n/*.json AND flatKeys parity check before committing any i18n change
+- [Phase 13]: [Phase 13-web-fallback-visual-refresh P01]: 6 GiftMaison atoms (Wordmark/Pill/Btn/Field/PulseDot/MonoCaption) shipped as pure-presentational React components in web/src/components/giftmaison/ — Tailwind utilities only, no inline rgb/hex except documented bg-[oklch(...)] arbitrary values for Pill ok/warn tones; PulseDot halo via shadow-[0_0_0_Npx_var(--gm-accentSoft)] preserves D-07 occasion-cascade indirection; Field forwardRef enables react-hook-form register() spread; Btn drops Phase 5 focus:ring-* in favour of focus-visible:outline-gm-accent per UI-SPEC; barrel index.ts merged with parallel Plan 02 chrome exports (TopNav/Footer/StickyMobileBar) — intended end-state for Phase 13
 
 ### Pending Todos
 
@@ -320,6 +327,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-07T19:57:37.239Z
-Stopped at: Completed 13-00-PLAN.md
+Last session: 2026-05-07T20:03:45.677Z
+Stopped at: Completed 13-01-PLAN.md
 Resume file: None
