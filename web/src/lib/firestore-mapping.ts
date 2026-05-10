@@ -30,9 +30,10 @@ export function mapRegistrySnapshot(snap: DocumentSnapshot<DocumentData>): Regis
   return {
     id: snap.id,
     ownerId: (d.ownerId as string) ?? '',
-    name: (d.name as string) ?? '',
-    occasionType: (d.occasionType as string) ?? '',
-    eventDate: timestampToDate(d.eventDate),
+    // Android writes title/occasion/eventDateMs (RegistryDto.kt) — must match canonical schema
+    name: (d.title as string) ?? '',
+    occasionType: (d.occasion as string) ?? '',
+    eventDate: typeof d.eventDateMs === 'number' ? new Date(d.eventDateMs) : null,
     eventLocation: (d.eventLocation as string | null) ?? null,
     description: (d.description as string | null) ?? null,
     // NEVER read invitedUsers — rules enforce access; client reads the doc or gets denied (WEB-D-10)

@@ -50,15 +50,17 @@ describe('useRegistryQuery', () => {
     // Wait for the useEffect to register the onSnapshot callback
     await waitFor(() => expect(snapshotHandles.onNext).not.toBeNull())
 
-    // Simulate Firestore emitting a document
+    // Simulate Firestore emitting a document.
+    // Use the Android-canonical schema (title/occasion/eventDateMs per
+    // RegistryDto.kt) — the mapper reads those exact field names.
     snapshotHandles.onNext!({
       id: 'reg-1',
       exists: () => true,
       data: () => ({
         ownerId: 'owner-1',
-        name: 'Test Registry',
-        occasionType: 'Wedding',
-        eventDate: null,
+        title: 'Test Registry',
+        occasion: 'Wedding',
+        eventDateMs: null,
         eventLocation: null,
         description: null,
         visibility: 'public',
