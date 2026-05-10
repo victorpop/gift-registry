@@ -3,6 +3,7 @@ import * as admin from "firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 import { CloudTasksClient } from "@google-cloud/tasks";
 import { writeNotification } from "../notifications/writeNotification";
+import { releaseReservationCore } from "./releaseReservation";
 
 interface CreateReservationRequest {
   registryId: string;
@@ -104,6 +105,27 @@ export const createReservation = onCall<CreateReservationRequest>(
       // In emulator, Cloud Tasks may not be available. Log and proceed — releaseReservation
       // can still be invoked via direct HTTP POST to emulator endpoint in tests (Pitfall 3).
       console.warn("[createReservation] Cloud Tasks enqueue failed (emulator?):", err);
+
+      // Emulator-only fallback: setTimeout to invoke release directly.
+      // Production never hits this path because Cloud Tasks enqueue succeeds when deployed.
+      // FUNCTIONS_EMULATOR is set automatically by `firebase emulators:start`, never in prod.
+      // KNOWN LIMITATION: a Functions emulator restart loses pending timers — the
+      // reservation will stay "reserved" forever in that emulator session. Production
+      // is unaffected because Cloud Tasks is durable.
+      if (process.env.FUNCTIONS_EMULATOR === "true") {
+        const delayMs = Math.max(0, expiresAtMs - Date.now());
+        console.info(
+          `[createReservation] Emulator fallback: scheduling release of ${reservationId} in ${delayMs}ms`
+        );
+        const timer = setTimeout(() => {
+          releaseReservationCore({ reservationId, db: admin.firestore() })
+            .catch((e) => console.error(
+              `[createReservation] Emulator fallback release failed for ${reservationId}:`, e
+            ));
+        }, delayMs);
+        // .unref() lets the Functions emulator process exit cleanly without waiting for pending timers.
+        timer.unref?.();
+      }
     }
 
     await db.collection("reservations").doc(reservationId)
