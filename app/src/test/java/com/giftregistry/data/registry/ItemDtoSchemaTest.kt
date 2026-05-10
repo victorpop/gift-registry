@@ -11,6 +11,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.util.Date
 
 /**
  * Quick task 260510-oja — schema-shape regression tests for [ItemDto] and the
@@ -20,7 +21,10 @@ import org.junit.Test
  * `createReservation` (functions/src/reservation/createReservation.ts:62-67):
  *   reservedBy: string  (giverEmail)
  *   reservedAt: Timestamp  (FieldValue.serverTimestamp())
- *   expiresAt:  Timestamp  (Timestamp.fromMillis(...))
+ *   expiresAt:  Timestamp  (Timestamp.fromMillis(...) on the function side;
+ *               this project's firebase-common 22.0.1 exposes only the
+ *               `Timestamp(Date)` and `Timestamp(seconds, nanos)` constructors,
+ *               so test fixtures use `Timestamp(Date(ms))`.)
  *
  * Before this task, [ItemDto] was missing `reservedBy` / `reservedAt` and typed
  * `expiresAt` as `Long?`, causing Firestore's CustomClassMapper to throw on
@@ -58,7 +62,9 @@ class ItemDtoSchemaTest {
     // ------------------------------------------------------------------ Test 3
     @Test
     fun `ItemDto expiresAt is Timestamp not Long matching createReservation writer`() {
-        val dto = ItemDto(expiresAt = Timestamp.fromMillis(1_700_000_500_000L))
+        // Note: this Firebase version (firebase-common 22.0.1) does not expose
+        // `Timestamp.fromMillis` — use the Date-based constructor instead.
+        val dto = ItemDto(expiresAt = Timestamp(Date(1_700_000_500_000L)))
         assertEquals(1_700_000_500_000L, dto.expiresAt?.toDate()?.time)
     }
 
@@ -79,7 +85,7 @@ class ItemDtoSchemaTest {
             id = "item1",
             title = "T",
             status = "reserved",
-            expiresAt = Timestamp.fromMillis(expectedMs),
+            expiresAt = Timestamp(Date(expectedMs)),
         )
         val dataSource: FirestoreDataSource = mockk(relaxed = true)
         every { dataSource.observeItems("reg1") } returns MutableStateFlow(listOf(dto))

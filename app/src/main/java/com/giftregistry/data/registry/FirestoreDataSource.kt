@@ -108,11 +108,10 @@ open class FirestoreDataSource @Inject constructor(
             .addSnapshotListener { snapshot, error ->
                 if (error != null) { close(error); return@addSnapshotListener }
                 val items = snapshot?.documents?.mapNotNull { doc ->
-                    val expiresAtMs = doc.getTimestamp("expiresAt")?.toDate()?.time
-                    doc.toObject(ItemDto::class.java)?.copy(
-                        id = doc.id,
-                        expiresAt = expiresAtMs,
-                    )
+                    // ItemDto now matches the Cloud Function canonical schema
+                    // (reservedBy/reservedAt/expiresAt are Firestore-native types),
+                    // so toObject deserializes natively — no manual getTimestamp() needed.
+                    doc.toObject(ItemDto::class.java)?.copy(id = doc.id)
                 } ?: emptyList()
                 trySend(items)
             }

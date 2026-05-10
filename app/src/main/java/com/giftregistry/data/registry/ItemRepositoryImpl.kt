@@ -68,7 +68,9 @@ class ItemRepositoryImpl @Inject constructor(
         imageUrl = imageUrl, price = price, notes = notes,
         status = ItemStatus.fromString(status),
         createdAt = createdAt, updatedAt = updatedAt,
-        expiresAt = expiresAt,
+        // DTO carries Firestore Timestamp (matches Cloud Function writer);
+        // domain Item.expiresAt is Long ms for StatusChip / ReservedChip consumers.
+        expiresAt = expiresAt?.toDate()?.time,
     )
 
     private fun Item.toMap(): Map<String, Any?> = mapOf(
