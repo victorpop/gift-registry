@@ -277,6 +277,7 @@
     <string name="auth_email_placeholder_new">ana.popescu@gmail.com</string>
     <string name="auth_guest_tertiary_link">Continu&#259; ca oaspete</string>
     <string name="auth_error_name_required">Prenumele &#351;i numele sunt obligatorii.</string>
+    <string name="auth_error_google_signin_failed">Nu ne-am putut conecta cu Google. &#206;ncearc&#259; din nou.</string>
 
     <!-- Phase 10 SCR-07 Home screen keys -->
     <string name="home_headline">Registrele tale</string>

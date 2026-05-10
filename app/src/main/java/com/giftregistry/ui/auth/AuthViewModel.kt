@@ -68,6 +68,10 @@ class AuthViewModel @Inject constructor(
         _formState.value = _formState.value.copy(errorMessage = null)
     }
 
+    fun setError(message: String) {
+        _formState.value = _formState.value.copy(errorMessage = message)
+    }
+
     fun signUp() {
         val state = _formState.value
         when {

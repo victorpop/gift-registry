@@ -280,6 +280,7 @@
     <string name="auth_email_placeholder_new">ana.popescu@gmail.com</string>
     <string name="auth_guest_tertiary_link">Continue as guest</string>
     <string name="auth_error_name_required">First and last name are required.</string>
+    <string name="auth_error_google_signin_failed">Couldn\'t sign in with Google. Try again.</string>
 
     <!-- Phase 10 SCR-07 Home screen keys -->
     <string name="home_headline">Your registries</string>

@@ -2,6 +2,7 @@ package com.giftregistry.ui.auth
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -55,6 +56,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -65,7 +67,10 @@ import com.giftregistry.ui.theme.GiftMaisonTheme
 import com.giftregistry.ui.theme.GiftMaisonWordmark
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+
+private const val TAG = "AuthScreen"
 
 @Composable
 fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
@@ -127,10 +132,19 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
                         val result = credentialManager.getCredential(context = context, request = request)
                         val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
                         viewModel.signInWithGoogle(googleIdTokenCredential.idToken)
+                    } catch (e: GetCredentialCancellationException) {
+                        // User dismissed the Credential Manager sheet — silent no-op (no log, no toast).
+                        // Dismissal is intentional; surfacing an error here would be noise.
                     } catch (e: GetCredentialException) {
-                        // Error surfaces via formState.errorMessage if propagated; silent otherwise
+                        Log.w(TAG, "Continue with Google failed: ${e::class.simpleName} — ${e.message}", e)
+                        viewModel.setError(context.getString(R.string.auth_error_google_signin_failed))
+                    } catch (e: CancellationException) {
+                        // Coroutine was cancelled (e.g. composition torn down). Re-throw to preserve
+                        // structured concurrency — never swallow CancellationException.
+                        throw e
                     } catch (e: Exception) {
-                        // Silent — Google sign-in failures don't need a toast in redesigned flow
+                        Log.w(TAG, "Continue with Google unexpected error: ${e::class.simpleName} — ${e.message}", e)
+                        viewModel.setError(context.getString(R.string.auth_error_google_signin_failed))
                     }
                 }
             },
