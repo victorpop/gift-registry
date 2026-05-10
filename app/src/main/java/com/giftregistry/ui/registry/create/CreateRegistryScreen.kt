@@ -110,6 +110,10 @@ fun CreateRegistryScreen(
     val occasion by viewModel.occasion.collectAsStateWithLifecycle()
     val eventDateMs by viewModel.eventDateMs.collectAsStateWithLifecycle()
     val eventLocation by viewModel.eventLocation.collectAsStateWithLifecycle()
+    // quick-260510-noi — surface the existing VM description field in the form.
+    // VM-side wiring (StateFlow, edit-mode hydration, ifBlank→null on save) and
+    // i18n strings already exist; this binding closes the UI gap.
+    val description by viewModel.description.collectAsStateWithLifecycle()
     val visibility by viewModel.visibility.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
@@ -412,6 +416,24 @@ fun CreateRegistryScreen(
                     placeholder = { Text(stringResource(R.string.registry_event_location_hint)) },
                     shape = shapes.radius12,
                     singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = giftMaisonFieldColors(),
+                )
+
+                // Description field (quick-260510-noi). Multi-line (3-5 visible
+                // lines) — roomier than the AddItemScreen 2/4 precedent because
+                // the brief calls for a notes-style block. 500-char soft cap
+                // applied at input via take(500); no Firestore schema limit.
+                // Optional: empty submission must still succeed (existing onSave
+                // already does description.value.ifBlank { null }).
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { viewModel.description.value = it.take(500) },
+                    label = { Text(stringResource(R.string.registry_description_label)) },
+                    placeholder = { Text(stringResource(R.string.registry_description_hint)) },
+                    shape = shapes.radius12,
+                    minLines = 3,
+                    maxLines = 5,
                     modifier = Modifier.fillMaxWidth(),
                     colors = giftMaisonFieldColors(),
                 )
