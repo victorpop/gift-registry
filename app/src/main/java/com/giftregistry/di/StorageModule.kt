@@ -52,7 +52,7 @@ abstract class StorageModule {
         fun provideFirebaseStorage(): FirebaseStorage =
             FirebaseStorage.getInstance().also { storage ->
                 if (BuildConfig.USE_FIREBASE_EMULATOR) {
-                    storage.useEmulator("10.0.2.2", 9199)
+                    storage.useEmulator(BuildConfig.FIREBASE_EMULATOR_HOST, 9199)
                 }
             }
 

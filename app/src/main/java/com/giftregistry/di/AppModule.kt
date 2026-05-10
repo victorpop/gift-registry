@@ -18,7 +18,7 @@ object AppModule {
     @Singleton
     fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance().also { auth ->
         if (BuildConfig.USE_FIREBASE_EMULATOR) {
-            auth.useEmulator("10.0.2.2", 9099)
+            auth.useEmulator(BuildConfig.FIREBASE_EMULATOR_HOST, 9099)
         }
     }
 
@@ -27,7 +27,7 @@ object AppModule {
     fun provideFirebaseFirestore(): FirebaseFirestore =
         FirebaseFirestore.getInstance().also { db ->
             if (BuildConfig.USE_FIREBASE_EMULATOR) {
-                db.useEmulator("10.0.2.2", 8080)
+                db.useEmulator(BuildConfig.FIREBASE_EMULATOR_HOST, 8080)
             }
         }
 
@@ -39,7 +39,7 @@ object AppModule {
         // NOT_FOUND on every callable — always pin the region to match deployment.
         FirebaseFunctions.getInstance("europe-west3").also { fns ->
             if (BuildConfig.USE_FIREBASE_EMULATOR) {
-                fns.useEmulator("10.0.2.2", 5001)
+                fns.useEmulator(BuildConfig.FIREBASE_EMULATOR_HOST, 5001)
             }
         }
 }

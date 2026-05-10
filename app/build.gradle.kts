@@ -37,11 +37,18 @@ android {
             // Opt out for on-device testing with: ./gradlew :app:assembleDebug -Puse_emulator=false
             val useEmulator = providers.gradleProperty("use_emulator").getOrElse("true")
             buildConfigField("boolean", "USE_FIREBASE_EMULATOR", useEmulator)
+            // Default to "10.0.2.2" (AVD loopback alias for host machine). Override for on-device
+            // testing on a physical device with: ./gradlew :app:assembleDebug -PemulatorHost=192.168.1.10
+            val emulatorHost = providers.gradleProperty("emulatorHost").getOrElse("10.0.2.2")
+            buildConfigField("String", "FIREBASE_EMULATOR_HOST", "\"$emulatorHost\"")
         }
         release {
             // Hardcoded false — release builds MUST NEVER point at the emulator,
             // regardless of whether -Puse_emulator is passed. This is a safety gate.
             buildConfigField("boolean", "USE_FIREBASE_EMULATOR", "false")
+            // Hardcoded literal — release builds never hit the emulator (gated by USE_FIREBASE_EMULATOR=false),
+            // but the field must still exist so the same Kotlin code compiles for both variants.
+            buildConfigField("String", "FIREBASE_EMULATOR_HOST", "\"10.0.2.2\"")
         }
     }
 
