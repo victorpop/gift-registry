@@ -20,7 +20,7 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 - Per-registry occasion theming at runtime (accent / accentSoft / accentInk / second / secondSoft switch per occasion)
 
 **Scope boundaries:**
-- Giver-facing web fallback is **out of scope** for v1.1 (handoff explicitly scopes to Android owner flow)
+- Giver-facing web fallback was added to v1.1 scope on 2026-04-30 (Phases 13 + 14): visual refresh complete (Phase 13), live deploy + guest UAT pending (Phase 14)
 - Settings / profile / notifications inbox / dark mode / empty states / store-browser WebView / email templates deferred to later milestone(s)
 
 **Key context:**
@@ -50,6 +50,7 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 - ✓ URL transformer identifies merchant and appends correct affiliate tag — Phase 3
 - ✓ Owners can browse popular Romanian retailers in an in-app WebView and add products via persistent "Add to list" CTA — Phase 7 (automated; 8 items pending real-device UAT). Replaces the retired EMAG catalog API scope (no public catalog API available)
 - ✓ Registry cover photos: bundled occasion presets + gallery upload via Firebase Storage; themed gradient + glyph placeholder on cards and hero when imageUrl is null (fixes visible empty-card bug) — Phase 12 (automated; storage rules deploy + real preset curation deferred via todos)
+- ✓ Web fallback restyled to match GiftMaison design language (registry detail, reserve flow, auth two-surface, polish surfaces, shared chrome) — Phase 13 (UAT approved 2026-05-12; live deploy + guest UAT in Phase 14)
 
 ### Active
 
@@ -115,4 +116,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-20 after starting milestone v1.1 GiftMaison visual refresh*
+*Last updated: 2026-05-12 after Phase 13 web fallback visual refresh complete*
