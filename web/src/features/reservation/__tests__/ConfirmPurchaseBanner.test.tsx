@@ -15,12 +15,18 @@ vi.mock("../../../components/ToastProvider", () => ({
   ToastProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 
+const clearMock = vi.fn()
+vi.mock("../useActiveReservation", () => ({
+  useActiveReservation: () => ({ active: null, set: vi.fn(), clear: clearMock }),
+}))
+
 import { ConfirmPurchaseBanner } from "../ConfirmPurchaseBanner"
 
 describe("ConfirmPurchaseBanner", () => {
   beforeEach(() => {
     httpsCallableMock.mockReset()
     showToastMock.mockReset()
+    clearMock.mockReset()
   })
 
   it("renders heading and CTA with the GiftMaison Btn accent contract", () => {
@@ -94,5 +100,19 @@ describe("ConfirmPurchaseBanner", () => {
     })
 
     resolve({ data: { success: true } })
+  })
+
+  it("clears active reservation context on success", async () => {
+    const callableSpy = vi.fn(async () => ({ data: { success: true } }))
+    httpsCallableMock.mockReturnValue(callableSpy)
+
+    render(<ConfirmPurchaseBanner reservationId="res-clear" />)
+
+    // clear must NOT be called on initial render
+    expect(clearMock).toHaveBeenCalledTimes(0)
+
+    fireEvent.click(screen.getByRole("button"))
+
+    await waitFor(() => expect(clearMock).toHaveBeenCalledTimes(1))
   })
 })

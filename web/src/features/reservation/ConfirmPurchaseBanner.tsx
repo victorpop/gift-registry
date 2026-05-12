@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useConfirmPurchase } from './useConfirmPurchase'
+import { useActiveReservation } from './useActiveReservation'
 import { useToast } from '../../components/ToastProvider'
 import { Btn } from '../../components/giftmaison'
 
@@ -22,11 +23,13 @@ export interface ConfirmPurchaseBannerProps {
  *   - useConfirmPurchase().confirm(reservationId) on tap
  *   - aria-busy on the button while pending
  *   - success/error toasts via useToast (one-shot — successToastedRef + errorToastedForRef)
+ *   - clears active reservation context via useActiveReservation().clear() on success (one-shot via successToastedRef)
  *   - role="status" + aria-live="polite" wrapper for screen readers
  */
 export function ConfirmPurchaseBanner({ reservationId, minutesLeft = 30 }: ConfirmPurchaseBannerProps) {
   const { t } = useTranslation()
   const { confirm, status, error } = useConfirmPurchase()
+  const { clear } = useActiveReservation()
   const { showToast } = useToast()
 
   const successToastedRef = useRef(false)
@@ -36,8 +39,9 @@ export function ConfirmPurchaseBanner({ reservationId, minutesLeft = 30 }: Confi
     if (status === 'success' && !successToastedRef.current) {
       successToastedRef.current = true
       showToast(t('reservation.confirm_purchase_success'), 'success')
+      clear()
     }
-  }, [status, showToast, t])
+  }, [status, showToast, t, clear])
 
   useEffect(() => {
     if (status === 'error' && error && errorToastedForRef.current !== error) {
