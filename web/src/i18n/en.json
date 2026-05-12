@@ -26,7 +26,9 @@
     "guest_last_name": "Last Name",
     "guest_modal_title": "Who are you?",
     "guest_modal_body": "Enter your name and email so the registry owner knows who's giving the gift.",
-    "sign_in_link": "Sign in"
+    "sign_in_link": "Sign in",
+    "user_menu_label": "Account menu for {{name}}",
+    "sign_out": "Sign out"
   },
   "registry": {
     "create_title": "New Registry",

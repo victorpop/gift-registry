@@ -26,7 +26,9 @@
     "guest_last_name": "Nume de familie",
     "guest_modal_title": "Cine ești?",
     "guest_modal_body": "Introdu numele și emailul tău ca proprietarul registrului să știe cine oferă cadoul.",
-    "sign_in_link": "Autentificare"
+    "sign_in_link": "Autentificare",
+    "user_menu_label": "Meniu cont pentru {{name}}",
+    "sign_out": "Deconectează-te"
   },
   "registry": {
     "create_title": "Registru Nou",
