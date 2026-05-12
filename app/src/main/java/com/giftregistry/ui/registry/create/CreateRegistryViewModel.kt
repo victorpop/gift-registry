@@ -246,4 +246,14 @@ class CreateRegistryViewModel @Inject constructor(
     fun clearError() {
         error.value = null
     }
+
+    /**
+     * Called by the screen's LaunchedEffect immediately after consuming `savedRegistryId`
+     * to navigate away. Resets the field to null so that if `CreateRegistryKey` is re-entered
+     * (Activity-scoped ViewModel survives the lifetime of the Activity), the stale non-null
+     * value does not trigger an immediate spurious navigation on the next composition.
+     */
+    fun clearSavedRegistryId() {
+        savedRegistryId.value = null
+    }
 }

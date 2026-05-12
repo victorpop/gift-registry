@@ -190,8 +190,13 @@ fun CreateRegistryScreen(
     var pickerSheetOpen by rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(savedRegistryId) {
-        savedRegistryId?.let {
-            if (skipMode) onSkip() else onSaved(it)
+        savedRegistryId?.let { id ->
+            // Clear before navigating: CreateRegistryViewModel is Activity-scoped (key="new"
+            // persists for the Activity lifetime). Without the reset, if the user opens
+            // CreateRegistryKey a second time, this LaunchedEffect fires immediately with the
+            // stale non-null id and triggers an unexpected navigation before the user acts.
+            viewModel.clearSavedRegistryId()
+            if (skipMode) onSkip() else onSaved(id)
         }
     }
 

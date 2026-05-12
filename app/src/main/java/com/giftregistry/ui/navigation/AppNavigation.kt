@@ -174,7 +174,7 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
         Box(modifier = Modifier.fillMaxSize().then(contentBlur)) {
             NavDisplay(
                 backStack = backStack,
-                onBack = { if (backStack.size > 1) backStack.removeLast() },
+                onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
                 entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator()),
                 modifier = Modifier.padding(innerPadding),
                 entryProvider = entryProvider {
@@ -193,13 +193,18 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
 
                     entry<CreateRegistryKey> {
                         CreateRegistryScreen(
-                            onBack = { backStack.removeLast() },
+                            // Guard: removeLast() is called from a LaunchedEffect after an async
+                            // Firestore save. On Android 14+ physical devices the predictive-back
+                            // gesture (NavigationBackHandler) and this in-screen lambda can fire in
+                            // quick succession. Without the size check an empty backStack triggers
+                            // NavDisplay's require(backStack.isNotEmpty()) crash.
+                            onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
                             onSaved = { registryId ->
-                                backStack.removeLast()
+                                if (backStack.size > 1) backStack.removeAt(backStack.lastIndex)
                                 backStack.add(AddItemKey(registryId = registryId))   // Phase 11: Step 1 → Step 2
                             },
                             onSkip = {
-                                backStack.removeLast()
+                                if (backStack.size > 1) backStack.removeAt(backStack.lastIndex)
                                 // Pop to whatever sits beneath CreateRegistryKey on the stack.
                                 // On the standard path (Add-action sheet → New registry) that's HomeKey.
                             },
@@ -209,8 +214,8 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                     entry<EditRegistryKey> { key ->
                         CreateRegistryScreen(
                             registryId = key.registryId,
-                            onBack = { backStack.removeLast() },
-                            onSaved = { backStack.removeLast() }
+                            onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
+                            onSaved = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) }
                         )
                     }
 
@@ -219,7 +224,11 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
 
                         RegistryDetailScreen(
                             registryId = key.registryId,
-                            onBack = { backStack.removeLast() },
+                            // Guard: RegistryDetailScreen stays in composition during NavDisplay's
+                            // exit animation. On Android 14+ the back arrow remains tappable during
+                            // the predictive-back preview. A second tap (or system-gesture + button
+                            // together) fires removeLast() on a 1-element stack → empty → crash.
+                            onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
                             onNavigateToAddItem = { backStack.add(AddItemKey(key.registryId)) },
                             onNavigateToEditItem = { itemId -> backStack.add(EditItemKey(key.registryId, itemId)) },
                             onNavigateToEditRegistry = { backStack.add(EditRegistryKey(key.registryId)) },
@@ -236,7 +245,7 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
 
                     entry<StoreListKey> { key ->
                         StoreListScreen(
-                            onBack = { backStack.removeLast() },
+                            onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
                             onStoreSelected = { storeId ->
                                 backStack.add(StoreBrowserKey(storeId = storeId, registryId = key.preSelectedRegistryId))
                             },
@@ -245,7 +254,7 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
 
                     entry<StoreBrowserKey> { key ->
                         StoreBrowserScreen(
-                            onBack = { backStack.removeLast() },
+                            onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
                             onAddToList = { url, registryId ->
                                 val target = registryId ?: return@StoreBrowserScreen
                                 // registryId is nullable at the nav-key level; when null (entered from
@@ -271,7 +280,7 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                             fromAddSheet = key.fromAddSheet,
                             initialUrl = key.initialUrl,
                             initialRegistryId = key.initialRegistryId,
-                            onBack = { backStack.removeLast() },
+                            onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
                             onNavigateToBrowseStores = { regId ->
                                 // Pre-select the current registry so Store Browser's Add-to-list
                                 // round-trips back to AddItemKey with the chosen URL pre-filled.
@@ -289,12 +298,12 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                         EditItemScreen(
                             registryId = key.registryId,
                             itemId = key.itemId,
-                            onBack = { backStack.removeLast() }
+                            onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) }
                         )
                     }
 
                     entry<SettingsKey> {
-                        SettingsScreen(onBack = { backStack.removeLast() })
+                        SettingsScreen(onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) })
                     }
 
                     entry<ReReserveDeepLink> { key ->
@@ -314,7 +323,7 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
 
                     entry<NotificationsKey> {
                         NotificationsScreen(
-                            onBack = { backStack.removeLast() },
+                            onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
                             onNavigateToRegistry = { registryId ->
                                 backStack.add(RegistryDetailKey(registryId))
                             },

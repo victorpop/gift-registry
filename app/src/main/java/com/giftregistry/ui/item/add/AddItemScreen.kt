@@ -102,9 +102,16 @@ fun AddItemScreen(
     LaunchedEffect(savedItemId) {
         if (savedItemId != null) {
             if (addAnotherMode) {
+                // onResetForm() already clears _savedItemId to null — no separate clear needed.
                 viewModel.onResetForm()
                 addAnotherMode = false
             } else {
+                // Clear before navigating: AddItemViewModel is Activity-scoped (key = registryId).
+                // Without this reset, if the user re-enters the same AddItemKey a second time,
+                // this LaunchedEffect fires immediately with the stale non-null id and triggers
+                // an unexpected navigation before the user does anything.
+                // Mirrors CreateRegistryScreen's LaunchedEffect(savedRegistryId) fix.
+                viewModel.clearSavedItemId()
                 onBack()
             }
         }

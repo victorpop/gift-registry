@@ -198,6 +198,15 @@ class AddItemViewModel @Inject constructor(
 
     fun clearError() { _error.value = null }
 
+    /**
+     * Called by AddItemScreen's LaunchedEffect immediately after consuming `savedItemId`
+     * on the "Save and Exit" path. Resets the field to null so that if the same
+     * AddItemKey is re-entered (Activity-scoped ViewModel survives the Activity
+     * lifetime), the stale non-null value does not trigger an immediate spurious
+     * navigation on the next composition. Mirrors CreateRegistryViewModel.clearSavedRegistryId().
+     */
+    fun clearSavedItemId() { _savedItemId.value = null }
+
     // --- Phase 11 Plan 05: derived StateFlows for SCR-10 UI ---
 
     /** True once OG metadata populated any field and the fetch didn't fail. */
