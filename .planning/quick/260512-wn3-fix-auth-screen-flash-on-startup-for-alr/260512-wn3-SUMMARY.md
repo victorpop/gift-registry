@@ -137,3 +137,47 @@ None — all data flows are wired to real Firebase/fake implementations. No plac
 - FOUND: `app/src/main/java/com/giftregistry/data/auth/UserMapping.kt`
 - FOUND: commit `845f147` (feat: introduce AuthStateEvent and update auth pipeline)
 - FOUND: commit `67b0251` (test: add AuthViewModel regression tests for cold-start flash)
+
+---
+
+## Follow-up Fix (2026-05-13): AppNavigation backStack/authState Reconciliation Gate
+
+### Why a Second Fix Was Needed
+
+On-device testing revealed that the AuthScreen flash persisted on physical hardware even after the data-layer fix (AuthStateEvent). The data-layer fix correctly prevented `AuthViewModel.authState` from ever emitting `Unauthenticated` during the cold-start gap. However, a **separate race in `AppNavigation.kt`** remained:
+
+1. `backStack` is initialised to `[AuthKey]` at line 63 (`remember { mutableStateListOf<Any>(AuthKey) }`).
+2. When `authUiState` transitions `Loading → Authenticated`, recomposition runs and the Loading gate (lines 117-125 in the original file) no longer blocks.
+3. `NavDisplay` reads `backStack.lastOrNull()` — still `AuthKey` at this point.
+4. `NavDisplay` renders `AuthScreen`.
+5. *Then* the `LaunchedEffect(authUiState, onboardingSeenState)` fires, clears the backStack, and adds `HomeKey`.
+6. Next recomposition renders `HomeKey`.
+
+The window between steps 4 and 6 is the flash. Under the heavy startup load seen on physical devices (logcat: "Skipped 35+ frames" during Firebase SDK and classloader init), this window stretches to approximately one second — identical in appearance to the original data-layer bug.
+
+### The Fix
+
+Added a **backStack/authState mismatch gate** to `AppNavigation.kt` that extends the existing loading spinner to cover the period between `authUiState` settling and the `LaunchedEffect` updating the backStack.
+
+The unified gate (replacing the old `if (authUiState is AuthUiState.Loading || ...)` block) now renders the `CircularProgressIndicator` when ANY of these is true:
+
+- `isLoading`: `authUiState is AuthUiState.Loading` OR `onboardingSeenState is OnboardingSeenState.Loading` (original behaviour, preserved)
+- `isMidTransition`: auth state is settled AND `isAuthRoot != (authUiState is AuthUiState.Unauthenticated)`
+  - `isAuthRoot = currentKey is AuthKey || currentKey is OnboardingKey`
+  - Mismatch means: backStack says "show auth UI" but authState says "show app UI", or vice versa
+
+The mismatch check only runs when `!isLoading` to avoid a no-op double condition (Loading already implies the backStack isn't reconciled).
+
+`currentKey` is now computed once before the gate and reused below in `Scaffold`. No duplicate declarations.
+
+### What Was NOT Changed
+
+- `backStack` initialisation (`mutableStateListOf<Any>(AuthKey)`) — left as-is; the gate handles the race without requiring a different initial value.
+- The `LaunchedEffect(authUiState, onboardingSeenState)` routing logic (lines 81-115) — correct and unchanged.
+- All screen entry providers — untouched.
+
+### Verification
+
+- `./gradlew compileDebugKotlin` — BUILD SUCCESSFUL
+- `./gradlew testDebugUnitTest` — BUILD SUCCESSFUL, all 12 AuthViewModel tests pass
+- Physical device rebuild and reinstall required to confirm the flash is fully eliminated (see checkpoint below).

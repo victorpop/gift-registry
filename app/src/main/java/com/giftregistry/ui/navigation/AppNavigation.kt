@@ -114,7 +114,27 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
         }
     }
 
-    if (authUiState is AuthUiState.Loading || onboardingSeenState is OnboardingSeenState.Loading) {
+    // Unified loading gate: show the spinner whenever state is still being established OR
+    // when the backStack hasn't yet been reconciled with the latest authUiState.
+    //
+    // The mismatch race (BUG-AUTH-FLASH-260512 follow-up):
+    //   backStack is initialised to [AuthKey]. The LaunchedEffect that clears and repopulates
+    //   it runs *after* the first composition that uses it. On a heavy cold start (logcat shows
+    //   "Skipped 35+ frames"), NavDisplay reads backStack.lastOrNull() == AuthKey and renders
+    //   AuthScreen for up to ~1 second before the LaunchedEffect fires to replace it with
+    //   HomeKey. Gating on the mismatch holds the spinner until the backStack and authUiState
+    //   agree, collapsing that window to zero frames.
+    val currentKey = backStack.lastOrNull()
+    val isAuthRoot = currentKey is AuthKey || currentKey is OnboardingKey
+
+    val isLoading = authUiState is AuthUiState.Loading ||
+        onboardingSeenState is OnboardingSeenState.Loading
+    // Only check for mismatch when auth state is settled (not Loading) — while Loading we
+    // already show the spinner via isLoading, and we cannot know what root to expect yet.
+    val isMidTransition = !isLoading &&
+        isAuthRoot != (authUiState is AuthUiState.Unauthenticated)
+
+    if (isLoading || isMidTransition) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
@@ -124,7 +144,6 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
         return
     }
 
-    val currentKey = backStack.lastOrNull()
     val showBottomBar = currentKey.showsBottomNav()
 
     Scaffold(
