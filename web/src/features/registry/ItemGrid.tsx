@@ -8,6 +8,12 @@ interface Props {
   renderReserve?: (item: Item) => React.ReactNode
   /** Active status filter from FilterChips. Defaults to 'all'. */
   filter?: ItemFilter
+  /**
+   * Optional factory: given an item, returns a click handler to scroll to the
+   * ReserveDetailSection anchor — or undefined if the item is not the current viewer's
+   * reservation. When provided, reserved-by-me item cards become interactive buttons.
+   */
+  renderReservedByMeClick?: (item: Item) => (() => void) | undefined
 }
 
 function passes(item: Item, filter: ItemFilter): boolean {
@@ -15,7 +21,7 @@ function passes(item: Item, filter: ItemFilter): boolean {
   return item.status === filter
 }
 
-export default function ItemGrid({ items, renderReserve, filter = 'all' }: Props) {
+export default function ItemGrid({ items, renderReserve, filter = 'all', renderReservedByMeClick }: Props) {
   const visible = items.filter(i => passes(i, filter))
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-5">
@@ -24,6 +30,7 @@ export default function ItemGrid({ items, renderReserve, filter = 'all' }: Props
           key={item.id}
           item={item}
           reserveSlot={renderReserve?.(item)}
+          onReservedByMeClick={renderReservedByMeClick?.(item)}
         />
       ))}
     </div>

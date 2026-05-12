@@ -2,6 +2,10 @@ import { useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useActiveReservation } from './useActiveReservation'
 import { useCountdown } from './useCountdown'
+import { useReleaseReservation } from './useReleaseReservation'
+import { useAuth } from '../auth/useAuth'
+import { useGuestIdentity } from '../auth/useGuestIdentity'
+import { useToast } from '../../components/ToastProvider'
 import { Btn, PulseDot } from '../../components/giftmaison'
 
 /**
@@ -34,6 +38,17 @@ export default function StickyReserveBanner() {
   const { t } = useTranslation()
   const { active, clear } = useActiveReservation()
   const countdown = useCountdown(active?.expiresAtMs ?? null)
+  const { release, status: releaseStatus, error: releaseError } = useReleaseReservation()
+  const { user } = useAuth()
+  const { identity } = useGuestIdentity()
+  const { showToast } = useToast()
+
+  // Signed-in path: send undefined (backend uses auth.uid). Guest: send identity.email.
+  const giverEmailToSend = user ? undefined : (identity?.email ?? undefined)
+
+  // Refs to prevent duplicate toasts on re-render.
+  const releaseSuccessToastedRef = useRef(false)
+  const releaseErrorToastedForRef = useRef<string | null>(null)
 
   // Auto-dismiss on expiry (Phase 5 contract preserved).
   useEffect(() => {
@@ -41,6 +56,23 @@ export default function StickyReserveBanner() {
       clear()
     }
   }, [countdown?.expired, clear])
+
+  // Show success toast and clear local state after a successful release.
+  useEffect(() => {
+    if (releaseStatus === 'success' && !releaseSuccessToastedRef.current) {
+      releaseSuccessToastedRef.current = true
+      showToast(t('reservation.release_success'), 'success')
+      clear()
+    }
+  }, [releaseStatus, showToast, t, clear])
+
+  // Show error toast when release fails (once per error message).
+  useEffect(() => {
+    if (releaseStatus === 'error' && releaseError && releaseErrorToastedForRef.current !== releaseError) {
+      releaseErrorToastedForRef.current = releaseError
+      showToast(t('reservation.release_error'), 'error')
+    }
+  }, [releaseStatus, releaseError, showToast, t])
 
   // Minute-only aria-live announcement (UI-SPEC: announce once per minute, NOT every second).
   // Strategy: cache the rendered string in a ref keyed by Math.floor(seconds/60). The
@@ -99,7 +131,12 @@ export default function StickyReserveBanner() {
           <Btn
             variant="quiet"
             size="sm"
-            onClick={clear}
+            onClick={async () => {
+              if (!active) return
+              await release(active.reservationId, giverEmailToSend)
+            }}
+            disabled={releaseStatus === 'pending'}
+            aria-busy={releaseStatus === 'pending'}
             className="text-gm-paper border border-gm-paper/20 hover:bg-gm-paper/10 w-full sm:w-auto"
           >
             {t('web_reserve.release_cta')}

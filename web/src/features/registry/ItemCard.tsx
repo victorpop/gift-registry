@@ -14,6 +14,13 @@ interface Props {
    * When omitted, ItemCard renders a disabled placeholder for available items.
    */
   reserveSlot?: React.ReactNode
+  /**
+   * When provided for a reserved-by-me item, the reserved banner row becomes a button
+   * that fires this callback (expected: smooth-scroll to ReserveDetailSection anchor).
+   * When omitted, reserved banner renders as a non-interactive div (unchanged behaviour
+   * for items reserved by someone else — D-06: never reveal reserver identity).
+   */
+  onReservedByMeClick?: () => void
 }
 
 /**
@@ -47,7 +54,7 @@ function statusPillKey(status: ItemStatus): string {
   return 'web_pill.available'
 }
 
-export default function ItemCard({ item, reserveSlot }: Props) {
+export default function ItemCard({ item, reserveSlot, onReservedByMeClick }: Props) {
   const { t } = useTranslation()
   const isPurchased = item.status === 'purchased'
   const isReserved = item.status === 'reserved'
@@ -134,14 +141,26 @@ export default function ItemCard({ item, reserveSlot }: Props) {
           </div>
         )}
 
-        {isReserved && (
+        {isReserved && onReservedByMeClick ? (
+          <button
+            type="button"
+            onClick={onReservedByMeClick}
+            aria-label={t('web_pill.reserved_by_me_scroll_aria')}
+            className="w-full text-left flex items-center gap-[10px] px-3 py-[9px] bg-gm-accentSoft rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gm-accent"
+          >
+            <PulseDot size={8} />
+            <span className="font-mono text-[10.5px] text-gm-accent uppercase tracking-[0.4px] flex-1">
+              {t('web_pill.reserved_banner', { minutes: minutesLeft })}
+            </span>
+          </button>
+        ) : isReserved ? (
           <div className="flex items-center gap-[10px] px-3 py-[9px] bg-gm-accentSoft rounded-lg">
             <PulseDot size={8} />
             <span className="font-mono text-[10.5px] text-gm-accent uppercase tracking-[0.4px] flex-1">
               {t('web_pill.reserved_banner', { minutes: minutesLeft })}
             </span>
           </div>
-        )}
+        ) : null}
 
         {/* Purchased: no body CTA — image already shows opacity + grayscale.
             UI-SPEC ASCII contract says "(no body CTA; row is opacity 0.55, image

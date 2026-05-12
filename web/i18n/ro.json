@@ -54,7 +54,9 @@
     "confirm_purchase_cta": "Am finalizat achiziția",
     "confirm_purchase_loading": "Se confirmă…",
     "confirm_purchase_success": "Achiziție confirmată. Mulțumim!",
-    "confirm_purchase_error": "Nu s-a putut confirma. Încearcă din nou."
+    "confirm_purchase_error": "Nu s-a putut confirma. Încearcă din nou.",
+    "release_success": "Rezervare eliberată.",
+    "release_error": "Nu s-a putut elibera rezervarea. Încearcă din nou."
   },
   "notifications": {
     "purchase_snackbar": "Un cadou din {{registryName}} a fost cumpărat!"
@@ -115,7 +117,8 @@
     "available": "DISPONIBIL",
     "reserved": "REZERVAT",
     "purchased": "✓ CUMPĂRAT",
-    "reserved_banner": "MAI {{minutes}} MIN — se eliberează dacă nu e cumpărat"
+    "reserved_banner": "MAI {{minutes}} MIN — se eliberează dacă nu e cumpărat",
+    "reserved_by_me_scroll_aria": "Arată detaliile rezervării tale"
   },
   "web_auth": {
     "caption": "EȘTI INVITAT LA UN REGISTRU",

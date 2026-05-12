@@ -50,9 +50,11 @@ export default function ReserveDetailSection({ registryId }: ReserveDetailSectio
 
   return (
     <section
+      id="reserve-detail-section"
       className="bg-gm-paperDeep border-b border-gm-line"
       data-testid="reserve-detail-section"
     >
+      {/* Release CTA lives in <StickyReserveBanner /> above — no duplicate Release inside the detail section. */}
       <div className="px-4 sm:px-7 lg:px-10 pt-8 sm:pt-9 lg:pt-9 pb-8 max-w-7xl mx-auto w-full">
         <MonoCaption size="micro" tone="faint">
           {t('web_reserve.detail_caption')}

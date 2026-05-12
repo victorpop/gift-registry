@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useRegistryQuery } from '../features/registry/useRegistryQuery'
@@ -18,8 +18,10 @@ import { useAuth } from '../features/auth/useAuth'
 import { useGuestIdentity, type GuestIdentity } from '../features/auth/useGuestIdentity'
 import { useCreateReservation } from '../features/reservation/useCreateReservation'
 import { useActiveReservation } from '../features/reservation/useActiveReservation'
+import { useActiveReservationHydration } from '../features/reservation/useActiveReservationHydration'
 import { useToast } from '../components/ToastProvider'
 import { mapHttpsErrorToI18nKey } from '../lib/error-mapping'
+import type { Item } from '../lib/firestore-mapping'
 import { TopNav, Footer, MonoCaption } from '../components/giftmaison'
 
 const SKELETON_COUNT = 6
@@ -34,6 +36,25 @@ export default function RegistryPage() {
   const { showToast } = useToast()
   const registryQ = useRegistryQuery(id)
   const itemsQ = useItemsQuery(id)
+
+  // Hydrate active reservation from Firestore on page load (refresh, new tab, other device for signed-in).
+  // The hook bails when active is already set to avoid clobbering a fresh in-session reservation.
+  useActiveReservationHydration(id)
+
+  // Compute effective email for reserved-by-me detection (D-06: never render reserver name).
+  const effectiveEmail = user?.email ?? identity?.email ?? null
+
+  // Returns a smooth-scroll handler ONLY when the item belongs to the current viewer.
+  // prefers-reduced-motion: browsers downgrade behavior:'smooth' to instant automatically.
+  const renderReservedByMeClick = useCallback((item: Item) => {
+    if (!effectiveEmail) return undefined
+    if (item.status !== 'reserved') return undefined
+    if (item.reservedBy !== effectiveEmail) return undefined
+    return () => {
+      const el = document.getElementById('reserve-detail-section')
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [effectiveEmail])
 
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [guestModalOpen, setGuestModalOpen] = useState(false)
@@ -225,6 +246,7 @@ export default function RegistryPage() {
                   renderReserve={(item) => (
                     <ReserveButton registryId={registryQ.data!.id} item={item} />
                   )}
+                  renderReservedByMeClick={renderReservedByMeClick}
                 />
               ) : (
                 <div className="text-center py-16">
