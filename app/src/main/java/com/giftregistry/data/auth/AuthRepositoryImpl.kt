@@ -1,10 +1,9 @@
 package com.giftregistry.data.auth
 
 import com.giftregistry.domain.auth.AuthRepository
+import com.giftregistry.domain.auth.AuthStateEvent
 import com.giftregistry.domain.model.User
-import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,7 +12,7 @@ class AuthRepositoryImpl @Inject constructor(
     private val dataSource: FirebaseAuthDataSource
 ) : AuthRepository {
 
-    override val authState: Flow<User?> = dataSource.authStateFlow.map { it?.toDomain() }
+    override val authState: Flow<AuthStateEvent> = dataSource.authStateFlow
 
     override val currentUser: User? get() = dataSource.currentUser?.toDomain()
 
@@ -33,11 +32,4 @@ class AuthRepositoryImpl @Inject constructor(
         runCatching { dataSource.linkWithEmail(email, password).user!!.toDomain() }
 
     override fun signOut() = dataSource.signOut()
-
-    private fun FirebaseUser.toDomain(): User = User(
-        uid = uid,
-        email = email,
-        displayName = displayName,
-        isAnonymous = isAnonymous
-    )
 }

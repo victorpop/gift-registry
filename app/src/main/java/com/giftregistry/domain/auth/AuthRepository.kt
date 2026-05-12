@@ -4,7 +4,7 @@ import com.giftregistry.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {
-    val authState: Flow<User?>
+    val authState: Flow<AuthStateEvent>
     val currentUser: User?
     suspend fun signUpWithEmail(email: String, password: String): Result<User>
     suspend fun signInWithEmail(email: String, password: String): Result<User>

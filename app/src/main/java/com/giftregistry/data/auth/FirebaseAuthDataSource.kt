@@ -5,6 +5,7 @@ import com.google.firebase.auth.EmailAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
+import com.giftregistry.domain.auth.AuthStateEvent
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -16,9 +17,16 @@ import javax.inject.Singleton
 class FirebaseAuthDataSource @Inject constructor(
     private val firebaseAuth: FirebaseAuth
 ) {
-    val authStateFlow: Flow<FirebaseUser?> = callbackFlow {
+    val authStateFlow: Flow<AuthStateEvent> = callbackFlow {
+        var seenFirst = false
         val listener = FirebaseAuth.AuthStateListener { auth ->
-            trySend(auth.currentUser)
+            val user = auth.currentUser?.toDomain()
+            if (!seenFirst) {
+                seenFirst = true
+                trySend(AuthStateEvent.Initial(user))
+            } else {
+                trySend(AuthStateEvent.Changed(user))
+            }
         }
         firebaseAuth.addAuthStateListener(listener)
         awaitClose { firebaseAuth.removeAuthStateListener(listener) }

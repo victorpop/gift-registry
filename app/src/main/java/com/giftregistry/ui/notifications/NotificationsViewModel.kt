@@ -3,6 +3,7 @@ package com.giftregistry.ui.notifications
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.giftregistry.domain.model.Notification
+import com.giftregistry.domain.auth.AuthStateEvent
 import com.giftregistry.domain.auth.ObserveAuthStateUseCase
 import com.giftregistry.domain.usecase.MarkNotificationsReadUseCase
 import com.giftregistry.domain.usecase.ObserveNotificationsUseCase
@@ -10,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -31,8 +33,18 @@ class NotificationsViewModel @Inject constructor(
         data class Loaded(val notifications: List<Notification>) : UiState
     }
 
+    // Map AuthStateEvent to User? — skip Initial(null) to avoid transient unauthenticated state
+    private val authUserFlow = observeAuthState()
+        .filter { event -> event !is AuthStateEvent.Initial || event.user != null }
+        .map { event ->
+            when (event) {
+                is AuthStateEvent.Initial -> event.user
+                is AuthStateEvent.Changed -> event.user
+            }
+        }
+
     @OptIn(ExperimentalCoroutinesApi::class)
-    val uiState: StateFlow<UiState> = observeAuthState()
+    val uiState: StateFlow<UiState> = authUserFlow
         .flatMapLatest { user ->
             if (user == null) {
                 flowOf(UiState.Unauthenticated)
@@ -53,7 +65,7 @@ class NotificationsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            observeAuthState().collect { user ->
+            authUserFlow.collect { user ->
                 currentUid = user?.uid
             }
         }

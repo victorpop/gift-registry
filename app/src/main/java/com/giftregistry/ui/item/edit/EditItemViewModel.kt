@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.giftregistry.domain.auth.AuthRepository
+import com.giftregistry.domain.auth.AuthStateEvent
 import com.giftregistry.domain.model.GuestUser
 import com.giftregistry.domain.model.Item
 import com.giftregistry.domain.model.Registry
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -88,9 +90,18 @@ class EditItemViewModel @Inject constructor(
      * the safe default during load — owner-only edit affordances never
      * flash for an invitee.
      */
+    private val authUserFlowForOwner = authRepository.authState
+        .filter { event -> event !is AuthStateEvent.Initial || event.user != null }
+        .map { event ->
+            when (event) {
+                is AuthStateEvent.Initial -> event.user
+                is AuthStateEvent.Changed -> event.user
+            }
+        }
+
     val isOwner: StateFlow<Boolean> = combine(
         registry,
-        authRepository.authState,
+        authUserFlowForOwner,
     ) { reg, user ->
         reg != null && user != null && reg.ownerId == user.uid
     }

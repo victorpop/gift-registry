@@ -3,6 +3,7 @@ package com.giftregistry.ui.registry.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.giftregistry.domain.auth.AuthRepository
+import com.giftregistry.domain.auth.AuthStateEvent
 import com.giftregistry.domain.model.Registry
 import com.giftregistry.domain.model.User
 import com.giftregistry.domain.usecase.DeleteRegistryUseCase
@@ -13,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -37,13 +39,23 @@ class RegistryListViewModel @Inject constructor(
     private val _deleteError = MutableStateFlow<String?>(null)
     val deleteError: StateFlow<String?> = _deleteError
 
-    val currentUser: StateFlow<User?> = authRepository.authState
+    // Map AuthStateEvent to User? — skip Initial(null) to avoid transient null on cold start
+    private val authUserFlow = authRepository.authState
+        .filter { event -> event !is AuthStateEvent.Initial || event.user != null }
+        .map { event ->
+            when (event) {
+                is AuthStateEvent.Initial -> event.user
+                is AuthStateEvent.Changed -> event.user
+            }
+        }
+
+    val currentUser: StateFlow<User?> = authUserFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val uiState: StateFlow<RegistryListUiState>
 
     init {
-        uiState = authRepository.authState
+        uiState = authUserFlow
             .flatMapLatest { user ->
                 if (user == null) {
                     flowOf<RegistryListUiState>(RegistryListUiState.Loading)

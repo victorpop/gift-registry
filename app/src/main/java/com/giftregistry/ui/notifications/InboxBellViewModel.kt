@@ -2,14 +2,17 @@ package com.giftregistry.ui.notifications
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.giftregistry.domain.auth.AuthStateEvent
 import com.giftregistry.domain.auth.ObserveAuthStateUseCase
 import com.giftregistry.domain.usecase.ObserveUnreadNotificationCountUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -21,6 +24,13 @@ class InboxBellViewModel @Inject constructor(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val unreadCount: StateFlow<Int> = observeAuthState()
+        .filter { event -> event !is AuthStateEvent.Initial || event.user != null }
+        .map { event ->
+            when (event) {
+                is AuthStateEvent.Initial -> event.user
+                is AuthStateEvent.Changed -> event.user
+            }
+        }
         .flatMapLatest { user ->
             if (user == null) flowOf(0) else observeUnreadCount(user.uid)
         }

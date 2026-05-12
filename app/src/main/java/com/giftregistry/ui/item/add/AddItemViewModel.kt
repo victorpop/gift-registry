@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.giftregistry.domain.auth.AuthRepository
+import com.giftregistry.domain.auth.AuthStateEvent
 import com.giftregistry.domain.model.Item
 import com.giftregistry.domain.model.Registry
 import com.giftregistry.domain.usecase.AddItemUseCase
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -83,6 +85,13 @@ class AddItemViewModel @Inject constructor(
      */
     val registriesForPicker: StateFlow<List<Registry>> =
         authRepository.authState
+            .filter { event -> event !is AuthStateEvent.Initial || event.user != null }
+            .map { event ->
+                when (event) {
+                    is AuthStateEvent.Initial -> event.user
+                    is AuthStateEvent.Changed -> event.user
+                }
+            }
             .flatMapLatest { user ->
                 if (user == null) flowOf(emptyList())
                 else observeRegistries(user.uid)

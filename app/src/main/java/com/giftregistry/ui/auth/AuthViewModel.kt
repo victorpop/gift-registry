@@ -2,6 +2,7 @@ package com.giftregistry.ui.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.giftregistry.domain.auth.AuthStateEvent
 import com.giftregistry.domain.auth.ObserveAuthStateUseCase
 import com.giftregistry.domain.auth.SignInAnonymousUseCase
 import com.giftregistry.domain.auth.SignInEmailUseCase
@@ -33,14 +34,30 @@ class AuthViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            observeAuthStateUseCase()
-                .collect { user ->
-                    _authState.value = if (user != null) {
-                        AuthUiState.Authenticated(uid = user.uid, isAnonymous = user.isAnonymous)
-                    } else {
-                        AuthUiState.Unauthenticated
+            observeAuthStateUseCase().collect { event ->
+                _authState.value = when (event) {
+                    is AuthStateEvent.Initial -> {
+                        // Cold-start synchronous-attach emission. If a cached user is already
+                        // available (Firebase's in-memory cache populated before listener attach),
+                        // we can settle immediately as Authenticated. If null, stay in Loading
+                        // and wait for the post-restoration Changed emission — emitting
+                        // Unauthenticated here would cause AuthScreen to flash for ~1 second
+                        // on cold start for users with a cached session (BUG-AUTH-FLASH-260512).
+                        if (event.user != null) {
+                            AuthUiState.Authenticated(uid = event.user.uid, isAnonymous = event.user.isAnonymous)
+                        } else {
+                            AuthUiState.Loading
+                        }
+                    }
+                    is AuthStateEvent.Changed -> {
+                        if (event.user != null) {
+                            AuthUiState.Authenticated(uid = event.user.uid, isAnonymous = event.user.isAnonymous)
+                        } else {
+                            AuthUiState.Unauthenticated
+                        }
                     }
                 }
+            }
         }
     }
 

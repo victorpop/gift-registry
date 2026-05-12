@@ -3,6 +3,7 @@ package com.giftregistry.ui.item.edit
 import androidx.lifecycle.SavedStateHandle
 import com.giftregistry.MainDispatcherRule
 import com.giftregistry.domain.auth.AuthRepository
+import com.giftregistry.domain.auth.AuthStateEvent
 import com.giftregistry.domain.model.Registry
 import com.giftregistry.domain.model.User
 import com.giftregistry.domain.preferences.GuestPreferencesRepository
@@ -84,7 +85,7 @@ class EditItemViewModelIsOwnerTest {
     fun `isOwner is true when registry ownerId matches auth uid`() = runTest {
         every { observeRegistry("reg-1") } returns flowOf(fakeRegistry(ownerId = "user-1"))
         every { observeItems("reg-1") } returns flowOf(emptyList())
-        every { authRepository.authState } returns flowOf(fakeUser(uid = "user-1"))
+        every { authRepository.authState } returns flowOf(AuthStateEvent.Changed(fakeUser(uid = "user-1")))
 
         val viewModel = vm()
         advanceUntilIdle()
@@ -103,7 +104,7 @@ class EditItemViewModelIsOwnerTest {
         // Delete affordances disappear.
         every { observeRegistry("reg-1") } returns flowOf(fakeRegistry(ownerId = "user-1"))
         every { observeItems("reg-1") } returns flowOf(emptyList())
-        every { authRepository.authState } returns flowOf(fakeUser(uid = "user-2"))
+        every { authRepository.authState } returns flowOf(AuthStateEvent.Changed(fakeUser(uid = "user-2")))
 
         val viewModel = vm()
         advanceUntilIdle()
@@ -120,7 +121,7 @@ class EditItemViewModelIsOwnerTest {
         // flashes during the initial load before the first Firestore snapshot.
         every { observeRegistry("reg-1") } returns flowOf(null)
         every { observeItems("reg-1") } returns flowOf(emptyList())
-        every { authRepository.authState } returns flowOf(fakeUser(uid = "user-1"))
+        every { authRepository.authState } returns flowOf(AuthStateEvent.Changed(fakeUser(uid = "user-1")))
 
         val viewModel = vm()
         advanceUntilIdle()
@@ -137,7 +138,7 @@ class EditItemViewModelIsOwnerTest {
         // no user UID to compare against, so isOwner must be false.
         every { observeRegistry("reg-1") } returns flowOf(fakeRegistry(ownerId = "user-1"))
         every { observeItems("reg-1") } returns flowOf(emptyList())
-        every { authRepository.authState } returns flowOf(null)
+        every { authRepository.authState } returns flowOf(AuthStateEvent.Changed(null))
 
         val viewModel = vm()
         advanceUntilIdle()

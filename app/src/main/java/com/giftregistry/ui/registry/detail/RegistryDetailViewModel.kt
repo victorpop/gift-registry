@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.giftregistry.R
 import com.giftregistry.data.storage.CoverImageProcessor
 import com.giftregistry.domain.auth.AuthRepository
+import com.giftregistry.domain.auth.AuthStateEvent
 import com.giftregistry.domain.model.GuestUser
 import com.giftregistry.domain.model.Item
 import com.giftregistry.domain.model.Registry
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
@@ -179,9 +181,18 @@ class RegistryDetailViewModel @Inject constructor(
      * (`isOwner == false`) see no tap affordance because the screen passes
      * `onCoverTap = null` when this flow emits false.
      */
+    private val authUserFlowForOwner = authRepository.authState
+        .filter { event -> event !is AuthStateEvent.Initial || event.user != null }
+        .map { event ->
+            when (event) {
+                is AuthStateEvent.Initial -> event.user
+                is AuthStateEvent.Changed -> event.user
+            }
+        }
+
     val isOwner: StateFlow<Boolean> = combine(
         registry,
-        authRepository.authState,
+        authUserFlowForOwner,
     ) { reg, user ->
         reg != null && user != null && reg.ownerId == user.uid
     }

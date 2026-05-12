@@ -5,6 +5,7 @@ import app.cash.turbine.test
 import com.giftregistry.MainDispatcherRule
 import com.giftregistry.R
 import com.giftregistry.domain.auth.AuthRepository
+import com.giftregistry.domain.auth.AuthStateEvent
 import com.giftregistry.domain.model.GuestUser
 import com.giftregistry.domain.model.Registry
 import com.giftregistry.domain.model.ReservationResult
@@ -102,7 +103,7 @@ class EditItemViewModelReservationTest {
     fun `onReserveClicked success persists activeReservationId and emits OpenRetailer`() = runTest {
         every { observeRegistry("reg-1") } returns flowOf(fakeRegistry())
         every { observeItems("reg-1") } returns flowOf(emptyList())
-        every { authRepository.authState } returns flowOf(fakeUser(uid = "user-2"))
+        every { authRepository.authState } returns flowOf(AuthStateEvent.Changed(fakeUser(uid = "user-2")))
         every { authRepository.currentUser } returns fakeUser(uid = "user-2")
         coEvery { guestPrefs.getGuestIdentity() } returns fakeGuest()
         coEvery {
@@ -140,7 +141,7 @@ class EditItemViewModelReservationTest {
     fun `onReserveClicked with no guest identity emits ShowGuestSheet and skips reserve`() = runTest {
         every { observeRegistry("reg-1") } returns flowOf(fakeRegistry())
         every { observeItems("reg-1") } returns flowOf(emptyList())
-        every { authRepository.authState } returns flowOf(fakeUser(uid = "user-2"))
+        every { authRepository.authState } returns flowOf(AuthStateEvent.Changed(fakeUser(uid = "user-2")))
         every { authRepository.currentUser } returns fakeUser(uid = "user-2")
         coEvery { guestPrefs.getGuestIdentity() } returns null
 
@@ -165,7 +166,7 @@ class EditItemViewModelReservationTest {
     fun `onReserveClicked failure emits ShowConflictError and does not persist reservation id`() = runTest {
         every { observeRegistry("reg-1") } returns flowOf(fakeRegistry())
         every { observeItems("reg-1") } returns flowOf(emptyList())
-        every { authRepository.authState } returns flowOf(fakeUser(uid = "user-2"))
+        every { authRepository.authState } returns flowOf(AuthStateEvent.Changed(fakeUser(uid = "user-2")))
         every { authRepository.currentUser } returns fakeUser(uid = "user-2")
         coEvery { guestPrefs.getGuestIdentity() } returns fakeGuest()
         coEvery {
@@ -194,7 +195,7 @@ class EditItemViewModelReservationTest {
     fun `onConfirmPurchase success emits success resId and clears activeReservationId`() = runTest {
         every { observeRegistry("reg-1") } returns flowOf(fakeRegistry())
         every { observeItems("reg-1") } returns flowOf(emptyList())
-        every { authRepository.authState } returns flowOf(fakeUser(uid = "user-2"))
+        every { authRepository.authState } returns flowOf(AuthStateEvent.Changed(fakeUser(uid = "user-2")))
         coEvery { confirmPurchaseUseCase("res-1") } returns Result.success(Unit)
 
         val viewModel = vm()
@@ -217,7 +218,7 @@ class EditItemViewModelReservationTest {
     fun `onConfirmPurchase failure emits error resId and does not clear activeReservationId`() = runTest {
         every { observeRegistry("reg-1") } returns flowOf(fakeRegistry())
         every { observeItems("reg-1") } returns flowOf(emptyList())
-        every { authRepository.authState } returns flowOf(fakeUser(uid = "user-2"))
+        every { authRepository.authState } returns flowOf(AuthStateEvent.Changed(fakeUser(uid = "user-2")))
         coEvery { confirmPurchaseUseCase("res-1") } returns Result.failure(RuntimeException("RESERVATION_EXPIRED"))
 
         val viewModel = vm()
