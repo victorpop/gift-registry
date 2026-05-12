@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+Debug-only network security config.
+
+Permits cleartext HTTP to ANY host so debug builds can reach the Firebase
+emulator suite via either the AVD alias (10.0.2.2) or any host LAN IP passed
+via -PemulatorHost=<ip> (physical-device dev loop — see app/build.gradle.kts).
+
+This file lives in src/debug/res/xml/, so release builds inherit Android's
+default policy (cleartext blocked globally) — production remains HTTPS-only.
+-->
 <network-security-config>
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">10.0.2.2</domain>
-    </domain-config>
+    <base-config cleartextTrafficPermitted="true" />
 </network-security-config>
