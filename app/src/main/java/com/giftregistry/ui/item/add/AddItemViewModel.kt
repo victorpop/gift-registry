@@ -15,12 +15,17 @@ import com.giftregistry.ui.registry.list.isActive
 import com.giftregistry.ui.registry.list.startOfTodayMs
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -29,7 +34,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class AddItemViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
@@ -125,13 +130,69 @@ class AddItemViewModel @Inject constructor(
     private val _savedItemId = MutableStateFlow<String?>(null)
     val savedItemId: StateFlow<String?> = _savedItemId.asStateFlow()
 
+    /**
+     * quick-260512-wt8: tracks the most recently fetched URL so the auto-fetch
+     * flow can de-dup — typing then deleting then retyping the same URL must
+     * NOT re-fetch.
+     *
+     * The manual icon-button path (`onFetchMetadata()` invoked from the
+     * IconButton onClick) deliberately does NOT consult this field — manual
+     * retry is allowed even when the URL is unchanged (rationale: retry after
+     * a transient error).
+     *
+     * Updated by `onFetchMetadata()` on BOTH success and failure (failure marks
+     * the URL as "we tried it, don't auto-retry"; user can still manual-retry).
+     */
+    private var lastFetchedUrl: String = ""
+
+    /**
+     * quick-260512-wt8: pure helper — used by the auto-fetch flow's filter and
+     * unit-testable without Compose / SavedStateHandle. Accepts http/https only,
+     * with a non-blank host.
+     */
+    private fun isValidProductUrl(s: String): Boolean {
+        val trimmed = s.trim()
+        if (trimmed.isBlank()) return false
+        val uri = runCatching { java.net.URI(trimmed) }.getOrNull() ?: return false
+        val scheme = uri.scheme?.lowercase() ?: return false
+        return (scheme == "http" || scheme == "https") && !uri.host.isNullOrBlank()
+    }
+
     init {
         if (initialUrl.isNotBlank()) {
             url.value = initialUrl
+            // quick-260512-wt8: mark as "already requested" so the auto-fetch
+            // flow below does not double-fire when it observes the same value
+            // on first emission past the drop(1) gate.
+            lastFetchedUrl = initialUrl.trim()
             // Fire OG fetch automatically — user can still edit before saving. The
             // existing affiliate transform (ItemRepositoryImpl) runs on save; no
             // changes needed to the affiliate pipeline for Phase 7.
             onFetchMetadata()
+        }
+
+        // quick-260512-wt8: Auto-fetch on URL change.
+        //
+        //   - drop(1)               skip the initial "" emission from MutableStateFlow
+        //   - debounce(700)         wait until typing/pasting settles
+        //   - distinctUntilChanged  suppress redundant identical re-emissions
+        //   - collectLatest         cancel any in-flight fetch when a new url arrives
+        //
+        // Validity gate (http/https + non-blank host) and de-dup against
+        // lastFetchedUrl run INSIDE the collector, AFTER debounce, so the
+        // pipeline cancels stale work before it commits writes to the form
+        // fields.
+        viewModelScope.launch {
+            url
+                .drop(1)
+                .debounce(700)
+                .distinctUntilChanged()
+                .collectLatest { current ->
+                    val trimmed = current.trim()
+                    if (!isValidProductUrl(trimmed)) return@collectLatest
+                    if (trimmed == lastFetchedUrl) return@collectLatest
+                    onFetchMetadata()
+                }
         }
     }
 
@@ -167,6 +228,13 @@ class AddItemViewModel @Inject constructor(
                 }
 
             _isFetchingOg.value = false
+            // quick-260512-wt8: mark this URL as "we tried it" so the auto-fetch
+            // flow's de-dup check suppresses an immediate re-fire on the same
+            // value. The manual retry path (this same function called from the
+            // trailing IconButton) bypasses the de-dup because the auto-fetch
+            // flow only enforces it inside its collector — direct invocations
+            // always run unconditionally.
+            lastFetchedUrl = currentUrl
         }
     }
 
@@ -237,6 +305,8 @@ class AddItemViewModel @Inject constructor(
         imageUrl.value = ""
         price.value = ""
         _ogFetchFailed.value = false
+        // quick-260512-wt8: reset dedup gate so the next paste/type fetches.
+        lastFetchedUrl = ""
     }
 
     /** SCR-10: "Add another" CTA — save via onSave() then caller calls this to reset all fields. */
@@ -249,5 +319,7 @@ class AddItemViewModel @Inject constructor(
         _ogFetchFailed.value = false
         _savedItemId.value = null
         _error.value = null
+        // quick-260512-wt8: reset dedup gate so the next paste/type fetches.
+        lastFetchedUrl = ""
     }
 }

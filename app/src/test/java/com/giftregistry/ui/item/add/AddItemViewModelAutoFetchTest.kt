@@ -1,5 +1,6 @@
 package com.giftregistry.ui.item.add
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import com.giftregistry.MainDispatcherRule
 import com.giftregistry.domain.auth.AuthRepository
@@ -12,11 +13,15 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -35,6 +40,25 @@ import org.junit.Test
 class AddItemViewModelAutoFetchTest {
 
     @get:Rule val mainDispatcherRule = MainDispatcherRule()
+
+    @Before fun stubAndroidLog() {
+        // android.util.Log is not present in the JVM unit-test classpath — the
+        // production code (AddItemViewModel.onFetchMetadata) calls Log.d / Log.e
+        // for diagnostic logging, which would otherwise throw RuntimeException
+        // "Method d in android.util.Log not mocked." mockkStatic returns the
+        // default Int (0) for every Log method so the VM under test runs to
+        // completion.
+        mockkStatic(Log::class)
+        every { Log.d(any(), any<String>()) } returns 0
+        every { Log.e(any(), any<String>(), any()) } returns 0
+        every { Log.e(any(), any<String>()) } returns 0
+        every { Log.w(any(), any<String>()) } returns 0
+        every { Log.i(any(), any<String>()) } returns 0
+    }
+
+    @After fun unstubAndroidLog() {
+        unmockkStatic(Log::class)
+    }
 
     private fun buildVm(
         initialUrl: String = "",

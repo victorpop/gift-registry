@@ -18,7 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.KeyboardArrowRight
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -312,10 +312,14 @@ private fun PasteUrlModeContent(
             shape = shapes.radius12,
             singleLine = true,
             trailingIcon = {
+                // quick-260512-wt8: CloudDownload (fetch-semantic) replaces the
+                // misleading rotational Refresh icon. The button stays as a
+                // manual-retry affordance — auto-fetch handles the happy path,
+                // this button covers retry-after-error and explicit user intent.
                 IconButton(onClick = { viewModel.onFetchMetadata() }) {
                     Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = null,
+                        imageVector = Icons.Outlined.CloudDownload,
+                        contentDescription = stringResource(R.string.item_url_fetch_button_cd),
                         tint = colors.accent,
                     )
                 }
