@@ -221,6 +221,7 @@ export default function RegistryPage() {
               {itemsQ.data && itemsQ.data.length > 0 ? (
                 <ItemGrid
                   items={itemsQ.data}
+                  registryId={registryQ.data!.id}
                   filter={filter}
                   renderReserve={(item) => (
                     <ReserveButton registryId={registryQ.data!.id} item={item} />

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router'
 import type { Item, ItemStatus } from '../../lib/firestore-mapping'
 // Import atoms directly (not via barrel) to avoid pulling TopNav→useAuth→firebase
 // into ItemCard's import graph — keeps ItemCard.test.tsx (jsdom, no firebase mock) green.
@@ -9,9 +10,12 @@ import { useCountdown } from '../reservation/useCountdown'
 
 interface Props {
   item: Item
+  /** Registry ID — used to build the per-item detail link /registry/{registryId}/item/{itemId}. */
+  registryId: string
   /**
    * Plan 05 injects the real ReserveButton via render-prop (existing Phase 5 contract).
    * When omitted, ItemCard renders a disabled placeholder for available items.
+   * Rendered OUTSIDE the <Link> so reserve button clicks do NOT trigger card navigation.
    */
   reserveSlot?: React.ReactNode
 }
@@ -47,7 +51,7 @@ function statusPillKey(status: ItemStatus): string {
   return 'web_pill.available'
 }
 
-export default function ItemCard({ item, reserveSlot }: Props) {
+export default function ItemCard({ item, registryId, reserveSlot }: Props) {
   const { t } = useTranslation()
   const isPurchased = item.status === 'purchased'
   const isReserved = item.status === 'reserved'
@@ -73,82 +77,93 @@ export default function ItemCard({ item, reserveSlot }: Props) {
       data-testid="item-card"
       data-status={item.status}
     >
-      {/* Image area — aspect 4:3 mobile / 16:10 desktop+ (D-10) */}
-      <div className="relative aspect-[4/3] sm:aspect-[16/10] bg-gm-paperDeep overflow-hidden">
-        {item.imageUrl ? (
-          <img
-            src={item.imageUrl}
-            alt={item.title}
-            className={`w-full h-full object-cover ${isPurchased ? 'grayscale' : ''}`}
-            loading="lazy"
-          />
-        ) : (
-          <div className="w-full h-full" aria-hidden="true" />
-        )}
-        {/* Status pill top-left */}
-        <div className="absolute top-3 left-3">
-          <Pill tone={statusToPillTone(item.status)} size="sm">
-            {isReserved && <PulseDot size={8} className="mr-[2px]" />}
-            {t(statusPillKey(item.status))}
-          </Pill>
-        </div>
-      </div>
-
-      {/* Body */}
-      <div className="flex flex-col gap-3 p-4 flex-1">
-        <div>
-          <h3 className="font-body text-[15px] font-medium text-gm-ink leading-[1.25] tracking-[-0.2px] m-0">
-            {item.title}
-          </h3>
-          {(priceText || retailerText) && (
-            <div className="flex justify-between items-baseline mt-[6px]">
-              {priceText && (
-                <span className="font-body text-[14px] text-gm-ink font-medium" data-testid="price">
-                  {item.price}
-                  {item.currency && (
-                    <span className="ml-1 font-mono text-[11px] text-gm-inkFaint">
-                      {item.currency}
-                    </span>
-                  )}
-                </span>
-              )}
-              {retailerText && (
-                <MonoCaption size="micro" tone="faint">{retailerText}</MonoCaption>
-              )}
-            </div>
+      {/* Link wraps the entire card body (image + title/price + reserved banner).
+          The reserve-slot is rendered OUTSIDE the Link (as a sibling) so that button
+          clicks on the reserve slot do NOT bubble up to the Link and trigger navigation.
+          This avoids the need for stopPropagation which breaks cmd-click / right-click. */}
+      <Link
+        to={`/registry/${registryId}/item/${item.id}`}
+        aria-label={item.title}
+        className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gm-accent rounded-gm-card"
+      >
+        {/* Image area — aspect 4:3 mobile / 16:10 desktop+ (D-10) */}
+        <div className="relative aspect-[4/3] sm:aspect-[16/10] bg-gm-paperDeep overflow-hidden">
+          {item.imageUrl ? (
+            <img
+              src={item.imageUrl}
+              alt={item.title}
+              className={`w-full h-full object-cover ${isPurchased ? 'grayscale' : ''}`}
+              loading="lazy"
+            />
+          ) : (
+            <div className="w-full h-full" aria-hidden="true" />
           )}
+          {/* Status pill top-left */}
+          <div className="absolute top-3 left-3">
+            <Pill tone={statusToPillTone(item.status)} size="sm">
+              {isReserved && <PulseDot size={8} className="mr-[2px]" />}
+              {t(statusPillKey(item.status))}
+            </Pill>
+          </div>
         </div>
 
-        {/* Status-conditional region */}
-        {isAvailable && (
-          <div data-testid="reserve-slot" className="self-stretch">
-            {reserveSlot ?? (
-              <button
-                type="button"
-                disabled
-                className="inline-flex items-center justify-center gap-2 w-full rounded-full border border-gm-ink bg-gm-ink text-gm-paper font-body text-[12px] font-medium tracking-[-0.1px] leading-none px-3 py-[7px] opacity-50 cursor-not-allowed"
-              >
-                {t('web_hero.reserve_cta')}
-              </button>
+        {/* Body */}
+        <div className="flex flex-col gap-3 p-4">
+          <div>
+            <h3 className="font-body text-[15px] font-medium text-gm-ink leading-[1.25] tracking-[-0.2px] m-0">
+              {item.title}
+            </h3>
+            {(priceText || retailerText) && (
+              <div className="flex justify-between items-baseline mt-[6px]">
+                {priceText && (
+                  <span className="font-body text-[14px] text-gm-ink font-medium" data-testid="price">
+                    {item.price}
+                    {item.currency && (
+                      <span className="ml-1 font-mono text-[11px] text-gm-inkFaint">
+                        {item.currency}
+                      </span>
+                    )}
+                  </span>
+                )}
+                {retailerText && (
+                  <MonoCaption size="micro" tone="faint">{retailerText}</MonoCaption>
+                )}
+              </div>
             )}
           </div>
-        )}
 
-        {isReserved && (
-          <div className="flex items-center gap-[10px] px-3 py-[9px] bg-gm-accentSoft rounded-lg">
-            <PulseDot size={8} />
-            <span className="font-mono text-[10.5px] text-gm-accent uppercase tracking-[0.4px] flex-1">
-              {t('web_pill.reserved_banner', { minutes: minutesLeft })}
-            </span>
-          </div>
-        )}
+          {isReserved && (
+            <div className="flex items-center gap-[10px] px-3 py-[9px] bg-gm-accentSoft rounded-lg">
+              <PulseDot size={8} />
+              <span className="font-mono text-[10.5px] text-gm-accent uppercase tracking-[0.4px] flex-1">
+                {t('web_pill.reserved_banner', { minutes: minutesLeft })}
+              </span>
+            </div>
+          )}
 
-        {/* Purchased: no body CTA — image already shows opacity + grayscale.
-            UI-SPEC ASCII contract says "(no body CTA; row is opacity 0.55, image
-            grayscale, status pill bottom-left ✓ Purchased per D-16)".
-            We keep the status pill at top-left (consistency across statuses); the
-            opacity + grayscale carry the "purchased" signal sufficiently. */}
-      </div>
+          {/* Purchased: no body CTA — image already shows opacity + grayscale.
+              UI-SPEC ASCII contract says "(no body CTA; row is opacity 0.55, image
+              grayscale, status pill bottom-left ✓ Purchased per D-16)".
+              We keep the status pill at top-left (consistency across statuses); the
+              opacity + grayscale carry the "purchased" signal sufficiently. */}
+        </div>
+      </Link>
+
+      {/* Reserve-slot: sibling of the Link, NOT a descendant. Clicks here do not
+          navigate — the article's flex-col layout keeps visual order intact. */}
+      {isAvailable && (
+        <div data-testid="reserve-slot" className="px-4 pb-4 self-stretch">
+          {reserveSlot ?? (
+            <button
+              type="button"
+              disabled
+              className="inline-flex items-center justify-center gap-2 w-full rounded-full border border-gm-ink bg-gm-ink text-gm-paper font-body text-[12px] font-medium tracking-[-0.1px] leading-none px-3 py-[7px] opacity-50 cursor-not-allowed"
+            >
+              {t('web_hero.reserve_cta')}
+            </button>
+          )}
+        </div>
+      )}
     </article>
   )
 }

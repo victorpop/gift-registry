@@ -117,6 +117,17 @@
     "purchased": "✓ CUMPĂRAT",
     "reserved_banner": "MAI {{minutes}} MIN — se eliberează dacă nu e cumpărat"
   },
+  "web_item_detail": {
+    "page_caption": "DETALII CADOU",
+    "go_to_retailer": "Mergi la magazin →",
+    "back_to_registry": "← Înapoi la registru",
+    "mark_as_purchased_cta": "Am finalizat achiziția",
+    "mark_as_purchased_loading": "Se confirmă…",
+    "reserved_read_only": "Acest articol este rezervat. Persoana care l-a rezervat are 30 de minute pentru a finaliza achiziția.",
+    "purchased_label": "Acest articol a fost cumpărat.",
+    "notes_label": "Note",
+    "loading": "Se încarcă cadoul…"
+  },
   "web_auth": {
     "caption": "EȘTI INVITAT LA UN REGISTRU",
     "headline_pre": "",

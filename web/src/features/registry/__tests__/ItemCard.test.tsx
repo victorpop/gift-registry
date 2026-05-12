@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
 import '../../../i18n'
 import ItemCard from '../ItemCard'
 import type { Item } from '../../../lib/firestore-mapping'
@@ -23,9 +24,17 @@ function makeItem(overrides: Partial<Item> = {}): Item {
   }
 }
 
+function renderCard(item: Item, reserveSlot?: React.ReactNode) {
+  return render(
+    <MemoryRouter>
+      <ItemCard item={item} registryId="reg-1" reserveSlot={reserveSlot} />
+    </MemoryRouter>
+  )
+}
+
 describe('ItemCard', () => {
   it('renders title, price, currency, and image alt=title for available item', () => {
-    render(<ItemCard item={makeItem()} />)
+    renderCard(makeItem())
     expect(screen.getByText('Coffee Grinder')).toBeInTheDocument()
     // Phase 13: price + currency render in two spans (price body + currency mono).
     // Use the data-testid="price" span and assert its text content.
@@ -33,10 +42,12 @@ describe('ItemCard', () => {
     expect(priceEl.textContent).toContain('49.99')
     expect(priceEl.textContent).toContain('RON')
     expect(screen.getByAltText('Coffee Grinder')).toBeInTheDocument()
+    // ItemCard body is wrapped in a Link to the detail page.
+    expect(screen.getByRole('link', { name: /Coffee Grinder/i })).toHaveAttribute('href', '/registry/reg-1/item/item-1')
   })
 
   it('shows Available pill (neutral tone, gm-paperDeep bg) for available status', () => {
-    render(<ItemCard item={makeItem({ status: 'available' })} />)
+    renderCard(makeItem({ status: 'available' }))
     // Phase 13: status pill is a <Pill tone="neutral" size="sm"> atom; pill copy
     // is uppercase ("AVAILABLE") via i18n web_pill.available. Assert visible copy
     // + the data-status attribute on the article wrapper.
@@ -45,7 +56,7 @@ describe('ItemCard', () => {
   })
 
   it('shows Reserved pill (accent tone, gm-accentSoft bg) for reserved status', () => {
-    render(<ItemCard item={makeItem({ status: 'reserved' })} />)
+    renderCard(makeItem({ status: 'reserved' }))
     // Phase 13 D-06: pill copy is "RESERVED" uppercase (no name suffix); also
     // rendered as the in-card banner with "{n} MIN LEFT" copy when expiresAt set.
     expect(screen.getByText('RESERVED')).toBeInTheDocument()
@@ -53,7 +64,7 @@ describe('ItemCard', () => {
   })
 
   it('shows Purchased pill (ok tone) + opacity-0.55 article for purchased status', () => {
-    render(<ItemCard item={makeItem({ status: 'purchased' })} />)
+    renderCard(makeItem({ status: 'purchased' }))
     // Phase 13 D-06: pill copy is "✓ PURCHASED" (no giver name).
     expect(screen.getByText(/PURCHASED/)).toBeInTheDocument()
     const card = screen.getByTestId('item-card')
@@ -63,33 +74,33 @@ describe('ItemCard', () => {
   })
 
   it('renders reserve-slot when status is available', () => {
-    render(<ItemCard item={makeItem({ status: 'available' })} />)
+    renderCard(makeItem({ status: 'available' }))
     expect(screen.getByTestId('reserve-slot')).toBeInTheDocument()
   })
 
   it('does NOT render reserve-slot when status is reserved', () => {
-    render(<ItemCard item={makeItem({ status: 'reserved' })} />)
+    renderCard(makeItem({ status: 'reserved' }))
     expect(screen.queryByTestId('reserve-slot')).not.toBeInTheDocument()
   })
 
   it('does NOT render reserve-slot when status is purchased', () => {
-    render(<ItemCard item={makeItem({ status: 'purchased' })} />)
+    renderCard(makeItem({ status: 'purchased' }))
     expect(screen.queryByTestId('reserve-slot')).not.toBeInTheDocument()
   })
 
   it('uses custom reserveSlot when provided (Plan 06 injection)', () => {
-    render(<ItemCard item={makeItem({ status: 'available' })} reserveSlot={<button>CustomReserve</button>} />)
+    renderCard(makeItem({ status: 'available' }), <button>CustomReserve</button>)
     expect(screen.getByText('CustomReserve')).toBeInTheDocument()
   })
 
   it('renders price without currency when currency is null', () => {
-    render(<ItemCard item={makeItem({ price: 25, currency: null })} />)
+    renderCard(makeItem({ price: 25, currency: null }))
     const priceEl = screen.getByTestId('price')
     expect(priceEl.textContent).toContain('25')
   })
 
   it('omits price block when price is null', () => {
-    render(<ItemCard item={makeItem({ price: null, currency: null })} />)
+    renderCard(makeItem({ price: null, currency: null }))
     expect(screen.queryByText(/RON/)).not.toBeInTheDocument()
     expect(screen.queryByTestId('price')).not.toBeInTheDocument()
   })
