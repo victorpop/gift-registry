@@ -117,17 +117,6 @@
     "purchased": "✓ PURCHASED",
     "reserved_banner": "{{minutes}} MIN LEFT — auto-releases if not purchased"
   },
-  "web_item_detail": {
-    "page_caption": "GIFT DETAIL",
-    "go_to_retailer": "Go to retailer →",
-    "back_to_registry": "← Back to registry",
-    "mark_as_purchased_cta": "I completed the purchase",
-    "mark_as_purchased_loading": "Confirming…",
-    "reserved_read_only": "This item is reserved. The giver who reserved it has 30 minutes to complete the purchase.",
-    "purchased_label": "This item has been purchased.",
-    "notes_label": "Notes",
-    "loading": "Loading gift…"
-  },
   "web_auth": {
     "caption": "YOU'RE INVITED TO A REGISTRY",
     "headline_pre": "",
