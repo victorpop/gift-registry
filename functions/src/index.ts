@@ -14,7 +14,8 @@ export const healthCheck = functions.https.onRequest((req, res) => {
 export { fetchOgMetadata } from "./registry/fetchOgMetadata";
 export { inviteToRegistry } from "./registry/inviteToRegistry";
 export { createReservation } from "./reservation/createReservation";
-export { releaseReservation } from "./reservation/releaseReservation";
+export { releaseReservation, releaseReservationCallable } from "./reservation/releaseReservation";
+export { hydrateActiveReservation } from "./reservation/hydrateActiveReservation";
 export { resolveReservation } from "./reservation/resolveReservation";
 export { confirmPurchase } from "./reservation/confirmPurchase";
 export { onPurchaseNotification } from "./notifications/onPurchaseNotification";

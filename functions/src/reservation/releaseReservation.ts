@@ -1,6 +1,8 @@
 import { onTaskDispatched } from "firebase-functions/v2/tasks";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { CloudTasksClient } from "@google-cloud/tasks";
 import { expiryTemplate } from "../email/templates/expiry";
 import { sendEmail } from "../email/send";
 import { buildReReserveUrl } from "../config/publicUrls";
@@ -9,10 +11,17 @@ import { writeNotification } from "../notifications/writeNotification";
 interface ReleasePayload { reservationId: string; }
 
 const REGION = "europe-west3";
+const tasksClient = new CloudTasksClient();
 
 export interface ReleaseReservationCoreArgs {
   reservationId: string;
   db: admin.firestore.Firestore;
+  /**
+   * When true, skip the `now < expiresAt → no-op` guard.
+   * Used by releaseReservationCallable for manual releases initiated by the owner.
+   * The scheduled onTaskDispatched handler does NOT set this flag, preserving existing behaviour.
+   */
+  skipNotYetExpiredGuard?: boolean;
 }
 
 /**
@@ -57,7 +66,7 @@ export async function releaseReservationCore(
 
     const nowSeconds = Timestamp.now().seconds;
     const expiresAtSeconds = (data.expiresAt as Timestamp).seconds;
-    if (nowSeconds < expiresAtSeconds) {
+    if (!args.skipNotYetExpiredGuard && nowSeconds < expiresAtSeconds) {
       console.info(`[releaseReservation] reservation ${reservationId} not yet expired; no-op`);
       return;
     }
@@ -157,6 +166,104 @@ export const releaseReservation = onTaskDispatched<ReleasePayload>(
       console.warn("[releaseReservation] missing reservationId; no-op");
       return;
     }
+    // NOTE: skipNotYetExpiredGuard is NOT set here — the scheduled task only runs
+    // after expiresAt, so the guard is meaningful and should remain active.
     await releaseReservationCore({ reservationId, db: admin.firestore() });
+  }
+);
+
+interface ReleaseCallablePayload {
+  reservationId: string;
+  giverEmail?: string;
+}
+
+interface ReleaseCallableResponse {
+  success: boolean;
+}
+
+/**
+ * releaseReservationCallable — manual release by the giver (owner of the reservation).
+ *
+ * Ownership rules:
+ *   - Signed-in: request.auth.uid must match reservation.giverId.
+ *   - Guest: request.auth is null, payload.giverEmail must match reservation.giverEmail
+ *     AND reservation.giverId must be null (guest reservation).
+ *
+ * After ownership verification, delegates to releaseReservationCore with
+ * skipNotYetExpiredGuard=true (manual release ignores the not-yet-expired check).
+ * Cancels the scheduled Cloud Task to prevent a duplicate timer-driven release.
+ * Cloud Task NOT_FOUND (code 5) is swallowed — timer may have already fired.
+ */
+export const releaseReservationCallable = onCall<ReleaseCallablePayload>(
+  { region: REGION },
+  async (request): Promise<ReleaseCallableResponse> => {
+    const reservationId = request.data?.reservationId;
+    if (!reservationId || typeof reservationId !== "string") {
+      throw new HttpsError("invalid-argument", "MISSING_RESERVATION_ID");
+    }
+
+    const db = admin.firestore();
+    const ref = db.collection("reservations").doc(reservationId);
+    let cloudTaskName = "";
+
+    // Ownership check in a read-only transaction for consistent snapshot of status + giverId/giverEmail.
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) {
+        throw new HttpsError("not-found", "RESERVATION_NOT_FOUND");
+      }
+      const data = snap.data()!;
+
+      if (data.status !== "active") {
+        throw new HttpsError("failed-precondition", "RESERVATION_NOT_ACTIVE");
+      }
+
+      // Ownership: signed-in → uid must match giverId.
+      // Guest → giverId must be null AND payload.giverEmail must match.
+      if (request.auth) {
+        if (request.auth.uid !== data.giverId) {
+          throw new HttpsError("permission-denied", "RELEASE_NOT_OWNER");
+        }
+      } else {
+        const payloadEmail = request.data?.giverEmail;
+        if (!payloadEmail || data.giverId !== null || data.giverEmail !== payloadEmail) {
+          throw new HttpsError("permission-denied", "RELEASE_NOT_OWNER");
+        }
+      }
+
+      cloudTaskName = (data.cloudTaskName as string) ?? "";
+    });
+
+    // Manual release — bypass the not-yet-expired guard so the owner can release at any time.
+    // releaseReservationCore is transactional and idempotent.
+    await releaseReservationCore({
+      reservationId,
+      db: admin.firestore(),
+      skipNotYetExpiredGuard: true,
+    });
+
+    // Cancel the scheduled Cloud Task AFTER the release transaction commits.
+    // Mirror confirmPurchase pattern: swallow NOT_FOUND (code=5), log other errors.
+    if (cloudTaskName) {
+      try {
+        await tasksClient.deleteTask({ name: cloudTaskName });
+      } catch (err: unknown) {
+        const code = (err as { code?: number }).code;
+        if (code === 5) {
+          // NOT_FOUND: task already fired or already cancelled — swallow silently.
+          console.info(
+            `[releaseReservationCallable] Cloud Task ${cloudTaskName} already gone; ignoring`
+          );
+        } else {
+          // Unexpected error — log but do not rethrow: reservation is already released.
+          console.error(
+            `[releaseReservationCallable] deleteTask failed for ${cloudTaskName}:`,
+            err
+          );
+        }
+      }
+    }
+
+    return { success: true };
   }
 );
