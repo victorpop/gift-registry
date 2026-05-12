@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 Phase: 14
 Plan: Not started
 Status: Executing Phase 13
-Last activity: 2026-05-13 - Completed quick task 260512-wn3: Android cold-start AuthScreen flash eliminated for cached signed-in users
+Last activity: 2026-05-13 - Completed quick task 260513-0kn: Fix confirm-purchase not clearing active reservation
 
 Progress: [░░░░░░░░░░] 0%
 
