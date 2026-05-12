@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Closed 3 quick tasks (260510-sai, 260510-v4v, 260510-noi); next: 260510-pdp expiry verify + Phase 13 web UAT
-last_updated: "2026-05-12T00:00:00.000Z"
-last_activity: 2026-05-12
+stopped_at: Completed 13-07 Tasks 1-3; returned UAT checkpoint Task 4 — awaiting human approval
+last_updated: "2026-05-12T13:29:07.360Z"
+last_activity: 2026-05-12 -- Phase 13 execution started
 progress:
   total_phases: 14
-  completed_phases: 12
+  completed_phases: 13
   total_plans: 69
-  completed_plans: 68
+  completed_plans: 69
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 13 (web-fallback-visual-refresh) — EXECUTING
-Plan: 8 of 8
-Status: Ready to execute
-Last activity: 2026-05-07
+Plan: 1 of 8
+Status: Executing Phase 13
+Last activity: 2026-05-12 -- Phase 13 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -302,6 +302,8 @@ Recent decisions affecting current work:
 - [Phase 13-web-fallback-visual-refresh]: [Phase 13-05] Native <details> element for HowTimerWorks mobile collapsible — chosen over useState for zero-JS accessibility-built-in primitive; lg:hidden summary + hidden lg:block heading split keeps desktop always-open
 - [Phase 13-web-fallback-visual-refresh]: [Phase 13-05] ReservationBanner.tsx kept as deprecated re-export of StickyReserveBanner — 4 test suites vi.mock the path, deferred deletion to Phase 14 cleanup
 - [Phase 13-web-fallback-visual-refresh]: [Phase 13-05] ConfirmPurchaseBanner gains optional minutesLeft prop (default 30) — confirm_body interpolates {{minutes}}, ReserveDetailSection passes live countdown.minutes
+- [Phase 13]: GuestIdentityModal uses barrel import (not direct atom import) — its existing test (GuestIdentityModal.test.tsx) is firebase-free from Phase 5, probing only form behaviour; no firebase mock needed unlike AuthModal.test.tsx
+- [Phase 13]: ToastProvider severity pattern: left-border accent (border-l-4 gm-accent/warn/line) rather than full-card colouring — keeps card legible on paper bg while communicating severity; success=terracotta, error=amber, neutral=faint
 
 ### Pending Todos
 
@@ -355,6 +357,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-12T00:00:00.000Z
-Stopped at: Closed 3 quick tasks (260510-sai, 260510-v4v, 260510-noi); next: 260510-pdp expiry verify + Phase 13 web UAT
+Last session: 2026-05-12T13:28:58.696Z
+Stopped at: Completed 13-07 Tasks 1-3; returned UAT checkpoint Task 4 — awaiting human approval
+Resumed: 2026-05-12 — awaiting user choice between executing quick/260510-pdp (PLAN only, no SUMMARY) and Plan 13-07 (final plan of Phase 13).
 Resume file: None
