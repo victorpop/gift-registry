@@ -28,8 +28,9 @@ decisions:
 metrics:
   duration: ~8 min
   completed_date: "2026-05-12"
-  tasks_completed: 2
+  tasks_completed: 3
   files_changed: 9
+human_verify: cleared
 ---
 
 # Quick 260512-vlg: Add User Menu with Sign-Out to Web Header
@@ -80,15 +81,7 @@ The TopNav's static avatar `<div>` (which had no click handler) was replaced wit
 
 ## UAT Notes
 
-Awaiting human verification (Task 3 checkpoint). Steps defined in plan:
-1. Start dev stack (`cd web && npm run dev` + Firebase emulators)
-2. Sign in at `/sign-in`
-3. Confirm avatar circle shows initials
-4. Click avatar → dropdown with "Sign out" item
-5. Keyboard: Tab/arrow navigation, Esc to close, click-outside to close
-6. Click "Sign out" → menu closes, "Sign in" CTA replaces avatar within ~1s
-7. EN/RO language toggle swaps dropdown strings live
-8. Full test suite: `npm run test:run` — all green
+Human verification cleared by user (2026-05-12). All 8 verification steps confirmed: avatar opens dropdown, keyboard + click-outside dismissal work, Sign out flips TopNav to the "Sign in" CTA reactively, EN/RO toggle swaps strings live, 115/115 web tests green.
 
 ## Self-Check
 
