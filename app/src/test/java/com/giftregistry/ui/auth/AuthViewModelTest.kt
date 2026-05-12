@@ -15,7 +15,6 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -43,10 +42,12 @@ class AuthViewModelTest {
         )
     }
 
+    // -----------------------------------------------------------------------
+    // Regression tests for BUG-AUTH-FLASH-260512 (cold-start AuthScreen flash)
+    // -----------------------------------------------------------------------
+
     @Test
-    fun `initial state is Loading to prevent auth screen flash`() = runTest {
-        // A freshly created ViewModel starts in Loading before auth state is known
-        // We verify by resetting and checking before any state emission
+    fun `initial authState is Loading before any emission`() = runTest {
         val freshRepo = FakeAuthRepository()
         val freshVm = AuthViewModel(
             signUpUseCase = SignUpUseCase(freshRepo),
@@ -56,19 +57,99 @@ class AuthViewModelTest {
             observeAuthStateUseCase = ObserveAuthStateUseCase(freshRepo),
             signOutUseCase = SignOutUseCase(freshRepo)
         )
-        // The ViewModel emits Loading first, then transitions based on auth state
         freshVm.authState.test {
-            val first = awaitItem()
-            assertTrue("Expected Loading or Unauthenticated as first state",
-                first is AuthUiState.Loading || first is AuthUiState.Unauthenticated)
+            assertTrue(awaitItem() is AuthUiState.Loading)
             cancelAndIgnoreRemainingEvents()
         }
     }
 
     @Test
+    fun `cold start with cached user — Initial(null) then Changed(user) never flashes Unauthenticated`() = runTest {
+        // This is the BUG-AUTH-FLASH-260512 regression test.
+        // Firebase Auth on cold start fires the listener synchronously with null (cache not
+        // yet read), then fires again with the restored cached user. The ViewModel MUST stay
+        // in Loading during the null gap — flipping to Unauthenticated would render AuthScreen
+        // for ~1 second before the user emission arrives.
+        val freshRepo = FakeAuthRepository()
+        val freshVm = AuthViewModel(
+            signUpUseCase = SignUpUseCase(freshRepo),
+            signInEmailUseCase = SignInEmailUseCase(freshRepo),
+            signInGoogleUseCase = SignInGoogleUseCase(freshRepo),
+            signInAnonymousUseCase = SignInAnonymousUseCase(freshRepo),
+            observeAuthStateUseCase = ObserveAuthStateUseCase(freshRepo),
+            signOutUseCase = SignOutUseCase(freshRepo)
+        )
+        freshVm.authState.test {
+            assertTrue("Initial state must be Loading", awaitItem() is AuthUiState.Loading)
+
+            freshRepo.emitInitial(null)
+            advanceUntilIdle()
+            // CRITICAL: no Unauthenticated emission here — stays in Loading
+            expectNoEvents()
+
+            val cachedUser = User(uid = "cached-uid", email = "u@test.com", displayName = null, isAnonymous = false)
+            freshRepo.emitChanged(cachedUser)
+            advanceUntilIdle()
+            val next = awaitItem()
+            assertTrue("Expected Authenticated, got $next", next is AuthUiState.Authenticated)
+            assertEquals("cached-uid", (next as AuthUiState.Authenticated).uid)
+
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `cold start with cached user delivered as Initial fast-path resolves immediately to Authenticated`() = runTest {
+        val freshRepo = FakeAuthRepository()
+        val freshVm = AuthViewModel(
+            signUpUseCase = SignUpUseCase(freshRepo),
+            signInEmailUseCase = SignInEmailUseCase(freshRepo),
+            signInGoogleUseCase = SignInGoogleUseCase(freshRepo),
+            signInAnonymousUseCase = SignInAnonymousUseCase(freshRepo),
+            observeAuthStateUseCase = ObserveAuthStateUseCase(freshRepo),
+            signOutUseCase = SignOutUseCase(freshRepo)
+        )
+        freshVm.authState.test {
+            assertTrue(awaitItem() is AuthUiState.Loading)
+            freshRepo.emitInitial(User(uid = "u1", email = null, displayName = null, isAnonymous = false))
+            advanceUntilIdle()
+            assertTrue(awaitItem() is AuthUiState.Authenticated)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `cold start with no cached user — Initial(null) then Changed(null) settles to Unauthenticated`() = runTest {
+        val freshRepo = FakeAuthRepository()
+        val freshVm = AuthViewModel(
+            signUpUseCase = SignUpUseCase(freshRepo),
+            signInEmailUseCase = SignInEmailUseCase(freshRepo),
+            signInGoogleUseCase = SignInGoogleUseCase(freshRepo),
+            signInAnonymousUseCase = SignInAnonymousUseCase(freshRepo),
+            observeAuthStateUseCase = ObserveAuthStateUseCase(freshRepo),
+            signOutUseCase = SignOutUseCase(freshRepo)
+        )
+        freshVm.authState.test {
+            assertTrue(awaitItem() is AuthUiState.Loading)
+            freshRepo.emitInitial(null)
+            advanceUntilIdle()
+            expectNoEvents() // stays Loading — no Unauthenticated flash
+            freshRepo.emitChanged(null)
+            advanceUntilIdle()
+            assertTrue(awaitItem() is AuthUiState.Unauthenticated)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // Existing tests (updated to use explicit emitChanged API where intent
+    // is "Firebase reports a user post-attachment")
+    // -----------------------------------------------------------------------
+
+    @Test
     fun `when auth state emits non-null user, authUiState transitions to Authenticated`() = runTest {
         val user = User(uid = "uid-123", email = "test@test.com", displayName = null, isAnonymous = false)
-        fakeRepo.emitUser(user)
+        fakeRepo.emitChanged(user)
         advanceUntilIdle()
 
         val state = viewModel.authState.value
@@ -78,13 +159,13 @@ class AuthViewModelTest {
     }
 
     @Test
-    fun `when auth state emits null after init, authUiState transitions to Unauthenticated`() = runTest {
-        // First emit a user, then null
+    fun `runtime sign-out emits Unauthenticated`() = runTest {
+        // First establish an authenticated state via Changed(user), then sign out
         val user = User(uid = "uid-123", email = "test@test.com", displayName = null, isAnonymous = false)
-        fakeRepo.emitUser(user)
+        fakeRepo.emitChanged(user)
         advanceUntilIdle()
 
-        fakeRepo.emitUser(null)
+        fakeRepo.emitChanged(null)
         advanceUntilIdle()
 
         val state = viewModel.authState.value
@@ -163,7 +244,7 @@ class AuthViewModelTest {
     fun `signOut resets state to Unauthenticated`() = runTest {
         // First sign in to set authenticated state
         val user = User(uid = "uid-123", email = "test@test.com", displayName = null, isAnonymous = false)
-        fakeRepo.emitUser(user)
+        fakeRepo.emitChanged(user)
         advanceUntilIdle()
 
         assertTrue("Setup: expected Authenticated", viewModel.authState.value is AuthUiState.Authenticated)
