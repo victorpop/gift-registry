@@ -3,6 +3,7 @@ import { useAuth } from '../../features/auth/useAuth'
 import { Wordmark } from './Wordmark'
 import { Btn } from './Btn'
 import LanguageSwitcher from '../LanguageSwitcher'
+import { UserMenu } from './UserMenu'
 
 export interface TopNavProps {
   /**
@@ -42,12 +43,7 @@ export function TopNav({ onSignInClick }: TopNavProps) {
       <div className="flex items-center gap-5">
         <LanguageSwitcher />
         {user ? (
-          <div
-            aria-label={user.displayName ?? user.email ?? 'Account'}
-            className="w-8 h-8 rounded-full bg-gm-second text-gm-paper flex items-center justify-center font-body text-[12px] font-medium"
-          >
-            {initials || 'A'}
-          </div>
+          <UserMenu user={user} initials={initials || 'A'} />
         ) : onSignInClick ? (
           <Btn variant="ghost" size="sm" onClick={onSignInClick}>
             {t('auth.sign_in_link')}
