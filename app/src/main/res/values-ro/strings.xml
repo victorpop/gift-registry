@@ -308,6 +308,7 @@
     <string name="add_item_cta_add_another">Adaug\u0103 altul</string>
     <string name="item_og_fetch_failed_inline">Nu am putut citi acea pagin\u0103 \u2014 completeaz\u0103 detaliile mai jos.</string>
     <string name="item_url_label">URL produs</string>
+    <string name="item_url_fetch_button_cd">Preia detaliile produsului</string>
     <string name="item_notes_hint_detail">ex.: \u00een argintiu, v\u0103 rog \u2014 se potrive\u015fte cu buc\u0103t\u0103ria</string>
 
     <!-- Phase 12: cover photo -->
