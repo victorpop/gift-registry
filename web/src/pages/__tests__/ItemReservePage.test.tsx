@@ -321,6 +321,20 @@ describe('ItemReservePage', () => {
     })
   })
 
+  it('P-11 (empty affiliateUrl): hides Continue-to-retailer link, keeps Release and detail UI', () => {
+    const noAffiliate = { ...ACTIVE_RES, affiliateUrl: '' }
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'hydrated', active: noAffiliate })
+
+    renderPage()
+
+    // Detail UI present — NOT the 'not yours' branch
+    expect(screen.getByTestId('item-reserve-detail')).toBeInTheDocument()
+    // Continue-to-retailer anchor hidden
+    expect(screen.queryByRole('link', { name: /continue/i })).toBeNull()
+    // Release button still present
+    expect(screen.getByRole('button', { name: /release/i })).toBeInTheDocument()
+  })
+
   it('P-10 (HON-03): real reserved->purchased transition DOES navigate back', async () => {
     itemsQueryMock.useItemsQuery.mockReturnValue({ data: [makeItem({ status: 'reserved' })] })
     reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'hydrated', active: ACTIVE_RES })
