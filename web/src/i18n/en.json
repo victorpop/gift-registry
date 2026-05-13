@@ -30,6 +30,28 @@
     "user_menu_label": "Account menu for {{name}}",
     "sign_out": "Sign out"
   },
+  "save_your_spot": {
+    "title_with_name": "Save your spot, {{firstName}}?",
+    "title_no_name": "Save your spot?",
+    "subtitle_status": "✓ RESERVED",
+    "subtitle_separator": " · ",
+    "subtitle_countdown": "{{mmss}} left",
+    "body": "You've reserved a gift as a guest. Create a free account and we'll keep the reservation tied to you across devices — plus send a gentle nudge before the timer runs out.",
+    "benefit_timer": "Track your 30-minute timer from any device",
+    "benefit_email": "Email nudge 5 minutes before it expires",
+    "benefit_registries": "See every registry you're giving to, in one place",
+    "password_section_label": "SET A PASSWORD TO FINISH",
+    "password_placeholder": "At least 8 characters",
+    "password_label": "Password",
+    "primary_cta": "Create my account →",
+    "secondary_cta": "Not now, thanks",
+    "footer_email_hint": "Using {{email}} from your guest reservation",
+    "error_email_in_use": "This email is already registered — sign in instead.",
+    "error_weak_password": "Password must be at least 8 characters.",
+    "error_invalid_email": "That doesn't look like a valid email.",
+    "error_generic": "Couldn't create account, try again.",
+    "success_toast": "Account created — your reservation is saved."
+  },
   "registry": {
     "create_title": "New Registry",
     "occasion_label": "Occasion",

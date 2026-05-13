@@ -30,6 +30,28 @@
     "user_menu_label": "Meniu cont pentru {{name}}",
     "sign_out": "Deconectează-te"
   },
+  "save_your_spot": {
+    "title_with_name": "Îți salvăm locul, {{firstName}}?",
+    "title_no_name": "Îți salvăm locul?",
+    "subtitle_status": "✓ REZERVAT",
+    "subtitle_separator": " · ",
+    "subtitle_countdown": "{{mmss}} rămase",
+    "body": "Ai rezervat un cadou ca oaspete. Creează un cont gratuit și păstrăm rezervarea legată de tine pe toate dispozitivele — îți trimitem și o atenționare blândă înainte să expire cronometrul.",
+    "benefit_timer": "Urmărește cronometrul de 30 de minute de pe orice dispozitiv",
+    "benefit_email": "Email de atenționare cu 5 minute înainte să expire",
+    "benefit_registries": "Vezi toate registrele în care oferi cadouri, într-un singur loc",
+    "password_section_label": "SETEAZĂ O PAROLĂ PENTRU A FINALIZA",
+    "password_placeholder": "Cel puțin 8 caractere",
+    "password_label": "Parolă",
+    "primary_cta": "Creează contul →",
+    "secondary_cta": "Nu acum, mulțumesc",
+    "footer_email_hint": "Folosim {{email}} de la rezervarea ta",
+    "error_email_in_use": "Acest email este deja înregistrat — autentifică-te.",
+    "error_weak_password": "Parola trebuie să aibă cel puțin 8 caractere.",
+    "error_invalid_email": "Acesta nu pare să fie un email valid.",
+    "error_generic": "Nu am putut crea contul, încearcă din nou.",
+    "success_toast": "Cont creat — rezervarea ta e salvată."
+  },
   "registry": {
     "create_title": "Registru Nou",
     "occasion_label": "Ocazie",
