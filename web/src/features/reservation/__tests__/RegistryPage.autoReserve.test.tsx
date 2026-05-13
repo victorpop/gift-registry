@@ -5,6 +5,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import '../../../i18n'
 import type { Registry, Item } from '../../../lib/firestore-mapping'
 
+// Mock useNavigate to track auto-navigate calls
+const mockNavigate = vi.hoisted(() => vi.fn())
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>()
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  }
+})
+
 const queryHooksMock = vi.hoisted(() => ({
   useRegistryQuery: vi.fn(),
   useItemsQuery: vi.fn(),
@@ -113,6 +123,7 @@ function renderAt(url: string) {
 describe('RegistryPage auto-reserve via ?autoReserveItemId=', () => {
   beforeEach(() => {
     autoMutate.mockReset()
+    mockNavigate.mockReset()
     toastMock.showToast.mockReset()
     activeMock.set.mockReset()
     useCreateResMock.mockReset()
@@ -206,5 +217,58 @@ describe('RegistryPage auto-reserve via ?autoReserveItemId=', () => {
     // Wait a tick; autoMutate should still have been called exactly once (the ref gates it)
     await new Promise(resolve => setTimeout(resolve, 50))
     expect(autoMutate).toHaveBeenCalledTimes(1)
+  })
+
+  it('A-01: navigates to /registry/:id/item/:itemId on autoReserveMutation.onSuccess', async () => {
+    queryHooksMock.useRegistryQuery.mockReturnValue({ data: registry })
+    queryHooksMock.useItemsQuery.mockReturnValue({ data: [makeItem()] })
+    authMock.useAuth.mockReturnValue({ user: { uid: 'u1', displayName: 'Ana', email: 'ana@x.com' }, isReady: true })
+
+    // Simulate onSuccess being called from useCreateReservation
+    useCreateResMock.mockImplementation(
+      ({ onSuccess }: { onSuccess: (data: unknown, vars: { itemId: string }) => void }) => ({
+        mutate: (vars: { itemId: string }) => {
+          autoMutate(vars)
+          onSuccess(
+            { reservationId: 'res-1', affiliateUrl: 'https://x/?aff=1', expiresAtMs: 9999999000 },
+            vars,
+          )
+        },
+        isPending: false,
+      }),
+    )
+
+    renderAt('/registry/reg-1?autoReserveItemId=item-1')
+
+    await waitFor(() => {
+      expect(autoMutate).toHaveBeenCalled()
+    })
+
+    expect(mockNavigate).toHaveBeenCalledWith('/registry/reg-1/item/item-1')
+  })
+
+  it('A-01 error: does NOT navigate on autoReserveMutation.onError', async () => {
+    queryHooksMock.useRegistryQuery.mockReturnValue({ data: registry })
+    queryHooksMock.useItemsQuery.mockReturnValue({ data: [makeItem()] })
+    authMock.useAuth.mockReturnValue({ user: { uid: 'u1', email: 'a@b.com' }, isReady: true })
+
+    useCreateResMock.mockImplementation(
+      ({ onError }: { onError: (err: unknown) => void }) => ({
+        mutate: () => {
+          autoMutate()
+          onError({ code: 'already-exists', message: 'ITEM_ALREADY_RESERVED' })
+        },
+        isPending: false,
+      }),
+    )
+
+    renderAt('/registry/reg-1?autoReserveItemId=item-1')
+
+    await waitFor(() => {
+      expect(autoMutate).toHaveBeenCalled()
+    })
+
+    // navigate should NOT have been called with the item path on error
+    expect(mockNavigate).not.toHaveBeenCalledWith('/registry/reg-1/item/item-1')
   })
 })

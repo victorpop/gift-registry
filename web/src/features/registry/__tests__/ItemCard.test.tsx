@@ -1,6 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import '../../../i18n'
+
+// Mock react-router to avoid dependency issues in ItemCard tests
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>()
+  return {
+    ...actual,
+    useNavigate: () => vi.fn(),
+  }
+})
+
 import ItemCard from '../ItemCard'
 import type { Item } from '../../../lib/firestore-mapping'
 

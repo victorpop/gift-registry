@@ -1,9 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter } from 'react-router'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import '../../../i18n'
 import React from 'react'
+
+// Mock react-router navigate
+const mockNavigate = vi.hoisted(() => vi.fn())
+vi.mock('react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router')>()
+  return {
+    ...actual,
+    useNavigate: () => mockNavigate,
+  }
+})
 
 // Mock dependencies
 const authMock = vi.hoisted(() => ({ useAuth: vi.fn() }))
@@ -53,7 +64,9 @@ function renderBtn(item: Item = makeItem()) {
   const client = new QueryClient()
   return render(
     <QueryClientProvider client={client}>
-      <ReserveButton registryId="reg-1" item={item} />
+      <MemoryRouter>
+        <ReserveButton registryId="reg-1" item={item} />
+      </MemoryRouter>
     </QueryClientProvider>,
   )
 }
@@ -61,6 +74,7 @@ function renderBtn(item: Item = makeItem()) {
 describe('ReserveButton', () => {
   beforeEach(() => {
     mutateMock.mockReset()
+    mockNavigate.mockReset()
     authMock.useAuth.mockReset()
     useCreateReservationMock.mockReset()
     useCreateReservationMock.mockReturnValue({ mutate: mutateMock, isPending: false })
@@ -122,5 +136,21 @@ describe('ReserveButton', () => {
     const btn = screen.getByRole('button')
     expect(btn).toBeDisabled()
     expect(btn).toHaveAttribute('aria-busy', 'true')
+  })
+
+  it('on successful reserve, navigate is called with /registry/{registryId}/item/{itemId}', async () => {
+    authMock.useAuth.mockReturnValue({ user: { uid: 'u1', displayName: 'Ana Pop', email: 'ana@x.com' }, isReady: true })
+    // Simulate useCreateReservation calling onSuccess
+    useCreateReservationMock.mockImplementation(({ onSuccess }: { onSuccess: (data: unknown) => void }) => ({
+      mutate: (payload: unknown) => {
+        mutateMock(payload)
+        onSuccess({ reservationId: 'res-1', affiliateUrl: 'https://emag.ro/?aff=1', expiresAtMs: 9999999000 })
+      },
+      isPending: false,
+    }))
+    const user = userEvent.setup()
+    renderBtn()
+    await user.click(screen.getByRole('button', { name: 'Reserve Gift' }))
+    expect(mockNavigate).toHaveBeenCalledWith('/registry/reg-1/item/item-1')
   })
 })

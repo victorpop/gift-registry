@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router'
 import { Loader2 } from 'lucide-react'
 import { useAuth } from '../auth/useAuth'
 import { useGuestIdentity, type GuestIdentity } from '../auth/useGuestIdentity'
@@ -17,6 +18,7 @@ interface Props {
 
 export default function ReserveButton({ registryId, item }: Props) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { user } = useAuth()
   const { identity } = useGuestIdentity()
   const { set: setActive } = useActiveReservation()
@@ -34,6 +36,8 @@ export default function ReserveButton({ registryId, item }: Props) {
         expiresAtMs: data.expiresAtMs,
       })
       showToast(t('reservation.success'), 'success')
+      // Auto-navigate to the per-item reserve-detail page after a successful reserve.
+      navigate(`/registry/${registryId}/item/${item.id}`)
     },
     onError: (err) => {
       const e = err as { code?: string; message?: string }

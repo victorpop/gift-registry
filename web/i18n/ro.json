@@ -112,14 +112,29 @@
     "how_timer_step3_b": "Se blochează ca oferit, numele tău e vizibil doar pentru proprietar.",
     "how_timer_step4_h": "Sau trec 30 de minute",
     "how_timer_step4_b": "Fără acțiune, fără griji — articolul se eliberează și îți trimitem prin email un link de re-rezervare.",
-    "check_other_products_cta": "Vezi alte produse din registru"
+    "check_other_products_cta": "Vezi alte produse din registru",
+    "item_page": {
+      "loading_label": "Se încarcă rezervarea ta…",
+      "back_to_registry": "← Înapoi la registru",
+      "not_yours_title": "Aceasta nu e rezervarea ta",
+      "not_yours_body": "Acest articol nu e rezervat de tine în momentul acesta. Întoarce-te la registru pentru a vedea ce e disponibil.",
+      "item_not_found_title": "Nu am găsit acest articol",
+      "item_not_found_body": "Poate a fost eliminat. Întoarce-te la registru pentru a vedea lista actuală.",
+      "expired_title": "Timpul tău a expirat",
+      "expired_body": "Această rezervare tocmai a fost eliberată. Oricine altcineva o poate rezerva acum — întoarce-te să verifici dacă mai e disponibilă.",
+      "page_caption": "REZERVAREA TA · PASUL 2 DIN 2",
+      "headline_pre": "Foarte bine. ",
+      "headline_emphasis": "Finalizează acum achiziția",
+      "headline_post": " la magazin."
+    }
   },
   "web_pill": {
     "available": "DISPONIBIL",
     "reserved": "REZERVAT",
     "purchased": "✓ CUMPĂRAT",
     "reserved_banner": "MAI {{minutes}} MIN — se eliberează dacă nu e cumpărat",
-    "reserved_by_me_scroll_aria": "Arată detaliile rezervării tale"
+    "reserved_by_me_scroll_aria": "Arată detaliile rezervării tale",
+    "reserved_by_me_navigate_aria": "Deschide detaliile rezervării tale"
   },
   "web_auth": {
     "caption": "EȘTI INVITAT LA UN REGISTRU",

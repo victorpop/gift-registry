@@ -145,7 +145,7 @@ export default function ItemCard({ item, reserveSlot, onReservedByMeClick }: Pro
           <button
             type="button"
             onClick={onReservedByMeClick}
-            aria-label={t('web_pill.reserved_by_me_scroll_aria')}
+            aria-label={t('web_pill.reserved_by_me_navigate_aria')}
             className="w-full text-left flex items-center gap-[10px] px-3 py-[9px] bg-gm-accentSoft rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gm-accent"
           >
             <PulseDot size={8} />

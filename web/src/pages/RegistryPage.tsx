@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useParams, useSearchParams } from 'react-router'
+import { useParams, useSearchParams, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useRegistryQuery } from '../features/registry/useRegistryQuery'
 import { useItemsQuery } from '../features/registry/useItemsQuery'
@@ -28,6 +28,7 @@ const SKELETON_COUNT = 6
 
 export default function RegistryPage() {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const { user, isReady: authReady } = useAuth()
@@ -44,17 +45,17 @@ export default function RegistryPage() {
   // Compute effective email for reserved-by-me detection (D-06: never render reserver name).
   const effectiveEmail = user?.email ?? identity?.email ?? null
 
-  // Returns a smooth-scroll handler ONLY when the item belongs to the current viewer.
-  // prefers-reduced-motion: browsers downgrade behavior:'smooth' to instant automatically.
+  // Returns a navigate handler ONLY when the item belongs to the current viewer.
+  // Clicking a reserved-by-me item card navigates to /registry/:id/item/:itemId —
+  // the per-item reserve-detail page where the specific reservation is fully manageable.
   const renderReservedByMeClick = useCallback((item: Item) => {
     if (!effectiveEmail) return undefined
     if (item.status !== 'reserved') return undefined
     if (item.reservedBy !== effectiveEmail) return undefined
     return () => {
-      const el = document.getElementById('reserve-detail-section')
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      navigate(`/registry/${id}/item/${item.id}`)
     }
-  }, [effectiveEmail])
+  }, [effectiveEmail, id, navigate])
 
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [guestModalOpen, setGuestModalOpen] = useState(false)
@@ -76,6 +77,8 @@ export default function RegistryPage() {
         expiresAtMs: data.expiresAtMs,
       })
       showToast(t('reservation.success'), 'success')
+      // Auto-navigate to the per-item reserve-detail page after a successful reserve.
+      navigate(`/registry/${id}/item/${vars.itemId}`)
     },
     onError: (err) => {
       const e = err as { code?: string; message?: string }

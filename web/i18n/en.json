@@ -112,14 +112,29 @@
     "how_timer_step3_b": "It locks as given, with your name visible only to the owner.",
     "how_timer_step4_h": "Or 30 minutes pass",
     "how_timer_step4_b": "No action, no worries — the item releases and we email you a one-tap re-reserve link.",
-    "check_other_products_cta": "Check other products in the registry"
+    "check_other_products_cta": "Check other products in the registry",
+    "item_page": {
+      "loading_label": "Loading your reservation…",
+      "back_to_registry": "← Back to registry",
+      "not_yours_title": "This isn't your reservation",
+      "not_yours_body": "This item isn't reserved by you right now. Head back to the registry to see what's available.",
+      "item_not_found_title": "We couldn't find that item",
+      "item_not_found_body": "It may have been removed. Head back to the registry to see the current list.",
+      "expired_title": "Your time ran out",
+      "expired_body": "This reservation just released. Anyone else can reserve it now — head back to see if it's still available.",
+      "page_caption": "YOUR RESERVATION · STEP 2 OF 2",
+      "headline_pre": "Nice one. ",
+      "headline_emphasis": "Now finish the purchase",
+      "headline_post": " at the retailer."
+    }
   },
   "web_pill": {
     "available": "AVAILABLE",
     "reserved": "RESERVED",
     "purchased": "✓ PURCHASED",
     "reserved_banner": "{{minutes}} MIN LEFT — auto-releases if not purchased",
-    "reserved_by_me_scroll_aria": "Show your reservation details"
+    "reserved_by_me_scroll_aria": "Show your reservation details",
+    "reserved_by_me_navigate_aria": "Open your reservation details"
   },
   "web_auth": {
     "caption": "YOU'RE INVITED TO A REGISTRY",
