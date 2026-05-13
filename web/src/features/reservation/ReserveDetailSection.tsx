@@ -4,7 +4,7 @@ import { useCountdown } from './useCountdown'
 import { useItemsQuery } from '../registry/useItemsQuery'
 import { ConfirmPurchaseBanner } from './ConfirmPurchaseBanner'
 import HowTimerWorks from './HowTimerWorks'
-import { Btn, Pill, MonoCaption } from '../../components/giftmaison'
+import { Pill, MonoCaption } from '../../components/giftmaison'
 
 export interface ReserveDetailSectionProps {
   /** Registry id from URL params — used to look up the active item from useItemsQuery. */
@@ -110,19 +110,19 @@ export default function ReserveDetailSection({ registryId }: ReserveDetailSectio
             {/* Confirm-back card — re-styled component */}
             <ConfirmPurchaseBanner reservationId={active.reservationId} minutesLeft={minutesLeft} />
 
-            {/* Secondary CTA — smooth-scroll to registry item list */}
-            <div className="flex justify-center sm:justify-start">
-              <Btn
-                variant="ghost"
-                size="md"
+            {/* Secondary text-link CTA — smooth-scroll to registry item list */}
+            <div className="flex justify-end -mt-2">
+              <button
+                type="button"
                 data-testid="check-other-products-cta"
                 onClick={() => {
                   const el = document.getElementById('registry-list-section')
                   if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
                 }}
+                className="font-body text-[12.5px] leading-[1.45] text-gm-accent underline underline-offset-[3px] decoration-[1px] hover:decoration-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gm-accent bg-transparent border-0 p-0 cursor-pointer"
               >
                 {t('web_reserve.check_other_products_cta')}
-              </Btn>
+              </button>
             </div>
           </div>
 
