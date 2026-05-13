@@ -48,9 +48,11 @@ decisions:
   - "No Release CTA added to ReserveDetailSection — confirmed Release lives only in StickyReserveBanner; added explanatory comment"
   - "ItemCard reserved banner split: button when onReservedByMeClick provided, div otherwise (preserves non-owner UX unchanged)"
 metrics:
-  completed_date: "2026-05-12"
-  tasks_completed: 3
+  completed_date: "2026-05-13"
+  tasks_completed: 4
   tasks_total: 4
+  human_verify: cleared
+  uat_notes: "Initial UAT surfaced 3 bugs. Bug 2 (confirm-purchase not clearing context) split out + fixed as quick-260513-0kn. Bugs 1 & 3 (release no-op + guest hydration no banner) traced to emulator running pre-build code — resolved after rebuilding functions and restarting emulator. Release reservation + Mark-as-purchased + hydration on refresh all confirmed working in-browser."
   files_created: 5
   files_modified: 11
   tests_added: 27
