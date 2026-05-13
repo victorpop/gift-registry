@@ -148,7 +148,16 @@
       "page_caption": "YOUR RESERVATION · STEP 2 OF 2",
       "headline_pre": "Nice one. ",
       "headline_emphasis": "Now finish the purchase",
-      "headline_post": " at the retailer."
+      "headline_post": " at the retailer.",
+      "available_title": "Reserve this gift",
+      "available_subline": "30-minute timer starts the moment you reserve.",
+      "reserve_cta": "Reserve this gift →",
+      "reserve_cta_pending": "Reserving…",
+      "reserved_by_other_title": "Already reserved by another guest",
+      "reserved_by_other_body": "Someone else has this gift on hold right now. Head back to the registry to pick a different one.",
+      "purchased_title": "Already purchased",
+      "purchased_body": "This gift has been given. Head back to the registry to see what's still available.",
+      "notes_label": "From the registry owner"
     }
   },
   "web_pill": {

@@ -80,6 +80,21 @@ vi.mock('../../features/reservation/HowTimerWorks', () => ({
   ),
 }))
 
+// useCreateReservation — mocked so the new BROWSE_AVAILABLE branch's Reserve CTA
+// can fire without touching Firebase. Captures the latest opts (onSuccess/onError)
+// and exposes a mutate spy + isPending toggle for assertions.
+const createReservationMock = vi.hoisted(() => ({
+  mutate: vi.fn(),
+  isPending: false as boolean,
+  opts: null as { onSuccess?: (data: unknown, variables: unknown) => void; onError?: (err: unknown, variables: unknown) => void } | null,
+}))
+vi.mock('../../features/reservation/useCreateReservation', () => ({
+  useCreateReservation: (opts: { onSuccess?: (data: unknown, variables: unknown) => void; onError?: (err: unknown, variables: unknown) => void }) => {
+    createReservationMock.opts = opts
+    return { mutate: createReservationMock.mutate, isPending: createReservationMock.isPending }
+  },
+}))
+
 import ItemReservePage from '../ItemReservePage'
 
 // --- Helpers ---
@@ -168,6 +183,10 @@ describe('ItemReservePage', () => {
     confirmMock.status = 'idle'
     confirmMock.error = null
     activeMock.clear = vi.fn()
+    activeMock.set = vi.fn()
+    createReservationMock.mutate.mockReset()
+    createReservationMock.isPending = false
+    createReservationMock.opts = null
     authMock.useAuth.mockReturnValue({ user: { uid: 'u1', email: 'u1@x.com' }, isReady: true })
     guestMock.useGuestIdentity.mockReturnValue({ identity: null })
     // Default: items loaded with the item
@@ -371,6 +390,170 @@ describe('ItemReservePage', () => {
     await waitFor(() => {
       expect(screen.queryByTestId('item-reserve-detail')).not.toBeInTheDocument()
       expect(screen.getByTestId('registry-page')).toBeInTheDocument()
+    })
+  })
+
+  // ---- k37 — browse-state branches ----
+
+  it('K-01 (available browse state): renders Reserve CTA + hero + notes when item available and no active reservation', () => {
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [
+        makeItem({
+          status: 'available',
+          reservedBy: null,
+          notes: 'Owner says: please wrap it',
+          title: 'Coffee Machine Full Long Title',
+        }),
+      ],
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+
+    renderPage()
+
+    expect(screen.getByTestId('item-reserve-available')).toBeInTheDocument()
+    // Reserve CTA exists
+    expect(screen.getByRole('button', { name: /reserve this gift/i })).toBeInTheDocument()
+    // Full untruncated title visible (detail page does NOT truncate)
+    expect(screen.getByText('Coffee Machine Full Long Title')).toBeInTheDocument()
+    // Notes visible
+    expect(screen.getByText('Owner says: please wrap it')).toBeInTheDocument()
+    expect(screen.getByText(/from the registry owner/i)).toBeInTheDocument()
+    // The old not-yours panel must NOT render for available items
+    expect(screen.queryByTestId('item-reserve-not-yours')).not.toBeInTheDocument()
+  })
+
+  it('K-02 (Reserve click): calls useCreateReservation.mutate with derived giver fields for signed-in user', async () => {
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [makeItem({ status: 'available', reservedBy: null })],
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+    authMock.useAuth.mockReturnValue({
+      user: { uid: 'u1', email: 'u1@x.com', displayName: null },
+      isReady: true,
+    })
+
+    renderPage()
+
+    const cta = screen.getByRole('button', { name: /reserve this gift/i })
+    cta.click()
+
+    expect(createReservationMock.mutate).toHaveBeenCalledTimes(1)
+    expect(createReservationMock.mutate).toHaveBeenCalledWith({
+      registryId: 'reg1',
+      itemId: 'it1',
+      giverName: 'u1', // displayName null → email.split('@')[0]
+      giverEmail: 'u1@x.com',
+      giverId: 'u1',
+    })
+  })
+
+  it('K-03 (reserved-by-someone-else browse state): view-only UI, no Reserve CTA, no reserver email in DOM (D-06)', () => {
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [
+        makeItem({
+          status: 'reserved',
+          reservedBy: 'someone-else@x.com',
+          notes: 'Maybe the blue one',
+        }),
+      ],
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+
+    renderPage()
+
+    expect(screen.getByTestId('item-reserve-reserved-by-other')).toBeInTheDocument()
+    expect(screen.getByText(/already reserved by another guest/i)).toBeInTheDocument()
+    // View-only — NO Reserve CTA
+    expect(screen.queryByRole('button', { name: /reserve this gift/i })).toBeNull()
+    // D-06 — reserver email never rendered
+    expect(screen.queryByText('someone-else@x.com')).toBeNull()
+    // Item info still visible
+    expect(screen.getByText('Coffee Machine')).toBeInTheDocument()
+    expect(screen.getByText('Maybe the blue one')).toBeInTheDocument()
+  })
+
+  it('K-04 (purchased browse state): view-only UI, no Reserve CTA, no giver name in DOM (D-06)', () => {
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [
+        makeItem({
+          status: 'purchased',
+          reservedBy: 'giver@x.com',
+          notes: 'Thanks!',
+        }),
+      ],
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+
+    renderPage()
+
+    expect(screen.getByTestId('item-reserve-purchased')).toBeInTheDocument()
+    expect(screen.getByText(/already purchased/i)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /reserve this gift/i })).toBeNull()
+    // D-06 — giver email never rendered
+    expect(screen.queryByText('giver@x.com')).toBeNull()
+    expect(screen.getByText('Coffee Machine')).toBeInTheDocument()
+    expect(screen.getByText('Thanks!')).toBeInTheDocument()
+  })
+
+  it('K-05 (notes optional): notes block omitted when item.notes is null', () => {
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [makeItem({ status: 'available', reservedBy: null, notes: null })],
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+
+    renderPage()
+
+    expect(screen.getByTestId('item-reserve-available')).toBeInTheDocument()
+    // Notes label not in DOM when notes null
+    expect(screen.queryByText(/from the registry owner/i)).toBeNull()
+  })
+
+  it('K-06 (regression — anonymous-no-identity falls back to /registry/:id?autoReserveItemId=:itemId)', async () => {
+    // Anonymous: no user, no guest identity
+    authMock.useAuth.mockReturnValue({ user: null, isReady: true })
+    guestMock.useGuestIdentity.mockReturnValue({ identity: null })
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [makeItem({ status: 'available', reservedBy: null })],
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+
+    renderPage()
+
+    const cta = screen.getByRole('button', { name: /reserve this gift/i })
+    cta.click()
+
+    // Direct mutation should NOT have fired — we expect a navigate fallback instead.
+    expect(createReservationMock.mutate).not.toHaveBeenCalled()
+    // The router will now have navigated to /registry/reg1?autoReserveItemId=it1.
+    // The matching route renders <div data-testid="registry-page" /> per renderPage()
+    // (it ignores query string).
+    await waitFor(() => {
+      expect(screen.getByTestId('registry-page')).toBeInTheDocument()
+    })
+  })
+
+  it('K-07 (guest-with-identity): direct mutation with identity fields (no fallback nav)', () => {
+    authMock.useAuth.mockReturnValue({ user: null, isReady: true })
+    guestMock.useGuestIdentity.mockReturnValue({
+      identity: { firstName: 'Ana', lastName: 'Pop', email: 'ana@x.com' },
+    })
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [makeItem({ status: 'available', reservedBy: null })],
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+
+    renderPage()
+
+    const cta = screen.getByRole('button', { name: /reserve this gift/i })
+    cta.click()
+
+    expect(createReservationMock.mutate).toHaveBeenCalledTimes(1)
+    expect(createReservationMock.mutate).toHaveBeenCalledWith({
+      registryId: 'reg1',
+      itemId: 'it1',
+      giverName: 'Ana Pop',
+      giverEmail: 'ana@x.com',
+      giverId: null,
     })
   })
 })

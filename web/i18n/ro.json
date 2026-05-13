@@ -125,7 +125,16 @@
       "page_caption": "REZERVAREA TA · PASUL 2 DIN 2",
       "headline_pre": "Foarte bine. ",
       "headline_emphasis": "Finalizează acum achiziția",
-      "headline_post": " la magazin."
+      "headline_post": " la magazin.",
+      "available_title": "Rezervă acest cadou",
+      "available_subline": "Cronometrul de 30 de minute pornește în momentul rezervării.",
+      "reserve_cta": "Rezervă acest cadou →",
+      "reserve_cta_pending": "Se rezervă…",
+      "reserved_by_other_title": "Deja rezervat de alt invitat",
+      "reserved_by_other_body": "Altcineva a luat acest cadou în rezervare chiar acum. Întoarce-te la registru pentru a alege altul.",
+      "purchased_title": "Deja cumpărat",
+      "purchased_body": "Acest cadou a fost oferit deja. Întoarce-te la registru pentru a vedea ce mai e disponibil.",
+      "notes_label": "De la persoana care a creat lista"
     }
   },
   "web_pill": {
