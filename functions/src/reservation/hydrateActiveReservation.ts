@@ -14,7 +14,9 @@
  *     giverId == null (guest-only reservations).
  *
  * Returns { active: ActiveReservation } or { active: null } when no active reservation found.
- * affiliateUrl === '' (legacy data) also returns { active: null }.
+ * affiliateUrl resolves to reservation.affiliateUrl, falling back to item.originalUrl, and
+ * finally '' if neither is set. Clients render the 'Continue to retailer' CTA only when
+ * affiliateUrl is non-empty.
  */
 
 import { onCall, HttpsError } from "firebase-functions/v2/https";
@@ -88,17 +90,11 @@ export const hydrateActiveReservation = onCall<HydratePayload>(
     const reservationDoc = querySnap.docs[0];
     const reservation = reservationDoc.data();
 
-    // Silently skip legacy reservations with no affiliate URL.
-    const affiliateUrl = (reservation.affiliateUrl as string) ?? "";
-    if (!affiliateUrl) {
-      return { active: null };
-    }
-
     const itemId = reservation.itemId as string;
     const expiresAt = reservation.expiresAt as { toMillis: () => number };
     const expiresAtMs = expiresAt.toMillis();
 
-    // Read item document for title and merchantDomain.
+    // Read item document for title, merchantDomain, and originalUrl fallback.
     const itemSnap = await db
       .collection("registries")
       .doc(registryId)
@@ -106,15 +102,20 @@ export const hydrateActiveReservation = onCall<HydratePayload>(
       .doc(itemId)
       .get();
 
-    const itemName = (itemSnap.data()?.title as string) ?? "your gift";
-    const merchantDomain = (itemSnap.data()?.merchantDomain as string) ?? null;
+    const itemData = itemSnap.data();
+    const itemName = (itemData?.title as string) ?? "your gift";
+    const merchantDomain = (itemData?.merchantDomain as string) ?? null;
+    const effectiveAffiliateUrl =
+      ((reservation.affiliateUrl as string) || "") ||
+      ((itemData?.originalUrl as string) || "") ||
+      "";
 
     return {
       active: {
         reservationId: reservationDoc.id,
         itemId,
         itemName,
-        affiliateUrl,
+        affiliateUrl: effectiveAffiliateUrl,
         merchantDomain,
         expiresAtMs,
       },

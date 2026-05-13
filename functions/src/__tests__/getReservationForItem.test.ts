@@ -261,14 +261,46 @@ describe("getReservationForItem callable", () => {
     expect(result).toEqual({ active: null });
   });
 
-  it("Test G-05 (legacy empty affiliateUrl): returns {active: null}", async () => {
+  it("Test G-05 (empty reservation.affiliateUrl, item has originalUrl): returns active with affiliateUrl = item.originalUrl", async () => {
     mockStore.reservations.res1 = { ...mockStore.reservations.res1, affiliateUrl: "" };
+    mockStore["registries/reg1/items"].it1 = {
+      ...mockStore["registries/reg1/items"].it1,
+      originalUrl: "https://ikea.com/p/lack",
+    };
 
     const result = await getReservationForItem.run(
       makeRequest({ registryId: "reg1", itemId: "it1" }, { uid: "u1" })
     );
 
-    expect(result).toEqual({ active: null });
+    expect(result).toMatchObject({
+      active: {
+        reservationId: "res1",
+        itemId: "it1",
+        itemName: "Coffee Machine",
+        affiliateUrl: "https://ikea.com/p/lack",
+        merchantDomain: "emag.ro",
+        expiresAtMs: 99999999000,
+      },
+    });
+  });
+
+  it("Test G-05b (empty reservation.affiliateUrl AND empty item.originalUrl): returns active with affiliateUrl = ''", async () => {
+    mockStore.reservations.res1 = { ...mockStore.reservations.res1, affiliateUrl: "" };
+    // it1 has no originalUrl in resetStore() by default — assert that explicitly:
+    expect(mockStore["registries/reg1/items"].it1.originalUrl).toBeUndefined();
+
+    const result = await getReservationForItem.run(
+      makeRequest({ registryId: "reg1", itemId: "it1" }, { uid: "u1" })
+    );
+
+    expect(result.active).not.toBeNull();
+    expect(result.active).toMatchObject({
+      reservationId: "res1",
+      itemId: "it1",
+      itemName: "Coffee Machine",
+      affiliateUrl: "",
+      merchantDomain: "emag.ro",
+    });
   });
 
   it("Test G-06 (missing registryId): throws invalid-argument MISSING_REGISTRY_ID", async () => {

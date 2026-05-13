@@ -141,14 +141,16 @@ export default function StickyReserveBanner() {
           >
             {t('web_reserve.release_cta')}
           </Btn>
-          <a
-            href={active.affiliateUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-gm-accent bg-gm-accent text-gm-accentInk font-body font-medium tracking-[-0.1px] leading-none cursor-pointer px-3 py-[7px] text-[12px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gm-paper w-full sm:w-auto"
-          >
-            {t('web_reserve.continue_cta', { retailer: retailerLabel })}
-          </a>
+          {active.affiliateUrl && (
+            <a
+              href={active.affiliateUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-gm-accent bg-gm-accent text-gm-accentInk font-body font-medium tracking-[-0.1px] leading-none cursor-pointer px-3 py-[7px] text-[12px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gm-paper w-full sm:w-auto"
+            >
+              {t('web_reserve.continue_cta', { retailer: retailerLabel })}
+            </a>
+          )}
         </div>
       </div>
 
