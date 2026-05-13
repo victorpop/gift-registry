@@ -38,6 +38,11 @@ vi.mock('../useActiveReservation', () => ({
   ActiveReservationProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 
+const signUpMock = vi.hoisted(() => vi.fn())
+vi.mock('../../auth/authProviders', () => ({
+  signUpEmail: signUpMock,
+}))
+
 import ReserveButton from '../ReserveButton'
 import type { Item } from '../../../lib/firestore-mapping'
 
@@ -79,10 +84,11 @@ describe('ReserveButton', () => {
     useCreateReservationMock.mockReset()
     useCreateReservationMock.mockReturnValue({ mutate: mutateMock, isPending: false })
     toastMock.showToast.mockReset()
+    signUpMock.mockReset()
     localStorage.clear()
   })
 
-  it('when authenticated, clicking mutates with giverId=uid and skips guest modal', async () => {
+  it('when authenticated, clicking mutates with giverId=uid and skips save-your-spot modal', async () => {
     const user = userEvent.setup()
     authMock.useAuth.mockReturnValue({ user: { uid: 'u1', displayName: 'Ana Pop', email: 'ana@x.com' }, isReady: true })
     renderBtn()
@@ -94,20 +100,20 @@ describe('ReserveButton', () => {
       giverEmail: 'ana@x.com',
       giverId: 'u1',
     })
-    // No guest modal shown
-    expect(screen.queryByText('Who are you?')).not.toBeInTheDocument()
+    // No upsell modal shown for signed-in users
+    expect(screen.queryByText('Save your spot?')).not.toBeInTheDocument()
   })
 
-  it('when anonymous, clicking opens GuestIdentityModal and does NOT mutate', async () => {
+  it('when anonymous, clicking opens SaveYourSpotModal and does NOT mutate', async () => {
     const user = userEvent.setup()
     authMock.useAuth.mockReturnValue({ user: null, isReady: true })
     renderBtn()
     await user.click(screen.getByRole('button', { name: 'Reserve Gift' }))
-    expect(screen.getByText('Who are you?')).toBeInTheDocument()
+    expect(screen.getByText('Save your spot?')).toBeInTheDocument()
     expect(mutateMock).not.toHaveBeenCalled()
   })
 
-  it('after guest modal submits, mutates with giverId=null and concatenated giverName', async () => {
+  it('"Continue as guest" submits with giverId=null and concatenated giverName', async () => {
     const user = userEvent.setup()
     authMock.useAuth.mockReturnValue({ user: null, isReady: true })
     renderBtn()
@@ -115,9 +121,7 @@ describe('ReserveButton', () => {
     await user.type(screen.getByLabelText('First Name'), 'Ion')
     await user.type(screen.getByLabelText('Last Name'), 'Popescu')
     await user.type(screen.getByLabelText('Email'), 'ion@x.com')
-    // The submit button INSIDE the modal is also labelled "Reserve Gift"; it's the second one
-    const reserveButtons = screen.getAllByRole('button', { name: 'Reserve Gift' })
-    await user.click(reserveButtons[reserveButtons.length - 1])
+    await user.click(screen.getByRole('button', { name: 'Continue as guest' }))
     await waitFor(() => {
       expect(mutateMock).toHaveBeenCalledWith({
         registryId: 'reg-1',
@@ -127,6 +131,64 @@ describe('ReserveButton', () => {
         giverId: null,
       })
     })
+    expect(signUpMock).not.toHaveBeenCalled()
+  })
+
+  it('"Create account & reserve" calls signUpEmail, then mutates with giverId=new user uid', async () => {
+    const user = userEvent.setup()
+    authMock.useAuth.mockReturnValue({ user: null, isReady: true })
+    signUpMock.mockResolvedValue({ uid: 'new-uid', email: 'ion@x.com' })
+    renderBtn()
+    await user.click(screen.getByRole('button', { name: 'Reserve Gift' }))
+    await user.type(screen.getByLabelText('First Name'), 'Ion')
+    await user.type(screen.getByLabelText('Last Name'), 'Popescu')
+    await user.type(screen.getByLabelText('Email'), 'ion@x.com')
+    await user.type(screen.getByLabelText('Password'), 'pw123456')
+    await user.click(screen.getByRole('button', { name: /Create account & reserve/ }))
+    await waitFor(() => {
+      expect(signUpMock).toHaveBeenCalledWith('ion@x.com', 'pw123456')
+    })
+    await waitFor(() => {
+      expect(mutateMock).toHaveBeenCalledWith({
+        registryId: 'reg-1',
+        itemId: 'item-1',
+        giverName: 'Ion Popescu',
+        giverEmail: 'ion@x.com',
+        giverId: 'new-uid',
+      })
+    })
+  })
+
+  it('"Create account & reserve" with a too-short password surfaces inline error and does NOT mutate', async () => {
+    const user = userEvent.setup()
+    authMock.useAuth.mockReturnValue({ user: null, isReady: true })
+    renderBtn()
+    await user.click(screen.getByRole('button', { name: 'Reserve Gift' }))
+    await user.type(screen.getByLabelText('First Name'), 'Ion')
+    await user.type(screen.getByLabelText('Last Name'), 'Popescu')
+    await user.type(screen.getByLabelText('Email'), 'ion@x.com')
+    await user.type(screen.getByLabelText('Password'), 'abc')
+    await user.click(screen.getByRole('button', { name: /Create account & reserve/ }))
+    expect(await screen.findByText('Password must be at least 8 characters.')).toBeInTheDocument()
+    expect(signUpMock).not.toHaveBeenCalled()
+    expect(mutateMock).not.toHaveBeenCalled()
+  })
+
+  it('"Create account & reserve" surfaces email-already-in-use error and does NOT mutate', async () => {
+    const user = userEvent.setup()
+    authMock.useAuth.mockReturnValue({ user: null, isReady: true })
+    signUpMock.mockRejectedValue({ code: 'auth/email-already-in-use' })
+    renderBtn()
+    await user.click(screen.getByRole('button', { name: 'Reserve Gift' }))
+    await user.type(screen.getByLabelText('First Name'), 'Ion')
+    await user.type(screen.getByLabelText('Last Name'), 'Popescu')
+    await user.type(screen.getByLabelText('Email'), 'ion@x.com')
+    await user.type(screen.getByLabelText('Password'), 'pw123456')
+    await user.click(screen.getByRole('button', { name: /Create account & reserve/ }))
+    expect(
+      await screen.findByText('This email is already registered — sign in instead.'),
+    ).toBeInTheDocument()
+    expect(mutateMock).not.toHaveBeenCalled()
   })
 
   it('disables the button while mutation is pending', () => {

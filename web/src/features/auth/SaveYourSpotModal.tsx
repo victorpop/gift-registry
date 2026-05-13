@@ -1,71 +1,83 @@
 import * as Dialog from '@radix-ui/react-dialog'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
+import type { User } from 'firebase/auth'
 import { Btn, Field, MonoCaption } from '../../components/giftmaison'
 import { signUpEmail } from './authProviders'
+import { useGuestIdentity } from './useGuestIdentity'
 
 const schema = z.object({
+  firstName: z.string().min(1, 'required'),
+  lastName: z.string().min(1, 'required'),
+  email: z.string().min(1, 'required').email('email'),
   password: z.string().min(8, 'weak'),
 })
+
+const guestSchema = schema.pick({ firstName: true, lastName: true, email: true })
 
 type FormValues = z.infer<typeof schema>
 
 export interface SaveYourSpotModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  /** Pre-filled, read-only, displayed in footer hint. Sourced from the active reservation. */
-  email: string
-  /** null → use title_no_name variant; otherwise interpolated into title_with_name. */
-  firstName: string | null
-  /** Item name shown in the subtitle row (e.g. "✓ RESERVED · {itemName} · 12:34 left"). */
+  /** Item being reserved — shown in the subtitle row. */
   itemName: string
-  /** Live "MM:SS" string pulled from the parent's useCountdown — updates each tick. */
-  mmss: string
-  /** Called by parent when "Not now, thanks" is clicked. Parent persists dismissal. */
-  onDismiss: () => void
-  /** Called by parent on success so it can show a toast / persist dismissal. */
-  onSuccess: () => void
+  /** Called after Firebase account creation succeeds. Parent should reserve under the new user. */
+  onAccountCreated: (user: User, firstName: string, lastName: string) => void
+  /** Called when the user picks "Continue as guest". Parent should reserve as guest. */
+  onContinueAsGuest: (firstName: string, lastName: string, email: string) => void
 }
 
 /**
- * Save-your-spot upsell modal shown on ItemReservePage after a guest reservation.
+ * Save-your-spot pre-reservation modal. Replaces the older GuestIdentityModal
+ * in the Reserve button flow: a guest who clicks Reserve sees this modal first.
  *
- * Triggers `signUpEmail` (Firebase createUserWithEmailAndPassword) to create a real
- * Firebase account using the email already on the reservation. The reservation
- * continues to hydrate by email after sign-up because giver matching is email-based
- * for guest reservations (giverEmail key in backend, giverId stays null until linked).
+ * Two paths:
+ *  - Primary "Create account & reserve" → validates all fields including password,
+ *    calls signUpEmail (Firebase createUserWithEmailAndPassword), then hands the new
+ *    User to the parent so it can reserve under that account.
+ *  - Secondary "Continue as guest" → validates first/last name + email only (no
+ *    password), then hands those values to the parent so it can reserve as a guest.
  *
- * Design note: this project has NO anonymous-auth path, so we do NOT call
- * linkWithCredential. The simpler flow is just "create a real account with the
- * guest's email"; useReservationForItem re-runs after user flips from null to the
- * new User, but its key is effectiveEmail (= user.email ?? identity.email), which
- * is unchanged — so the same reservation continues to resolve.
- *
- * All visible strings are sourced from i18n (`save_your_spot.*`).
+ * Persists the entered first/last/email into useGuestIdentity (localStorage) on
+ * either path so the values pre-fill on next reserve.
  */
 export default function SaveYourSpotModal({
   open,
   onOpenChange,
-  email,
-  firstName,
   itemName,
-  mmss,
-  onDismiss,
-  onSuccess,
+  onAccountCreated,
+  onContinueAsGuest,
 }: SaveYourSpotModalProps) {
   const { t } = useTranslation()
+  const { identity, save: saveIdentity } = useGuestIdentity()
   const [serverError, setServerError] = useState<string | null>(null)
+  const [guestPending, setGuestPending] = useState(false)
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { password: '' },
+    defaultValues: { firstName: '', lastName: '', email: '', password: '' },
   })
+
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        firstName: identity?.firstName ?? '',
+        lastName: identity?.lastName ?? '',
+        email: identity?.email ?? '',
+        password: '',
+      })
+      setServerError(null)
+    }
+  }, [open, identity, form])
 
   function translateFieldError(message: string | undefined): string | undefined {
     if (!message) return undefined
+    if (message === 'required') return t('save_your_spot.field_required')
+    if (message === 'email') return t('save_your_spot.field_invalid_email')
     if (message === 'weak') return t('save_your_spot.error_weak_password')
     return message
   }
@@ -83,11 +95,16 @@ export default function SaveYourSpotModal({
     }
   }
 
-  async function handleValid(values: FormValues) {
+  async function handleCreateAccount(values: FormValues) {
     setServerError(null)
     try {
-      await signUpEmail(email, values.password)
-      onSuccess()
+      const user = await signUpEmail(values.email, values.password)
+      saveIdentity({
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+      })
+      onAccountCreated(user, values.firstName, values.lastName)
       onOpenChange(false)
     } catch (err: unknown) {
       const code = (err as { code?: string })?.code
@@ -95,42 +112,49 @@ export default function SaveYourSpotModal({
     }
   }
 
-  function handleDismissClick() {
-    onDismiss()
+  async function handleContinueAsGuestClick() {
+    setServerError(null)
+    const values = form.getValues()
+    const result = guestSchema.safeParse(values)
+    if (!result.success) {
+      // Surface validation errors on the name/email fields only.
+      const fieldErrors = result.error.flatten().fieldErrors
+      ;(['firstName', 'lastName', 'email'] as const).forEach((key) => {
+        const msg = fieldErrors[key]?.[0]
+        if (msg) {
+          form.setError(key, { type: 'manual', message: msg })
+        }
+      })
+      return
+    }
+    setGuestPending(true)
+    saveIdentity({
+      firstName: result.data.firstName,
+      lastName: result.data.lastName,
+      email: result.data.email,
+    })
+    onContinueAsGuest(result.data.firstName, result.data.lastName, result.data.email)
     onOpenChange(false)
+    setGuestPending(false)
   }
 
-  const title = firstName
-    ? t('save_your_spot.title_with_name', { firstName })
-    : t('save_your_spot.title_no_name')
-
-  const separator = t('save_your_spot.subtitle_separator')
-  const subtitleStatus = t('save_your_spot.subtitle_status')
-  const subtitleCountdown = t('save_your_spot.subtitle_countdown', { mmss })
-
-  const passwordError = translateFieldError(
-    form.formState.errors.password ? String(form.formState.errors.password.message) : undefined,
-  )
+  const errors = form.formState.errors
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 bg-gm-ink/40 z-40 backdrop-blur-[2px]" />
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(480px,90vw)] z-50 bg-gm-paper rounded-gm-modal p-6 shadow-gm-modal"
+          className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(480px,90vw)] z-50 bg-gm-paper rounded-gm-modal p-6 shadow-gm-modal max-h-[90vh] overflow-y-auto"
           aria-describedby="save-your-spot-desc"
         >
           <Dialog.Title className="font-display text-[24px] text-gm-ink leading-[1.1] tracking-[-0.5px] font-normal">
-            {title}
+            {t('save_your_spot.title')}
           </Dialog.Title>
 
           <div className="mt-2">
             <MonoCaption size="micro" tone="faint">
-              {subtitleStatus}
-              {separator}
-              {itemName}
-              {separator}
-              {subtitleCountdown}
+              {t('save_your_spot.subtitle_item', { itemName })}
             </MonoCaption>
           </div>
 
@@ -157,11 +181,36 @@ export default function SaveYourSpotModal({
           </ul>
 
           <form
-            onSubmit={form.handleSubmit(handleValid)}
-            className="mt-5 flex flex-col gap-3"
+            onSubmit={form.handleSubmit(handleCreateAccount)}
+            className="mt-5 flex flex-col gap-4"
             noValidate
           >
-            <div className="flex flex-col gap-2">
+            <Field
+              label={t('save_your_spot.first_name_label')}
+              type="text"
+              autoComplete="given-name"
+              aria-invalid={Boolean(errors.firstName)}
+              error={translateFieldError(errors.firstName ? String(errors.firstName.message) : undefined)}
+              {...form.register('firstName')}
+            />
+            <Field
+              label={t('save_your_spot.last_name_label')}
+              type="text"
+              autoComplete="family-name"
+              aria-invalid={Boolean(errors.lastName)}
+              error={translateFieldError(errors.lastName ? String(errors.lastName.message) : undefined)}
+              {...form.register('lastName')}
+            />
+            <Field
+              label={t('save_your_spot.email_label')}
+              type="email"
+              autoComplete="email"
+              aria-invalid={Boolean(errors.email)}
+              error={translateFieldError(errors.email ? String(errors.email.message) : undefined)}
+              {...form.register('email')}
+            />
+
+            <div className="flex flex-col gap-2 mt-1">
               <MonoCaption size="micro" tone="faint">
                 {t('save_your_spot.password_section_label')}
               </MonoCaption>
@@ -170,8 +219,8 @@ export default function SaveYourSpotModal({
                 type="password"
                 autoComplete="new-password"
                 placeholder={t('save_your_spot.password_placeholder')}
-                aria-invalid={Boolean(form.formState.errors.password)}
-                error={passwordError}
+                aria-invalid={Boolean(errors.password)}
+                error={translateFieldError(errors.password ? String(errors.password.message) : undefined)}
                 {...form.register('password')}
               />
             </div>
@@ -182,11 +231,12 @@ export default function SaveYourSpotModal({
               </span>
             )}
 
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-3 mt-2">
               <button
                 type="button"
-                onClick={handleDismissClick}
-                className="font-body text-[13px] text-gm-inkSoft underline hover:text-gm-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gm-accent"
+                onClick={handleContinueAsGuestClick}
+                disabled={form.formState.isSubmitting || guestPending}
+                className="font-body text-[13px] text-gm-inkSoft underline hover:text-gm-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gm-accent disabled:opacity-50 disabled:cursor-not-allowed self-start sm:self-auto"
               >
                 {t('save_your_spot.secondary_cta')}
               </button>
@@ -194,16 +244,12 @@ export default function SaveYourSpotModal({
                 type="submit"
                 variant="primary"
                 size="lg"
-                disabled={form.formState.isSubmitting}
+                disabled={form.formState.isSubmitting || guestPending}
               >
                 {t('save_your_spot.primary_cta')}
               </Btn>
             </div>
           </form>
-
-          <p className="mt-4 font-body text-[12px] text-gm-inkFaint text-center">
-            {t('save_your_spot.footer_email_hint', { email })}
-          </p>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

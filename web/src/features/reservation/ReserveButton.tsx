@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { Loader2 } from 'lucide-react'
+import type { User } from 'firebase/auth'
 import { useAuth } from '../auth/useAuth'
-import { useGuestIdentity, type GuestIdentity } from '../auth/useGuestIdentity'
-import GuestIdentityModal from '../auth/GuestIdentityModal'
+import { useGuestIdentity } from '../auth/useGuestIdentity'
+import SaveYourSpotModal from '../auth/SaveYourSpotModal'
 import { useCreateReservation } from './useCreateReservation'
 import { useActiveReservation } from './useActiveReservation'
 import { useToast } from '../../components/ToastProvider'
@@ -23,7 +24,7 @@ export default function ReserveButton({ registryId, item }: Props) {
   const { identity } = useGuestIdentity()
   const { set: setActive } = useActiveReservation()
   const { showToast } = useToast()
-  const [guestModalOpen, setGuestModalOpen] = useState(false)
+  const [saveYourSpotOpen, setSaveYourSpotOpen] = useState(false)
 
   const mutation = useCreateReservation({
     onSuccess: (data) => {
@@ -59,18 +60,24 @@ export default function ReserveButton({ registryId, item }: Props) {
   function handleClick() {
     if (mutation.isPending) return
     if (user) {
-      // Authenticated: skip guest modal
       const name = user.displayName || (user.email ? user.email.split('@')[0] : 'Guest')
       const email = user.email ?? ''
       doReserve(name, email, user.uid)
       return
     }
-    // Anonymous — open GuestIdentityModal (pre-fills from localStorage automatically)
-    setGuestModalOpen(true)
+    setSaveYourSpotOpen(true)
   }
 
-  function handleGuestSubmit(id: GuestIdentity) {
-    doReserve(`${id.firstName} ${id.lastName}`.trim(), id.email, null)
+  function handleAccountCreated(newUser: User, firstName: string, lastName: string) {
+    const name = `${firstName} ${lastName}`.trim()
+    const email = newUser.email ?? ''
+    showToast(t('save_your_spot.success_toast'), 'success')
+    doReserve(name, email, newUser.uid)
+  }
+
+  function handleContinueAsGuest(firstName: string, lastName: string, email: string) {
+    const name = `${firstName} ${lastName}`.trim()
+    doReserve(name, email, null)
   }
 
   return (
@@ -89,10 +96,12 @@ export default function ReserveButton({ registryId, item }: Props) {
           t('reservation.reserve_item')
         )}
       </button>
-      <GuestIdentityModal
-        open={guestModalOpen}
-        onOpenChange={setGuestModalOpen}
-        onSubmit={handleGuestSubmit}
+      <SaveYourSpotModal
+        open={saveYourSpotOpen}
+        onOpenChange={setSaveYourSpotOpen}
+        itemName={item.title}
+        onAccountCreated={handleAccountCreated}
+        onContinueAsGuest={handleContinueAsGuest}
       />
       {/* Reference identity to keep lint happy and pre-fill behaviour explicit */}
       <span className="sr-only" data-testid="guest-identity-loaded">{identity ? 'yes' : 'no'}</span>
