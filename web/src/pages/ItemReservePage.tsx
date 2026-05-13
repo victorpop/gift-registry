@@ -6,6 +6,7 @@ import { useItemsQuery } from '../features/registry/useItemsQuery'
 import { useReservationForItem } from '../features/reservation/useReservationForItem'
 import { useCountdown } from '../features/reservation/useCountdown'
 import { useReleaseReservation } from '../features/reservation/useReleaseReservation'
+import { useActiveReservation } from '../features/reservation/useActiveReservation'
 import { ConfirmPurchaseBanner } from '../features/reservation/ConfirmPurchaseBanner'
 import HowTimerWorks from '../features/reservation/HowTimerWorks'
 import { useAuth } from '../features/auth/useAuth'
@@ -29,7 +30,7 @@ import { TopNav, Footer, MonoCaption, Btn, Pill } from '../components/giftmaison
  *
  * D-06 enforcement: no reserver name or giver identity is ever rendered on this page.
  *
- * On release success: show toast + navigate back to /registry/:id.
+ * On release success: clear shared active-reservation context, show toast, navigate back to /registry/:id.
  * On confirm success: detected by item status flip to 'purchased' or 'available' →
  *   navigate back to /registry/:id. (ConfirmPurchaseBanner handles its own toast and
  *   clears the shared active context; this page navigates independently.)
@@ -50,6 +51,7 @@ export default function ItemReservePage() {
   const { user } = useAuth()
   const { identity } = useGuestIdentity()
   const { showToast } = useToast()
+  const { clear: clearActiveReservation } = useActiveReservation()
 
   // Signed-in: send undefined; guest: send identity.email.
   const giverEmailToSend = user ? undefined : (identity?.email ?? undefined)
@@ -63,14 +65,18 @@ export default function ItemReservePage() {
   // Tracks the previously-observed item status to detect real transitions out of 'reserved'.
   const prevStatusRef = useRef<ItemStatus | undefined>(undefined)
 
-  // Release success: show toast + navigate back.
+  // Release success: clear shared active-reservation context, show toast, navigate back.
+  // Mirrors the pattern in StickyReserveBanner.tsx and ConfirmPurchaseBanner.tsx so the
+  // viewer's RegistryPage no longer renders a phantom StickyReserveBanner for the released
+  // reservation. The ref-guard ensures this fires exactly once per release-success transition.
   useEffect(() => {
     if (releaseStatus === 'success' && !releaseSuccessHandledRef.current) {
       releaseSuccessHandledRef.current = true
       showToast(t('reservation.release_success'), 'success')
+      clearActiveReservation()
       navigate(`/registry/${id}`)
     }
-  }, [releaseStatus, id, navigate, showToast, t])
+  }, [releaseStatus, id, navigate, showToast, t, clearActiveReservation])
 
   // Release error: show toast once per error message.
   useEffect(() => {

@@ -167,6 +167,7 @@ describe('ItemReservePage', () => {
     confirmMock.confirm.mockReset()
     confirmMock.status = 'idle'
     confirmMock.error = null
+    activeMock.clear = vi.fn()
     authMock.useAuth.mockReturnValue({ user: { uid: 'u1', email: 'u1@x.com' }, isReady: true })
     guestMock.useGuestIdentity.mockReturnValue({ identity: null })
     // Default: items loaded with the item
@@ -262,6 +263,21 @@ describe('ItemReservePage', () => {
     })
 
     unmount()
+  })
+
+  it('P-06b (release success clears active-reservation context): calls useActiveReservation().clear() exactly once on release success', async () => {
+    // Drive release to success BEFORE mount so the effect fires on first commit.
+    releaseMock.status = 'success'
+
+    renderPage()
+
+    await waitFor(() => {
+      expect(activeMock.clear).toHaveBeenCalledTimes(1)
+      expect(screen.getByTestId('registry-page')).toBeInTheDocument()
+    })
+    // Toast fired once with success severity (translation key may resolve differently).
+    expect(toastMock.showToast).toHaveBeenCalledTimes(1)
+    expect(toastMock.showToast.mock.calls[0][1]).toBe('success')
   })
 
   it('P-07 (confirm success → navigate back): item status flip to purchased triggers navigate back', async () => {
