@@ -5,6 +5,7 @@ firestore-debug.log
 firestore-debug.*.log
 ui-debug.log
 .firebase/
+emulator-data/
 
 # Functions
 functions/lib/
