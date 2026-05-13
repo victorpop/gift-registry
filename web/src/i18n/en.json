@@ -77,7 +77,7 @@
     "private_pill": "PRIVATE",
     "occasion_housewarming": "⌂ HOUSEWARMING",
     "progress_label": "PROGRESS",
-    "progress_copy": "{{n}} of {{total}} chosen",
+    "progress_copy": "of {{total}} chosen",
     "share_button": "Share this registry",
     "section_title": "The list",
     "section_item_count": "— {{n}} items",

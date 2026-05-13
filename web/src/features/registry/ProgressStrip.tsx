@@ -9,18 +9,20 @@ export interface ProgressStripProps {
   total: number
   /** Click handler for the Share button. Defaults to navigator.share() when present, else copies registry URL to clipboard. */
   onShare?: () => void
+  /** True when the viewer is the registry owner. Controls whether the Share button renders. Defaults to false (giver/guest view). */
+  isOwner?: boolean
 }
 
 /**
  * Hero-side progress widget. Shows mono-caps PROGRESS label + a large
  * Display M number + 'of {total} chosen' subline + a 4 px progress bar in
- * gm.accent + a Share ghost button.
+ * gm.accent + a Share ghost button (owner-only).
  *
  * Layout: vertical stack inside a paperDeep rounded-[10px] surface, padding 14/18 px.
  * On mobile (< 1024 px) this drops below the hero (full-bleed); on desktop ≥ 1024 px
  * it sits to the right of the hero (parent grid handles placement).
  */
-export function ProgressStrip({ totalChosen, total, onShare }: ProgressStripProps) {
+export function ProgressStrip({ totalChosen, total, onShare, isOwner = false }: ProgressStripProps) {
   const { t } = useTranslation()
   const pct = total > 0 ? Math.min(100, Math.round((totalChosen / total) * 100)) : 0
 
@@ -30,15 +32,17 @@ export function ProgressStrip({ totalChosen, total, onShare }: ProgressStripProp
       <div className="flex items-baseline gap-[6px]">
         <span className="font-display text-[34px] text-gm-ink leading-none">{totalChosen}</span>
         <span className="font-body text-[14px] text-gm-inkFaint">
-          {t('web_hero.progress_copy', { n: totalChosen, total })}
+          {t('web_hero.progress_copy', { total })}
         </span>
       </div>
       <div className="h-1 bg-gm-line rounded-[2px] overflow-hidden">
         <div className="h-full bg-gm-accent transition-[width] duration-500 ease-out" style={{ width: `${pct}%` }} />
       </div>
-      <Btn variant="ghost" size="sm" onClick={onShare} icon={<Share2 className="w-3.5 h-3.5" aria-hidden="true" />}>
-        {t('web_hero.share_button')}
-      </Btn>
+      {isOwner && (
+        <Btn variant="ghost" size="sm" onClick={onShare} icon={<Share2 className="w-3.5 h-3.5" aria-hidden="true" />}>
+          {t('web_hero.share_button')}
+        </Btn>
+      )}
     </div>
   )
 }

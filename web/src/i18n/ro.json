@@ -77,7 +77,7 @@
     "private_pill": "PRIVAT",
     "occasion_housewarming": "⌂ INAUGURARE",
     "progress_label": "PROGRES",
-    "progress_copy": "{{n}} din {{total}} alese",
+    "progress_copy": "din {{total}} alese",
     "share_button": "Distribuie acest registru",
     "section_title": "Lista",
     "section_item_count": "— {{n}} articole",

@@ -187,6 +187,7 @@ export default function RegistryPage() {
 
   const totalChosen = (counts.reserved ?? 0) + (counts.purchased ?? 0)
   const total = counts.all ?? 0
+  const isOwner = !!user && registryQ.data?.ownerId === user.uid
 
   // WEB-D-13 + WEB-D-14: registry === null (not-found OR permission-denied) → 404.
   // No distinction between cases — prevents private registry enumeration.
@@ -222,7 +223,7 @@ export default function RegistryPage() {
             <section className="px-4 sm:px-7 lg:px-10 pt-8 sm:pt-10 lg:pt-12 pb-8 lg:pb-9 border-b border-gm-line max-w-7xl mx-auto w-full">
               <div className="flex flex-col lg:flex-row lg:gap-10 lg:items-end lg:justify-between gap-6">
                 <RegistryHeader registry={registryQ.data} />
-                <ProgressStrip totalChosen={totalChosen} total={total} />
+                <ProgressStrip totalChosen={totalChosen} total={total} isOwner={isOwner} />
               </div>
             </section>
 
