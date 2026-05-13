@@ -9,7 +9,6 @@ import SkeletonCard from '../features/registry/SkeletonCard'
 import ProgressStrip from '../features/registry/ProgressStrip'
 import FilterChips, { type ItemFilter } from '../features/registry/FilterChips'
 import NotFoundPage from './NotFoundPage'
-import ReserveButton from '../features/reservation/ReserveButton'
 import StickyReserveBanner from '../features/reservation/StickyReserveBanner'
 import ReserveDetailSection from '../features/reservation/ReserveDetailSection'
 import AuthModal from '../features/auth/AuthModal'
@@ -246,10 +245,8 @@ export default function RegistryPage() {
               {itemsQ.data && itemsQ.data.length > 0 ? (
                 <ItemGrid
                   items={itemsQ.data}
+                  registryId={registryQ.data!.id}
                   filter={filter}
-                  renderReserve={(item) => (
-                    <ReserveButton registryId={registryQ.data!.id} item={item} />
-                  )}
                   renderReservedByMeClick={renderReservedByMeClick}
                 />
               ) : (

@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import type { Item, ItemStatus } from '../../lib/firestore-mapping'
 // Import atoms directly (not via barrel) to avoid pulling TopNav→useAuth→firebase
@@ -10,21 +11,27 @@ import { useCountdown } from '../reservation/useCountdown'
 interface Props {
   item: Item
   /**
-   * Plan 05 injects the real ReserveButton via render-prop (existing Phase 5 contract).
-   * When omitted, ItemCard renders a disabled placeholder for available items.
+   * Required: used to construct the per-item detail page Link href.
+   * /registry/{registryId}/item/{item.id}
    */
-  reserveSlot?: React.ReactNode
+  registryId: string
   /**
    * When provided for a reserved-by-me item, the reserved banner row becomes a button
-   * that fires this callback (expected: smooth-scroll to ReserveDetailSection anchor).
-   * When omitted, reserved banner renders as a non-interactive div (unchanged behaviour
-   * for items reserved by someone else — D-06: never reveal reserver identity).
+   * that fires this callback (expected: smooth-scroll to ReserveDetailSection anchor or
+   * navigate to the per-item detail page). When omitted, reserved banner renders as a
+   * non-interactive div (unchanged behaviour for items reserved by someone else —
+   * D-06: never reveal reserver identity).
    */
   onReservedByMeClick?: () => void
 }
 
 /**
- * Item card (UI-SPEC Screen 01 item-card anatomy + CONTEXT D-06 / D-10 / D-17).
+ * Item card (k37 redesign — vertical stack: image / shop / truncated name / price).
+ *
+ * The entire tile is wrapped in a react-router <Link> to /registry/:id/item/:itemId
+ * for every status (available, reserved, purchased). The detail page handles all
+ * status-specific UI (Reserve CTA, reserved-by-other view-only, purchased view-only,
+ * reserved-by-me detail with countdown/release/confirm).
  *
  * Container: bg-gm-paper, border-gm-line, rounded-gm-card (14 px), overflow-hidden.
  * Image: aspect-[4/3] mobile / aspect-[16/10] from sm:; objectFit cover; bg paperDeep
@@ -32,10 +39,11 @@ interface Props {
  *
  * Status pill top-left over image (12 px from edges).
  *
- * Body anatomy (vertical stack, 14/16 px padding):
- *   - Title (15 px Inter 500, -0.2 LS, ink)
- *   - Price + retailer row (Inter 500 / Mono 10 px, baseline aligned)
- *   - Status-conditional CTA / banner / nothing
+ * Body anatomy (vertical stack, 16 px padding, gap-2):
+ *   - Shop line: MonoCaption faint micro = merchantDomain raw (uppercase via mono caps)
+ *   - Title h3 (15 px Inter 500, -0.2 LS, ink) — truncated to 60 chars + "..." when longer
+ *   - Price (font-semibold, currency rendered as small mono on the side)
+ *   - Status-conditional in-card reserved banner (only when reserved-by-me)
  *
  * D-06 — NO RESERVER OR GIVER NAME EVER. Reserved card pill copy is "RESERVED"
  * (no name suffix). The in-card reserved banner shows
@@ -54,33 +62,43 @@ function statusPillKey(status: ItemStatus): string {
   return 'web_pill.available'
 }
 
-export default function ItemCard({ item, reserveSlot, onReservedByMeClick }: Props) {
+/**
+ * Truncates a title to `limit` characters (default 60), trimming whitespace
+ * (leading/trailing) before measuring and trimming again at the cut point so
+ * the rendered ellipsis never has whitespace immediately preceding it.
+ */
+export function truncateTitle(title: string, limit = 60): string {
+  const trimmed = title.trim()
+  if (trimmed.length <= limit) return trimmed
+  return trimmed.slice(0, limit).trimEnd() + '...'
+}
+
+export default function ItemCard({ item, registryId, onReservedByMeClick }: Props) {
   const { t } = useTranslation()
   const isPurchased = item.status === 'purchased'
   const isReserved = item.status === 'reserved'
-  const isAvailable = item.status === 'available'
 
   // Minute-granularity countdown for in-card reserved banner (UI-SPEC: card banners
-  // update every 60s; sticky banner — Plan 05 — updates every 1s).
+  // update every 60s; sticky banner updates every 1s).
   const countdown = useCountdown(item.expiresAt?.getTime() ?? null)
   const minutesLeft = countdown?.minutes ?? 0
 
-  const priceText = item.price != null && item.currency
-    ? `${item.price} ${item.currency}`
-    : item.price != null ? String(item.price) : null
-
+  const titleDisplay = truncateTitle(item.title)
   const retailerText = item.merchantDomain ?? ''
 
   return (
-    <article
-      className={[
-        'flex flex-col rounded-gm-card overflow-hidden border border-gm-line bg-gm-paper',
-        isPurchased ? 'opacity-[0.55]' : '',
-      ].join(' ')}
+    <Link
+      to={`/registry/${registryId}/item/${item.id}`}
+      aria-label={t('web_pill.tile_aria', { title: titleDisplay })}
       data-testid="item-card"
       data-status={item.status}
+      className={[
+        'flex flex-col rounded-gm-card overflow-hidden border border-gm-line bg-gm-paper no-underline text-gm-ink',
+        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gm-accent',
+        isPurchased ? 'opacity-[0.55]' : '',
+      ].join(' ')}
     >
-      {/* Image area — aspect 4:3 mobile / 16:10 desktop+ (D-10) */}
+      {/* Image area — aspect 4:3 mobile / 16:10 desktop+ */}
       <div className="relative aspect-[4/3] sm:aspect-[16/10] bg-gm-paperDeep overflow-hidden">
         {item.imageUrl ? (
           <img
@@ -101,50 +119,38 @@ export default function ItemCard({ item, reserveSlot, onReservedByMeClick }: Pro
         </div>
       </div>
 
-      {/* Body */}
-      <div className="flex flex-col gap-3 p-4 flex-1">
-        <div>
-          <h3 className="font-body text-[15px] font-medium text-gm-ink leading-[1.25] tracking-[-0.2px] m-0">
-            {item.title}
-          </h3>
-          {(priceText || retailerText) && (
-            <div className="flex justify-between items-baseline mt-[6px]">
-              {priceText && (
-                <span className="font-body text-[14px] text-gm-ink font-medium" data-testid="price">
-                  {item.price}
-                  {item.currency && (
-                    <span className="ml-1 font-mono text-[11px] text-gm-inkFaint">
-                      {item.currency}
-                    </span>
-                  )}
-                </span>
-              )}
-              {retailerText && (
-                <MonoCaption size="micro" tone="faint">{retailerText}</MonoCaption>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Status-conditional region */}
-        {isAvailable && (
-          <div data-testid="reserve-slot" className="self-stretch">
-            {reserveSlot ?? (
-              <button
-                type="button"
-                disabled
-                className="inline-flex items-center justify-center gap-2 w-full rounded-full border border-gm-ink bg-gm-ink text-gm-paper font-body text-[12px] font-medium tracking-[-0.1px] leading-none px-3 py-[7px] opacity-50 cursor-not-allowed"
-              >
-                {t('web_hero.reserve_cta')}
-              </button>
+      {/* Body — vertical stack: shop / name / price */}
+      <div className="flex flex-col gap-2 p-4 flex-1">
+        {retailerText && (
+          <MonoCaption size="micro" tone="faint">{retailerText}</MonoCaption>
+        )}
+        <h3 className="font-body text-[15px] font-medium text-gm-ink leading-[1.25] tracking-[-0.2px] m-0">
+          {titleDisplay}
+        </h3>
+        {item.price != null && (
+          <span className="font-body text-[15px] text-gm-ink font-semibold" data-testid="price">
+            {item.price}
+            {item.currency && (
+              <span className="ml-1 font-mono text-[11px] text-gm-inkFaint font-normal">
+                {item.currency}
+              </span>
             )}
-          </div>
+          </span>
         )}
 
+        {/* Reserved-by-me in-card banner. Renders as a button when onReservedByMeClick
+            is provided so the viewer can jump to detail page; otherwise non-interactive
+            div (D-06: same banner regardless of who reserved — no identity reveal). */}
         {isReserved && onReservedByMeClick ? (
           <button
             type="button"
-            onClick={onReservedByMeClick}
+            onClick={(e) => {
+              // Prevent the surrounding <Link> from also navigating — the banner's
+              // onReservedByMeClick callback handles navigation itself.
+              e.preventDefault()
+              e.stopPropagation()
+              onReservedByMeClick()
+            }}
             aria-label={t('web_pill.reserved_by_me_navigate_aria')}
             className="w-full text-left flex items-center gap-[10px] px-3 py-[9px] bg-gm-accentSoft rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gm-accent"
           >
@@ -161,13 +167,7 @@ export default function ItemCard({ item, reserveSlot, onReservedByMeClick }: Pro
             </span>
           </div>
         ) : null}
-
-        {/* Purchased: no body CTA — image already shows opacity + grayscale.
-            UI-SPEC ASCII contract says "(no body CTA; row is opacity 0.55, image
-            grayscale, status pill bottom-left ✓ Purchased per D-16)".
-            We keep the status pill at top-left (consistency across statuses); the
-            opacity + grayscale carry the "purchased" signal sufficiently. */}
       </div>
-    </article>
+    </Link>
   )
 }

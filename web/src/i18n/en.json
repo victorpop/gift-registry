@@ -154,10 +154,12 @@
   "web_pill": {
     "available": "AVAILABLE",
     "reserved": "RESERVED",
+    "reserved_by_other": "RESERVED",
     "purchased": "✓ PURCHASED",
     "reserved_banner": "{{minutes}} MIN LEFT — auto-releases if not purchased",
     "reserved_by_me_scroll_aria": "Show your reservation details",
-    "reserved_by_me_navigate_aria": "Open your reservation details"
+    "reserved_by_me_navigate_aria": "Open your reservation details",
+    "tile_aria": "Open details for {{title}}"
   },
   "web_auth": {
     "caption": "YOU'RE INVITED TO A REGISTRY",

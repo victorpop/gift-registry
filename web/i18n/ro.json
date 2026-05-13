@@ -131,10 +131,12 @@
   "web_pill": {
     "available": "DISPONIBIL",
     "reserved": "REZERVAT",
+    "reserved_by_other": "REZERVAT",
     "purchased": "✓ CUMPĂRAT",
     "reserved_banner": "MAI {{minutes}} MIN — se eliberează dacă nu e cumpărat",
     "reserved_by_me_scroll_aria": "Arată detaliile rezervării tale",
-    "reserved_by_me_navigate_aria": "Deschide detaliile rezervării tale"
+    "reserved_by_me_navigate_aria": "Deschide detaliile rezervării tale",
+    "tile_aria": "Deschide detalii pentru {{title}}"
   },
   "web_auth": {
     "caption": "EȘTI INVITAT LA UN REGISTRU",
