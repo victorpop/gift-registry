@@ -111,7 +111,8 @@
     "how_timer_step3_h": "Apasă „Am finalizat achiziția”",
     "how_timer_step3_b": "Se blochează ca oferit, numele tău e vizibil doar pentru proprietar.",
     "how_timer_step4_h": "Sau trec 30 de minute",
-    "how_timer_step4_b": "Fără acțiune, fără griji — articolul se eliberează și îți trimitem prin email un link de re-rezervare."
+    "how_timer_step4_b": "Fără acțiune, fără griji — articolul se eliberează și îți trimitem prin email un link de re-rezervare.",
+    "check_other_products_cta": "Vezi alte produse din registru"
   },
   "web_pill": {
     "available": "DISPONIBIL",
