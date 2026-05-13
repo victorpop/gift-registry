@@ -227,7 +227,7 @@ export default function RegistryPage() {
             </section>
 
             {/* Section title + filter chips */}
-            <section className="px-4 sm:px-7 lg:px-10 pt-8 max-w-7xl mx-auto w-full">
+            <section id="registry-list-section" className="px-4 sm:px-7 lg:px-10 pt-8 max-w-7xl mx-auto w-full">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-5">
                 <h2 className="font-display text-[24px] lg:text-[34px] text-gm-ink leading-[1.05] tracking-[-0.5px] m-0">
                   {t('web_hero.section_title')}{' '}

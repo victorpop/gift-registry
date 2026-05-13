@@ -111,7 +111,8 @@
     "how_timer_step3_h": "Tap \"I completed the purchase\"",
     "how_timer_step3_b": "It locks as given, with your name visible only to the owner.",
     "how_timer_step4_h": "Or 30 minutes pass",
-    "how_timer_step4_b": "No action, no worries — the item releases and we email you a one-tap re-reserve link."
+    "how_timer_step4_b": "No action, no worries — the item releases and we email you a one-tap re-reserve link.",
+    "check_other_products_cta": "Check other products in the registry"
   },
   "web_pill": {
     "available": "AVAILABLE",

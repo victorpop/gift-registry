@@ -4,7 +4,7 @@ import { useCountdown } from './useCountdown'
 import { useItemsQuery } from '../registry/useItemsQuery'
 import { ConfirmPurchaseBanner } from './ConfirmPurchaseBanner'
 import HowTimerWorks from './HowTimerWorks'
-import { Pill, MonoCaption } from '../../components/giftmaison'
+import { Btn, Pill, MonoCaption } from '../../components/giftmaison'
 
 export interface ReserveDetailSectionProps {
   /** Registry id from URL params — used to look up the active item from useItemsQuery. */
@@ -109,6 +109,21 @@ export default function ReserveDetailSection({ registryId }: ReserveDetailSectio
 
             {/* Confirm-back card — re-styled component */}
             <ConfirmPurchaseBanner reservationId={active.reservationId} minutesLeft={minutesLeft} />
+
+            {/* Secondary CTA — smooth-scroll to registry item list */}
+            <div className="flex justify-center sm:justify-start">
+              <Btn
+                variant="ghost"
+                size="md"
+                data-testid="check-other-products-cta"
+                onClick={() => {
+                  const el = document.getElementById('registry-list-section')
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+              >
+                {t('web_reserve.check_other_products_cta')}
+              </Btn>
+            </div>
           </div>
 
           {/* Right/sidebar — desktop only via grid; mobile stacks below */}
