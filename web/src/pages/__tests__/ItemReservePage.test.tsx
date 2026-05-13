@@ -2,6 +2,7 @@
  * Tests for ItemReservePage (quick-260513-g9g Task 3).
  * Spec IDs: P-01 through P-07.
  */
+import React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor, act } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
@@ -111,6 +112,20 @@ function makeItem(overrides: Partial<Item> = {}): Item {
   }
 }
 
+// Wrapper that OWNS ItemReservePage so its state update cascades into ItemReservePage.
+// The wrapper renders ItemReservePage directly (not via children prop) so React treats
+// ItemReservePage as a child of this component's render output — enabling state-driven
+// re-renders that propagate to ItemReservePage and preserve prevStatusRef.
+let _forceUpdateHandle: (() => void) | null = null
+function ItemReservePageWithForceUpdate() {
+  const [, setState] = React.useState(0)
+  React.useLayoutEffect(() => {
+    _forceUpdateHandle = () => setState(n => n + 1)
+    return () => { _forceUpdateHandle = null }
+  }, [])
+  return <ItemReservePage />
+}
+
 function renderPage(
   registryId = 'reg1',
   itemId = 'it1',
@@ -119,17 +134,26 @@ function renderPage(
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const router = createMemoryRouter(
     [
-      { path: '/registry/:id/item/:itemId', element: <ItemReservePage /> },
+      {
+        path: '/registry/:id/item/:itemId',
+        element: <ItemReservePageWithForceUpdate />,
+      },
       { path: '/registry/:id', element: <div data-testid="registry-page" /> },
       ...extraRoutes,
     ],
     { initialEntries: [`/registry/${registryId}/item/${itemId}`] },
   )
-  return render(
+  const result = render(
     <QueryClientProvider client={client}>
       <RouterProvider router={router} />
     </QueryClientProvider>,
   )
+  return {
+    ...result,
+    rerenderSame: () => {
+      _forceUpdateHandle?.()
+    },
+  }
 }
 
 // --- Tests ---
@@ -257,6 +281,66 @@ describe('ItemReservePage', () => {
     await waitFor(() => {
       // Component is still mounted and functioning
       expect(screen.getByTestId('item-reserve-detail')).toBeInTheDocument()
+    })
+  })
+
+  it('P-08 (HON-01): stale-on-mount available status does NOT navigate back', async () => {
+    // Items snapshot still shows old pre-reservation state (stale 'available')
+    itemsQueryMock.useItemsQuery.mockReturnValue({ data: [makeItem({ status: 'available' })] })
+    // Reservation lookup already sees the new reservation (real race)
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'hydrated', active: ACTIVE_RES })
+
+    renderPage()
+
+    await waitFor(() => {
+      expect(screen.getByTestId('item-reserve-detail')).toBeInTheDocument()
+      expect(screen.queryByTestId('registry-page')).not.toBeInTheDocument()
+    })
+  })
+
+  it('P-09 (HON-02): real reserved->available transition DOES navigate back', async () => {
+    itemsQueryMock.useItemsQuery.mockReturnValue({ data: [makeItem({ status: 'reserved' })] })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'hydrated', active: ACTIVE_RES })
+
+    const { rerenderSame } = renderPage()
+
+    // Intermediate state: detail UI present, no redirect yet
+    expect(screen.getByTestId('item-reserve-detail')).toBeInTheDocument()
+    expect(screen.queryByTestId('registry-page')).toBeNull()
+
+    // Flip to available (e.g. release completed), then force a re-render so the
+    // new mock value is picked up and the transition-detector effect can run.
+    await act(async () => {
+      itemsQueryMock.useItemsQuery.mockReturnValue({ data: [makeItem({ status: 'available' })] })
+      rerenderSame()
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('item-reserve-detail')).not.toBeInTheDocument()
+      expect(screen.getByTestId('registry-page')).toBeInTheDocument()
+    })
+  })
+
+  it('P-10 (HON-03): real reserved->purchased transition DOES navigate back', async () => {
+    itemsQueryMock.useItemsQuery.mockReturnValue({ data: [makeItem({ status: 'reserved' })] })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'hydrated', active: ACTIVE_RES })
+
+    const { rerenderSame } = renderPage()
+
+    // Intermediate state: detail UI present, no redirect yet
+    expect(screen.getByTestId('item-reserve-detail')).toBeInTheDocument()
+    expect(screen.queryByTestId('registry-page')).toBeNull()
+
+    // Flip to purchased (confirm-purchase completed), then force a re-render so the
+    // new mock value is picked up and the transition-detector effect can run.
+    await act(async () => {
+      itemsQueryMock.useItemsQuery.mockReturnValue({ data: [makeItem({ status: 'purchased' })] })
+      rerenderSame()
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('item-reserve-detail')).not.toBeInTheDocument()
+      expect(screen.getByTestId('registry-page')).toBeInTheDocument()
     })
   })
 })

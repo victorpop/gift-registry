@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
+import type { ItemStatus } from '../lib/firestore-mapping'
 import { useItemsQuery } from '../features/registry/useItemsQuery'
 import { useReservationForItem } from '../features/reservation/useReservationForItem'
 import { useCountdown } from '../features/reservation/useCountdown'
@@ -60,6 +61,8 @@ export default function ItemReservePage() {
 
   // Ref guard: navigate back once when item status flips (covers confirm success too).
   const itemStatusNavigatedRef = useRef(false)
+  // Tracks the previously-observed item status to detect real transitions out of 'reserved'.
+  const prevStatusRef = useRef<ItemStatus | undefined>(undefined)
 
   // Release success: show toast + navigate back.
   useEffect(() => {
@@ -82,20 +85,22 @@ export default function ItemReservePage() {
     }
   }, [releaseStatus, releaseError, showToast, t])
 
-  // Detect item status flip (covers confirm-purchase success + other external changes).
-  // Navigate back once when the item transitions out of 'reserved' (e.g. 'purchased' or
-  // 'available'). This avoids needing to wire useConfirmPurchase state from within
-  // ConfirmPurchaseBanner (which would violate the scope guard).
+  // Detect a real status TRANSITION out of 'reserved' (covers confirm-purchase success and
+  // release fired from another tab / via Cloud Tasks). We must observe 'reserved' first —
+  // otherwise a stale 'available' snapshot on initial mount would bounce the user back before
+  // the reservation propagates. itemStatusNavigatedRef ensures we fire at most once per mount.
   const currentItemStatus = itemsQ.data?.find(i => i.id === itemId)?.status
   useEffect(() => {
-    if (
-      active &&
-      !itemStatusNavigatedRef.current &&
-      (currentItemStatus === 'purchased' || currentItemStatus === 'available')
-    ) {
-      itemStatusNavigatedRef.current = true
-      navigate(`/registry/${id}`)
-    }
+    const prev = prevStatusRef.current
+    prevStatusRef.current = currentItemStatus
+
+    if (!active) return
+    if (itemStatusNavigatedRef.current) return
+    if (prev !== 'reserved') return
+    if (currentItemStatus !== 'purchased' && currentItemStatus !== 'available') return
+
+    itemStatusNavigatedRef.current = true
+    navigate(`/registry/${id}`)
   }, [currentItemStatus, active, id, navigate])
 
   // --- Save-your-spot upsell modal (quick-260513-h36) ---
