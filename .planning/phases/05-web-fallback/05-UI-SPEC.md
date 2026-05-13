@@ -266,7 +266,7 @@ New keys to add to `web/i18n/en.json` and `web/i18n/ro.json` during Phase 5:
 | Conflict error toast | "Someone just reserved this gift. Try another." | RES-09 success criteria |
 | Generic error toast | "Something went wrong. Please try again." | `common.error_generic` |
 | Reservation banner | "You reserved [item name] — [X] min left" | WEB-D-08 |
-| Reservation success toast | "Gift reserved! Redirecting to retailer…" | WEB-D-07 |
+| Reservation success toast | "Gift reserved! Continue to retailer when you're ready." | WEB-D-07 (revised 2026-05-13: auto-open of retailer tab removed — retailer click is now manual via StickyReserveBanner CTA) |
 | Re-reserve loading text | "Checking your reservation…" | WEB-D-11 |
 
 Destructive actions in Phase 5: none. Givers cannot delete or modify any data. No destructive confirmation dialogs required.

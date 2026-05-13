@@ -49,16 +49,16 @@ describe('useCreateReservation', () => {
     await waitFor(() => expect(callableMock).toHaveBeenCalledWith(payload))
   })
 
-  it('opens affiliateUrl in a new tab on success (WEB-D-07)', async () => {
+  it('does NOT auto-open the retailer tab on success — retailer click is now user-initiated via StickyReserveBanner', async () => {
     const url = 'https://emag.ro/?aff=123'
     callableMock.mockResolvedValue({ data: { reservationId: 'r1', affiliateUrl: url, expiresAtMs: Date.now() + 1_800_000 } })
     const { result } = renderHook(() => useCreateReservation(), { wrapper: wrapper(client) })
     result.current.mutate({ registryId: 'r', itemId: 'i', giverName: 'A B', giverEmail: 'a@b', giverId: 'u1' })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(windowOpenSpy).toHaveBeenCalledWith(url, '_blank', 'noopener,noreferrer')
+    expect(windowOpenSpy).not.toHaveBeenCalled()
   })
 
-  it('does NOT open window when affiliateUrl is empty', async () => {
+  it('does NOT open window when affiliateUrl is empty (remains so even when affiliateUrl is empty)', async () => {
     callableMock.mockResolvedValue({ data: { reservationId: 'r1', affiliateUrl: '', expiresAtMs: Date.now() + 1_800_000 } })
     const { result } = renderHook(() => useCreateReservation(), { wrapper: wrapper(client) })
     result.current.mutate({ registryId: 'r', itemId: 'i', giverName: 'A B', giverEmail: 'a@b', giverId: null })

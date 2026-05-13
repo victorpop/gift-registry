@@ -48,7 +48,7 @@
     "banner_text": "You reserved {{itemName}} — {{minutes}} min left",
     "banner_view": "View on {{retailer}}",
     "conflict": "Someone just reserved this gift. Try another.",
-    "success": "Gift reserved! Redirecting to retailer…",
+    "success": "Gift reserved! Continue to retailer when you're ready.",
     "resolving": "Checking your reservation…",
     "confirm_purchase_heading": "Did you complete the purchase?",
     "confirm_purchase_cta": "I completed the purchase",

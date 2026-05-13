@@ -24,7 +24,7 @@ const createReservationFn = httpsCallable<CreateReservationRequest, CreateReserv
 )
 
 export interface UseCreateReservationOptions {
-  /** Called with the successful response — use to raise toast + set active reservation + open retailer tab. */
+  /** Called with the successful response — use to raise toast + set active reservation. */
   onSuccess?: (data: CreateReservationResponse, variables: CreateReservationRequest) => void
   /** Called with a Firebase FunctionsError; use error-mapping.ts to choose the toast. */
   onError?: (err: unknown, variables: CreateReservationRequest) => void
@@ -37,10 +37,6 @@ export function useCreateReservation(options: UseCreateReservationOptions = {}) 
       return result.data
     },
     onSuccess: (data, variables) => {
-      // WEB-D-07 + WEB-04: open retailer in NEW TAB, keep registry tab alive
-      if (data.affiliateUrl) {
-        window.open(data.affiliateUrl, '_blank', 'noopener,noreferrer')
-      }
       options.onSuccess?.(data, variables)
     },
     onError: (err, variables) => {

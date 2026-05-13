@@ -48,7 +48,7 @@
     "banner_text": "Ai rezervat {{itemName}} — {{minutes}} min rămase",
     "banner_view": "Vezi pe {{retailer}}",
     "conflict": "Cineva tocmai a rezervat acest cadou. Încearcă altul.",
-    "success": "Cadou rezervat! Redirecționare către magazin…",
+    "success": "Cadou rezervat! Continuă către magazin când ești gata.",
     "resolving": "Se verifică rezervarea…",
     "confirm_purchase_heading": "Ai finalizat achiziția?",
     "confirm_purchase_cta": "Am finalizat achiziția",
