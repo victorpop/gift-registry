@@ -1,15 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router'
 import '../../../i18n'
-
-// Mock react-router to avoid dependency issues in ItemCard tests
-vi.mock('react-router', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('react-router')>()
-  return {
-    ...actual,
-    useNavigate: () => vi.fn(),
-  }
-})
 
 import ItemCard from '../ItemCard'
 import type { Item } from '../../../lib/firestore-mapping'
@@ -33,74 +26,157 @@ function makeItem(overrides: Partial<Item> = {}): Item {
   }
 }
 
+function renderCard(props: { item?: Item; registryId?: string; onReservedByMeClick?: () => void } = {}) {
+  const item = props.item ?? makeItem()
+  const registryId = props.registryId ?? 'reg1'
+  return render(
+    <MemoryRouter>
+      <ItemCard item={item} registryId={registryId} onReservedByMeClick={props.onReservedByMeClick} />
+    </MemoryRouter>,
+  )
+}
+
 describe('ItemCard', () => {
   it('renders title, price, currency, and image alt=title for available item', () => {
-    render(<ItemCard item={makeItem()} />)
+    renderCard()
     expect(screen.getByText('Coffee Grinder')).toBeInTheDocument()
-    // Phase 13: price + currency render in two spans (price body + currency mono).
-    // Use the data-testid="price" span and assert its text content.
     const priceEl = screen.getByTestId('price')
     expect(priceEl.textContent).toContain('49.99')
     expect(priceEl.textContent).toContain('RON')
     expect(screen.getByAltText('Coffee Grinder')).toBeInTheDocument()
   })
 
-  it('shows Available pill (neutral tone, gm-paperDeep bg) for available status', () => {
-    render(<ItemCard item={makeItem({ status: 'available' })} />)
-    // Phase 13: status pill is a <Pill tone="neutral" size="sm"> atom; pill copy
-    // is uppercase ("AVAILABLE") via i18n web_pill.available. Assert visible copy
-    // + the data-status attribute on the article wrapper.
+  it('shows Available pill (neutral tone) for available status', () => {
+    renderCard({ item: makeItem({ status: 'available' }) })
     expect(screen.getByText('AVAILABLE')).toBeInTheDocument()
     expect(screen.getByTestId('item-card')).toHaveAttribute('data-status', 'available')
   })
 
-  it('shows Reserved pill (accent tone, gm-accentSoft bg) for reserved status', () => {
-    render(<ItemCard item={makeItem({ status: 'reserved' })} />)
-    // Phase 13 D-06: pill copy is "RESERVED" uppercase (no name suffix); also
-    // rendered as the in-card banner with "{n} MIN LEFT" copy when expiresAt set.
+  it('shows Reserved pill for reserved status', () => {
+    renderCard({ item: makeItem({ status: 'reserved' }) })
     expect(screen.getByText('RESERVED')).toBeInTheDocument()
     expect(screen.getByTestId('item-card')).toHaveAttribute('data-status', 'reserved')
   })
 
-  it('shows Purchased pill (ok tone) + opacity-0.55 article for purchased status', () => {
-    render(<ItemCard item={makeItem({ status: 'purchased' })} />)
-    // Phase 13 D-06: pill copy is "✓ PURCHASED" (no giver name).
+  it('shows Purchased pill + opacity-0.55 wrapper for purchased status', () => {
+    renderCard({ item: makeItem({ status: 'purchased' }) })
     expect(screen.getByText(/PURCHASED/)).toBeInTheDocument()
     const card = screen.getByTestId('item-card')
     expect(card).toHaveAttribute('data-status', 'purchased')
-    // Outer opacity carries the purchased signal per Phase 13 D-17.
-    expect(card.className).toContain('opacity-[0.55]')
-  })
-
-  it('renders reserve-slot when status is available', () => {
-    render(<ItemCard item={makeItem({ status: 'available' })} />)
-    expect(screen.getByTestId('reserve-slot')).toBeInTheDocument()
-  })
-
-  it('does NOT render reserve-slot when status is reserved', () => {
-    render(<ItemCard item={makeItem({ status: 'reserved' })} />)
-    expect(screen.queryByTestId('reserve-slot')).not.toBeInTheDocument()
-  })
-
-  it('does NOT render reserve-slot when status is purchased', () => {
-    render(<ItemCard item={makeItem({ status: 'purchased' })} />)
-    expect(screen.queryByTestId('reserve-slot')).not.toBeInTheDocument()
-  })
-
-  it('uses custom reserveSlot when provided (Plan 06 injection)', () => {
-    render(<ItemCard item={makeItem({ status: 'available' })} reserveSlot={<button>CustomReserve</button>} />)
-    expect(screen.getByText('CustomReserve')).toBeInTheDocument()
+    // Opacity may live on the inner wrapper now (Link is the outermost element).
+    // Assert it appears anywhere in the card subtree's rendered className strings.
+    const html = card.outerHTML
+    expect(html).toContain('opacity-[0.55]')
   })
 
   it('renders price without currency when currency is null', () => {
-    render(<ItemCard item={makeItem({ price: 25, currency: null })} />)
+    renderCard({ item: makeItem({ price: 25, currency: null }) })
     const priceEl = screen.getByTestId('price')
     expect(priceEl.textContent).toContain('25')
   })
 
   it('omits price block when price is null', () => {
-    render(<ItemCard item={makeItem({ price: null, currency: null })} />)
+    renderCard({ item: makeItem({ price: null, currency: null }) })
     expect(screen.queryByText(/RON/)).not.toBeInTheDocument()
     expect(screen.queryByTestId('price')).not.toBeInTheDocument()
+  })
+
+  // ---- New k37 tests ----
+
+  it('K37-A: wraps the article in a Link to /registry/:id/item/:itemId', () => {
+    renderCard({ item: makeItem({ id: 'item-1' }), registryId: 'reg1' })
+    const card = screen.getByTestId('item-card')
+    const link = card.closest('a')
+    expect(link).not.toBeNull()
+    expect(link!.getAttribute('href')).toBe('/registry/reg1/item/item-1')
+  })
+
+  it('K37-B: does NOT render any reserve-slot for available items (CTA removed)', () => {
+    renderCard({ item: makeItem({ status: 'available' }) })
+    expect(screen.queryByTestId('reserve-slot')).not.toBeInTheDocument()
+  })
+
+  it('K37-C: renders shop line (merchantDomain) above product name in DOM order', () => {
+    renderCard({ item: makeItem({ merchantDomain: 'store', title: 'Coffee Grinder' }) })
+    const shop = screen.getByText('store')
+    const name = screen.getByText('Coffee Grinder')
+    // compareDocumentPosition: bit 4 = name FOLLOWING shop
+    const rel = shop.compareDocumentPosition(name)
+    // eslint-disable-next-line no-bitwise
+    expect(rel & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('K37-D: truncates titles longer than 60 chars with trailing "..."', () => {
+    const longTitle = 'a'.repeat(70)
+    renderCard({ item: makeItem({ title: longTitle }) })
+    // The product name h3 — find by checking which element contains the truncated text.
+    const expected = 'a'.repeat(60) + '...'
+    expect(screen.getByText(expected)).toBeInTheDocument()
+  })
+
+  it('K37-E: does NOT truncate titles exactly 60 chars', () => {
+    const title60 = 'a'.repeat(60)
+    renderCard({ item: makeItem({ title: title60 }) })
+    expect(screen.getByText(title60)).toBeInTheDocument()
+    // No ellipsis-suffixed variant
+    expect(screen.queryByText(title60 + '...')).not.toBeInTheDocument()
+  })
+
+  it('K37-F: trims trailing whitespace before adding ellipsis', () => {
+    // 58 'a's + 3 spaces + 'bcd' = 58+3+3=64 chars; truncate at 60 lands inside
+    // "   bcd" — after slice(0,60) the tail would be "...aaa   " — trimEnd should
+    // remove the trailing spaces so the rendered ellipsis is not preceded by spaces.
+    const title = 'a'.repeat(58) + '   bcd'
+    renderCard({ item: makeItem({ title }) })
+    // Find the h3 — the rendered product-name element. We assert the text:
+    // - ends with "..."
+    // - has NO whitespace immediately before the "..."
+    const card = screen.getByTestId('item-card')
+    const h3 = card.querySelector('h3')
+    expect(h3).not.toBeNull()
+    const text = h3!.textContent ?? ''
+    expect(text.endsWith('...')).toBe(true)
+    const beforeEllipsis = text.slice(0, -3)
+    expect(beforeEllipsis).toBe(beforeEllipsis.trimEnd())
+  })
+
+  it('K37-G: purchased tile is still wrapped in a Link (clickable)', () => {
+    renderCard({ item: makeItem({ status: 'purchased' }), registryId: 'reg1' })
+    const card = screen.getByTestId('item-card')
+    const link = card.closest('a')
+    expect(link).not.toBeNull()
+    expect(link!.getAttribute('href')).toBe('/registry/reg1/item/item-1')
+  })
+
+  it('K37-H: reserved-by-me banner click prevents Link navigation and calls onReservedByMeClick', async () => {
+    const user = userEvent.setup()
+    const onClick = vi.fn()
+    renderCard({
+      item: makeItem({ status: 'reserved', expiresAt: new Date(Date.now() + 30 * 60 * 1000) }),
+      onReservedByMeClick: onClick,
+      registryId: 'reg1',
+    })
+    const banner = screen.getByRole('button', { name: /open your reservation details/i })
+    await user.click(banner)
+    expect(onClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('K37-I: D-06 — does NOT render reserver email for reserved status', () => {
+    renderCard({ item: makeItem({ status: 'reserved', reservedBy: 'leak@example.com' }) })
+    expect(screen.queryByText('leak@example.com')).not.toBeInTheDocument()
+  })
+
+  it('K37-J: D-06 — does NOT render giver email for purchased status', () => {
+    renderCard({ item: makeItem({ status: 'purchased', reservedBy: 'leak@example.com' }) })
+    expect(screen.queryByText('leak@example.com')).not.toBeInTheDocument()
+  })
+
+  it('K37-K: tile aria-label includes the (truncated) title', () => {
+    renderCard({ item: makeItem({ title: 'Coffee Grinder' }), registryId: 'reg1' })
+    const card = screen.getByTestId('item-card')
+    const link = card.closest('a')
+    expect(link).not.toBeNull()
+    const aria = link!.getAttribute('aria-label') ?? ''
+    expect(aria).toContain('Coffee Grinder')
   })
 })
