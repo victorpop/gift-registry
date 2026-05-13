@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useItemsQuery } from '../features/registry/useItemsQuery'
@@ -9,6 +9,7 @@ import { ConfirmPurchaseBanner } from '../features/reservation/ConfirmPurchaseBa
 import HowTimerWorks from '../features/reservation/HowTimerWorks'
 import { useAuth } from '../features/auth/useAuth'
 import { useGuestIdentity } from '../features/auth/useGuestIdentity'
+import SaveYourSpotModal from '../features/auth/SaveYourSpotModal'
 import { useToast } from '../components/ToastProvider'
 import { TopNav, Footer, MonoCaption, Btn, Pill } from '../components/giftmaison'
 
@@ -96,6 +97,47 @@ export default function ItemReservePage() {
       navigate(`/registry/${id}`)
     }
   }, [currentItemStatus, active, id, navigate])
+
+  // --- Save-your-spot upsell modal (quick-260513-h36) ---
+  // Shown once per reservation to guest reservers (user === null) with an email
+  // already on the reservation. Dismissal persists in sessionStorage keyed by
+  // reservationId so it doesn't re-open on refresh for the same reservation.
+  const [saveYourSpotOpen, setSaveYourSpotOpen] = useState(false)
+  const dismissedKey = active ? `saveYourSpot.dismissed.${active.reservationId}` : null
+
+  useEffect(() => {
+    if (!active) return
+    if (user) return
+    if (!identity?.email) return
+    if (countdown?.expired) return
+    if (!dismissedKey) return
+    try {
+      if (sessionStorage.getItem(dismissedKey) === '1') return
+    } catch {
+      return
+    }
+    setSaveYourSpotOpen(true)
+  }, [active, user, identity?.email, countdown?.expired, dismissedKey])
+
+  function handleSaveYourSpotDismiss() {
+    if (!dismissedKey) return
+    try {
+      sessionStorage.setItem(dismissedKey, '1')
+    } catch {
+      /* ignore */
+    }
+  }
+
+  function handleSaveYourSpotSuccess() {
+    showToast(t('save_your_spot.success_toast'), 'success')
+    if (dismissedKey) {
+      try {
+        sessionStorage.setItem(dismissedKey, '1')
+      } catch {
+        /* ignore */
+      }
+    }
+  }
 
   // --- State branches ---
 
@@ -330,6 +372,16 @@ export default function ItemReservePage() {
           </div>
         </div>
       </main>
+      <SaveYourSpotModal
+        open={saveYourSpotOpen}
+        onOpenChange={setSaveYourSpotOpen}
+        email={identity?.email ?? ''}
+        firstName={identity?.firstName ?? null}
+        itemName={active.itemName}
+        mmss={mmss}
+        onDismiss={handleSaveYourSpotDismiss}
+        onSuccess={handleSaveYourSpotSuccess}
+      />
       <Footer />
     </div>
   )
