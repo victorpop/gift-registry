@@ -222,13 +222,18 @@ describe('ItemReservePage', () => {
     expect(screen.getByRole('link', { name: /back to registry/i })).toBeInTheDocument()
   })
 
-  it('P-03 (not-yours): renders friendly not-yours state when reservation is null but item exists', () => {
+  it('P-03 (not-yours superseded by k37): a reserved item with no active reservation now renders BROWSE_RESERVED_BY_OTHER (more informative than the legacy not-yours panel)', () => {
+    // makeItem() defaults to status='reserved', reservedBy='user@example.com'.
+    // Under the k37 state machine, !active && status==='reserved' routes to
+    // BROWSE_RESERVED_BY_OTHER (item-reserve-reserved-by-other) — not the
+    // legacy not-yours fallback. The fallback is now unreachable for any
+    // valid ItemStatus value; this test guards the new routing.
     itemsQueryMock.useItemsQuery.mockReturnValue({ data: [makeItem()] })
     reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
 
     renderPage()
-    expect(screen.getByTestId('item-reserve-not-yours')).toBeInTheDocument()
-    expect(screen.getByText(/isn't your reservation/i)).toBeInTheDocument()
+    expect(screen.getByTestId('item-reserve-reserved-by-other')).toBeInTheDocument()
+    expect(screen.queryByTestId('item-reserve-not-yours')).toBeNull()
     expect(screen.getByRole('link', { name: /back to registry/i })).toBeInTheDocument()
   })
 
@@ -520,7 +525,9 @@ describe('ItemReservePage', () => {
     renderPage()
 
     const cta = screen.getByRole('button', { name: /reserve this gift/i })
-    cta.click()
+    await act(async () => {
+      cta.click()
+    })
 
     // Direct mutation should NOT have fired — we expect a navigate fallback instead.
     expect(createReservationMock.mutate).not.toHaveBeenCalled()

@@ -1,17 +1,20 @@
 import { useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import type { ItemStatus } from '../lib/firestore-mapping'
+import { Loader2 } from 'lucide-react'
+import type { Item, ItemStatus } from '../lib/firestore-mapping'
 import { useItemsQuery } from '../features/registry/useItemsQuery'
 import { useReservationForItem } from '../features/reservation/useReservationForItem'
 import { useCountdown } from '../features/reservation/useCountdown'
 import { useReleaseReservation } from '../features/reservation/useReleaseReservation'
 import { useActiveReservation } from '../features/reservation/useActiveReservation'
+import { useCreateReservation } from '../features/reservation/useCreateReservation'
 import { ConfirmPurchaseBanner } from '../features/reservation/ConfirmPurchaseBanner'
 import HowTimerWorks from '../features/reservation/HowTimerWorks'
 import { useAuth } from '../features/auth/useAuth'
 import { useGuestIdentity } from '../features/auth/useGuestIdentity'
 import { useToast } from '../components/ToastProvider'
+import { mapHttpsErrorToI18nKey } from '../lib/error-mapping'
 import { TopNav, Footer, MonoCaption, Btn, Pill } from '../components/giftmaison'
 
 /**
@@ -21,24 +24,31 @@ import { TopNav, Footer, MonoCaption, Btn, Pill } from '../components/giftmaison
  * Driven by useReservationForItem (NOT useActiveReservation context) so it works for
  * older concurrent reservations too.
  *
- * States (in priority order):
- *   loading   — items data undefined OR lookup status is idle/loading
- *   not-found — item not in registry items list
- *   not-yours — item exists but no active reservation for this viewer
- *   expired   — active reservation found but countdown.expired === true
- *   detail    — full reserve-detail UI
+ * State priority (top → bottom — first match wins):
+ *   1. !id || !itemId                              → null (router safety)
+ *   2. items undefined OR lookupStatus idle/loading → loading
+ *   3. !item                                       → item-not-found
+ *   4. active && countdown.expired                 → expired
+ *   5. active                                      → reserved-by-me detail (happy path)
+ *   6. !active && item.status === 'available'      → BROWSE_AVAILABLE (k37 — Reserve CTA)
+ *   7. !active && item.status === 'reserved'       → BROWSE_RESERVED_BY_OTHER (view-only, no CTA)
+ *   8. !active && item.status === 'purchased'      → BROWSE_PURCHASED (view-only, no CTA)
+ *   9. (fallback, unreachable)                     → not-yours panel
  *
- * D-06 enforcement: no reserver name or giver identity is ever rendered on this page.
+ * D-06 enforcement: no reserver/giver name/email is ever rendered on this page in any state.
+ *
+ * Reserve flow on the BROWSE_AVAILABLE branch (k37 user decision — DIRECT mutation):
+ *   - Signed-in: derive giverName/email/uid from useAuth() and call useCreateReservation directly.
+ *   - Guest with stored identity: derive from identity, giverId=null.
+ *   - Anonymous-no-identity: fallback navigate to /registry/:id?autoReserveItemId=:itemId so
+ *     the existing RegistryPage GuestIdentityModal handles identity capture (this is the
+ *     ONLY path that round-trips through RegistryPage — all others reserve directly here).
+ *   - On success: useActiveReservation.set() seeds the context; the next render naturally
+ *     transitions into the reserved-by-me detail branch (no manual navigate).
  *
  * On release success: clear shared active-reservation context, show toast, navigate back to /registry/:id.
  * On confirm success: detected by item status flip to 'purchased' or 'available' →
- *   navigate back to /registry/:id. (ConfirmPurchaseBanner handles its own toast and
- *   clears the shared active context; this page navigates independently.)
- *
- * Note: ConfirmPurchaseBanner internally calls useActiveReservation().clear() on success.
- * If the viewer has another active reservation in the shared context, that clear() will
- * wipe it. This is accepted — when the user navigates back to /registry/:id,
- * useActiveReservationHydration will re-resolve the next most-recent active reservation.
+ *   navigate back to /registry/:id.
  */
 export default function ItemReservePage() {
   const { id, itemId } = useParams<{ id: string; itemId: string }>()
@@ -51,7 +61,33 @@ export default function ItemReservePage() {
   const { user } = useAuth()
   const { identity } = useGuestIdentity()
   const { showToast } = useToast()
-  const { clear: clearActiveReservation } = useActiveReservation()
+  const { set: setActive, clear: clearActiveReservation } = useActiveReservation()
+
+  // Direct Reserve mutation for the BROWSE_AVAILABLE branch (k37). On success:
+  // seed the shared active-reservation context with the new reservation; the next
+  // render of this page will pick it up via useReservationForItem and naturally
+  // transition into the reserved-by-me detail branch — NO manual navigate needed
+  // (the URL is already /registry/:id/item/:itemId). This intentionally differs
+  // from RegistryPage's autoReserveMutation which DOES navigate, because that
+  // mutation runs from the registry index and needs to push the user to detail.
+  const reserveMutation = useCreateReservation({
+    onSuccess: (data, vars) => {
+      const target = itemsQ.data?.find(i => i.id === vars.itemId)
+      setActive({
+        reservationId: data.reservationId,
+        itemId: vars.itemId,
+        itemName: target?.title ?? '',
+        affiliateUrl: data.affiliateUrl,
+        merchantDomain: target?.merchantDomain ?? null,
+        expiresAtMs: data.expiresAtMs,
+      })
+      showToast(t('reservation.success'), 'success')
+    },
+    onError: (err) => {
+      const e = err as { code?: string; message?: string }
+      showToast(t(mapHttpsErrorToI18nKey(e?.code, e?.message)), 'error')
+    },
+  })
 
   // Signed-in: send undefined; guest: send identity.email.
   const giverEmailToSend = user ? undefined : (identity?.email ?? undefined)
@@ -66,9 +102,6 @@ export default function ItemReservePage() {
   const prevStatusRef = useRef<ItemStatus | undefined>(undefined)
 
   // Release success: clear shared active-reservation context, show toast, navigate back.
-  // Mirrors the pattern in StickyReserveBanner.tsx and ConfirmPurchaseBanner.tsx so the
-  // viewer's RegistryPage no longer renders a phantom StickyReserveBanner for the released
-  // reservation. The ref-guard ensures this fires exactly once per release-success transition.
   useEffect(() => {
     if (releaseStatus === 'success' && !releaseSuccessHandledRef.current) {
       releaseSuccessHandledRef.current = true
@@ -107,6 +140,43 @@ export default function ItemReservePage() {
     itemStatusNavigatedRef.current = true
     navigate(`/registry/${id}`)
   }, [currentItemStatus, active, id, navigate])
+
+  // --- Reserve CTA click handler (BROWSE_AVAILABLE branch) ---
+  // Mirrors ReserveButton.tsx's handleClick logic so the derivation rules stay in sync.
+  function handleReserveClick() {
+    if (!id || !itemId) return
+    if (reserveMutation.isPending) return
+
+    if (user) {
+      const giverName = user.displayName || (user.email ? user.email.split('@')[0] : 'Guest')
+      const giverEmail = user.email ?? ''
+      reserveMutation.mutate({
+        registryId: id,
+        itemId,
+        giverName,
+        giverEmail,
+        giverId: user.uid,
+      })
+      return
+    }
+
+    if (identity) {
+      const giverName = `${identity.firstName} ${identity.lastName}`.trim()
+      reserveMutation.mutate({
+        registryId: id,
+        itemId,
+        giverName,
+        giverEmail: identity.email,
+        giverId: null,
+      })
+      return
+    }
+
+    // Anonymous-no-identity: round-trip through RegistryPage so the existing
+    // GuestIdentityModal can capture name + email. RegistryPage's auto-reserve
+    // effect will then fire the mutation and on success navigate back here.
+    navigate(`/registry/${id}?autoReserveItemId=${itemId}`)
+  }
 
   // --- State branches ---
 
@@ -161,35 +231,8 @@ export default function ItemReservePage() {
     )
   }
 
-  // Not-yours state: item exists but no active reservation for this viewer.
-  if (!active) {
-    return (
-      <div className="min-h-screen flex flex-col bg-gm-paper">
-        <TopNav />
-        <main className="flex-1 flex items-center justify-center px-4">
-          <div data-testid="item-reserve-not-yours" className="max-w-md text-center flex flex-col gap-4 items-center">
-            <h1 className="font-display text-[28px] sm:text-[36px] text-gm-ink leading-[1.05] tracking-[-1px] m-0">
-              {t('web_reserve.item_page.not_yours_title')}
-            </h1>
-            <p className="font-body text-[15px] text-gm-inkSoft leading-[1.55] m-0">
-              {t('web_reserve.item_page.not_yours_body')}
-            </p>
-            <Link
-              to={`/registry/${id}`}
-              aria-label={t('web_reserve.item_page.back_to_registry')}
-              className="font-body text-[14px] text-gm-accent underline underline-offset-[3px]"
-            >
-              {t('web_reserve.item_page.back_to_registry')}
-            </Link>
-          </div>
-        </main>
-        <Footer />
-      </div>
-    )
-  }
-
-  // Expired state: countdown has reached 0.
-  if (countdown?.expired) {
+  // Expired state: countdown has reached 0 (only checked when active is set).
+  if (active && countdown?.expired) {
     return (
       <div className="min-h-screen flex flex-col bg-gm-paper">
         <TopNav />
@@ -215,8 +258,256 @@ export default function ItemReservePage() {
     )
   }
 
-  // --- Happy path: reserved-by-me detail UI ---
+  // --- Reserved-by-me detail (happy path) ---
+  if (active) {
+    return renderReservedByMeDetail({
+      id,
+      item,
+      active,
+      countdown,
+      release,
+      releaseStatus,
+      giverEmailToSend,
+      t,
+    })
+  }
 
+  // --- Browse states (k37) ---
+
+  if (item.status === 'available') {
+    return (
+      <BrowseShell id={id} t={t}>
+        <div data-testid="item-reserve-available" className="flex flex-col gap-7">
+          <div>
+            <MonoCaption size="micro" tone="faint">
+              {t('web_reserve.item_page.page_caption')}
+            </MonoCaption>
+            <h1 className="font-display text-[28px] sm:text-[38px] lg:text-[44px] text-gm-ink leading-[1.05] tracking-[-1px] mt-[10px] mb-2 max-w-[640px]">
+              {t('web_reserve.item_page.available_title')}
+            </h1>
+            <p className="font-body text-[15px] text-gm-inkSoft leading-[1.55] m-0 max-w-[560px]">
+              {t('web_reserve.item_page.available_subline')}
+            </p>
+          </div>
+          <ItemDetailHero item={item} statusPillKey="web_pill.available" pillTone="neutral" t={t} />
+          <NotesBlock notes={item.notes} t={t} />
+          <div>
+            <button
+              type="button"
+              onClick={handleReserveClick}
+              disabled={reserveMutation.isPending}
+              aria-busy={reserveMutation.isPending}
+              className="min-h-[48px] px-6 rounded-full bg-gm-accent text-gm-accentInk font-body font-semibold text-base hover:opacity-90 focus:ring-2 focus:ring-gm-accent focus:ring-offset-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
+            >
+              {reserveMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+                  {t('web_reserve.item_page.reserve_cta_pending')}
+                </>
+              ) : (
+                t('web_reserve.item_page.reserve_cta')
+              )}
+            </button>
+          </div>
+        </div>
+      </BrowseShell>
+    )
+  }
+
+  if (item.status === 'reserved') {
+    return (
+      <BrowseShell id={id} t={t}>
+        <div data-testid="item-reserve-reserved-by-other" className="flex flex-col gap-7">
+          <div>
+            <MonoCaption size="micro" tone="faint">
+              {t('web_reserve.item_page.page_caption')}
+            </MonoCaption>
+            <h1 className="font-display text-[28px] sm:text-[38px] lg:text-[44px] text-gm-ink leading-[1.05] tracking-[-1px] mt-[10px] mb-2 max-w-[640px]">
+              {t('web_reserve.item_page.reserved_by_other_title')}
+            </h1>
+            <p className="font-body text-[15px] text-gm-inkSoft leading-[1.55] m-0 max-w-[560px]">
+              {t('web_reserve.item_page.reserved_by_other_body')}
+            </p>
+          </div>
+          <ItemDetailHero item={item} statusPillKey="web_pill.reserved_by_other" pillTone="accent" t={t} />
+          <NotesBlock notes={item.notes} t={t} />
+        </div>
+      </BrowseShell>
+    )
+  }
+
+  if (item.status === 'purchased') {
+    return (
+      <BrowseShell id={id} t={t}>
+        <div data-testid="item-reserve-purchased" className="flex flex-col gap-7">
+          <div>
+            <MonoCaption size="micro" tone="faint">
+              {t('web_reserve.item_page.page_caption')}
+            </MonoCaption>
+            <h1 className="font-display text-[28px] sm:text-[38px] lg:text-[44px] text-gm-ink leading-[1.05] tracking-[-1px] mt-[10px] mb-2 max-w-[640px]">
+              {t('web_reserve.item_page.purchased_title')}
+            </h1>
+            <p className="font-body text-[15px] text-gm-inkSoft leading-[1.55] m-0 max-w-[560px]">
+              {t('web_reserve.item_page.purchased_body')}
+            </p>
+          </div>
+          <ItemDetailHero item={item} statusPillKey="web_pill.purchased" pillTone="ok" t={t} />
+          <NotesBlock notes={item.notes} t={t} />
+        </div>
+      </BrowseShell>
+    )
+  }
+
+  // Fallback (should not be reachable — every ItemStatus is handled above).
+  return (
+    <div className="min-h-screen flex flex-col bg-gm-paper">
+      <TopNav />
+      <main className="flex-1 flex items-center justify-center px-4">
+        <div data-testid="item-reserve-not-yours" className="max-w-md text-center flex flex-col gap-4 items-center">
+          <h1 className="font-display text-[28px] sm:text-[36px] text-gm-ink leading-[1.05] tracking-[-1px] m-0">
+            {t('web_reserve.item_page.not_yours_title')}
+          </h1>
+          <p className="font-body text-[15px] text-gm-inkSoft leading-[1.55] m-0">
+            {t('web_reserve.item_page.not_yours_body')}
+          </p>
+          <Link
+            to={`/registry/${id}`}
+            aria-label={t('web_reserve.item_page.back_to_registry')}
+            className="font-body text-[14px] text-gm-accent underline underline-offset-[3px]"
+          >
+            {t('web_reserve.item_page.back_to_registry')}
+          </Link>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  )
+}
+
+// ---- Browse-state helpers (inline — no new files per Task 2 spec step 2) ----
+
+interface BrowseShellProps {
+  id: string
+  t: (key: string, opts?: Record<string, unknown>) => string
+  children: React.ReactNode
+}
+
+/** Shared page chrome (TopNav + back link + Footer) used by all three browse branches. */
+function BrowseShell({ id, t, children }: BrowseShellProps) {
+  return (
+    <div className="min-h-screen flex flex-col bg-gm-paper">
+      <TopNav />
+      <main className="flex-1">
+        <div className="bg-gm-paperDeep border-b border-gm-line">
+          <div className="px-4 sm:px-7 lg:px-10 pt-8 sm:pt-9 lg:pt-9 pb-10 max-w-7xl mx-auto w-full">
+            <div className="mb-6">
+              <Link
+                to={`/registry/${id}`}
+                aria-label={t('web_reserve.item_page.back_to_registry')}
+                className="font-body text-[13px] text-gm-accent underline underline-offset-[3px] decoration-[1px] hover:decoration-2"
+              >
+                {t('web_reserve.item_page.back_to_registry')}
+              </Link>
+            </div>
+            <div className="max-w-3xl">{children}</div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  )
+}
+
+interface ItemDetailHeroProps {
+  item: Item
+  statusPillKey: string
+  pillTone: 'neutral' | 'accent' | 'ok'
+  t: (key: string, opts?: Record<string, unknown>) => string
+}
+
+/**
+ * Shared item-detail hero for the three browse branches (k37). Renders image / shop /
+ * FULL untruncated name / price. NEVER renders reserver/giver name (D-06).
+ */
+function ItemDetailHero({ item, statusPillKey, pillTone, t }: ItemDetailHeroProps) {
+  return (
+    <div className="flex flex-col sm:flex-row gap-5 p-5 bg-gm-paper rounded-gm-card border border-gm-line">
+      <div className="w-full aspect-[4/3] sm:w-[180px] sm:h-[180px] sm:flex-shrink-0 rounded-[10px] overflow-hidden bg-gm-line">
+        {item.imageUrl && (
+          <img
+            src={item.imageUrl}
+            alt={item.title}
+            className="w-full h-full object-cover"
+          />
+        )}
+      </div>
+      <div className="flex-1 flex flex-col gap-[10px] min-w-0">
+        <Pill tone={pillTone} size="sm">{t(statusPillKey)}</Pill>
+        {item.merchantDomain && (
+          <MonoCaption size="micro" tone="faint">{item.merchantDomain}</MonoCaption>
+        )}
+        <h2 className="m-0 font-body text-[20px] font-medium text-gm-ink leading-[1.2] tracking-[-0.3px] break-words">
+          {item.title}
+        </h2>
+        {item.price != null && (
+          <div className="font-body text-[16px] text-gm-ink font-semibold">
+            {item.price}
+            {item.currency && (
+              <span className="ml-1 font-mono text-[12px] text-gm-inkFaint font-normal">
+                {item.currency}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+interface NotesBlockProps {
+  notes: string | null
+  t: (key: string, opts?: Record<string, unknown>) => string
+}
+
+/** Owner notes block — only renders when notes is non-null. */
+function NotesBlock({ notes, t }: NotesBlockProps) {
+  if (!notes) return null
+  return (
+    <div className="flex flex-col gap-2 p-5 bg-gm-paper rounded-gm-card border border-gm-line">
+      <MonoCaption size="micro" tone="faint">
+        {t('web_reserve.item_page.notes_label')}
+      </MonoCaption>
+      <p className="font-body text-[15px] text-gm-inkSoft leading-[1.55] m-0 whitespace-pre-line">
+        {notes}
+      </p>
+    </div>
+  )
+}
+
+// ---- Reserved-by-me detail (existing happy path — extracted as a render fn so the
+//      main component body stays linear and the new browse branches are easy to read) ----
+
+interface ReservedByMeDetailParams {
+  id: string
+  item: Item
+  active: { reservationId: string; itemName: string; affiliateUrl: string; merchantDomain: string | null; expiresAtMs: number; itemId: string }
+  countdown: ReturnType<typeof useCountdown>
+  release: (reservationId: string, giverEmail?: string) => Promise<unknown> | unknown
+  releaseStatus: string
+  giverEmailToSend: string | undefined
+  t: (key: string, opts?: Record<string, unknown>) => string
+}
+
+function renderReservedByMeDetail({
+  id,
+  item,
+  active,
+  countdown,
+  release,
+  releaseStatus,
+  giverEmailToSend,
+  t,
+}: ReservedByMeDetailParams) {
   const retailer = active.merchantDomain ?? 'retailer'
   const minutesLeft = countdown?.minutes ?? 0
   const mm = String(countdown?.minutes ?? 0).padStart(2, '0')
