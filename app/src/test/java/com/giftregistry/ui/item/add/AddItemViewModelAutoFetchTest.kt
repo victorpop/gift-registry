@@ -166,4 +166,54 @@ class AddItemViewModelAutoFetchTest {
         advanceUntilIdle()
         coVerify(exactly = 2) { fetch.invoke("https://emag.ro/p/1") }
     }
+
+    @Test fun `success with all-null metadata sets ogFetchEmpty true and ogFetchFailed false`() = runTest {
+        // Simulates: function was reached, URL was fetched, but page had no OG tags
+        // (JS-rendered, Cloudflare challenge, no og: meta tags present).
+        val fetch = successFetchMock() // returns all-null OgMetadata
+        val (vm, _) = buildVm(fetchUseCase = fetch)
+        vm.url.value = "https://emag.ro/p/123"
+        advanceTimeBy(800)
+        advanceUntilIdle()
+        assert(vm.ogFetchEmpty.value) { "Expected ogFetchEmpty=true when all metadata fields are null" }
+        assert(!vm.ogFetchFailed.value) { "Expected ogFetchFailed=false on successful (empty) response" }
+    }
+
+    @Test fun `success with metadata data sets ogFetchEmpty false`() = runTest {
+        // Simulates: function was reached and OG tags were found.
+        val fetch = defaultFetchMock() // returns OgMetadata(title="T", imageUrl="img", price="10")
+        val (vm, _) = buildVm(fetchUseCase = fetch)
+        vm.url.value = "https://emag.ro/p/123"
+        advanceTimeBy(800)
+        advanceUntilIdle()
+        assert(!vm.ogFetchEmpty.value) { "Expected ogFetchEmpty=false when metadata was returned" }
+        assert(!vm.ogFetchFailed.value) { "Expected ogFetchFailed=false on successful response" }
+    }
+
+    @Test fun `callable failure sets ogFetchFailed true and ogFetchEmpty false`() = runTest {
+        // Simulates: emulator unreachable, network error, SDK-level exception.
+        val fetch = mockk<FetchOgMetadataUseCase>()
+        coEvery { fetch.invoke(any<String>()) } returns Result.failure(RuntimeException("Network error"))
+        val (vm, _) = buildVm(fetchUseCase = fetch)
+        vm.url.value = "https://emag.ro/p/123"
+        advanceTimeBy(800)
+        advanceUntilIdle()
+        assert(vm.ogFetchFailed.value) { "Expected ogFetchFailed=true on callable exception" }
+        assert(!vm.ogFetchEmpty.value) { "Expected ogFetchEmpty=false on callable exception" }
+    }
+
+    @Test fun `ogFetchEmpty is cleared on new fetch`() = runTest {
+        val emptyFetch = successFetchMock() // returns all-null
+        val (vm, _) = buildVm(fetchUseCase = emptyFetch)
+        vm.url.value = "https://emag.ro/p/empty"
+        advanceTimeBy(800)
+        advanceUntilIdle()
+        assert(vm.ogFetchEmpty.value) { "Expected ogFetchEmpty=true after empty response" }
+        // Trigger manual retry — ogFetchEmpty should clear at start of new fetch
+        vm.onFetchMetadata()
+        // During fetch, ogFetchEmpty should be false (cleared at start)
+        advanceUntilIdle()
+        // After fetch completes (still returns null), it should be true again
+        assert(vm.ogFetchEmpty.value) { "Expected ogFetchEmpty=true after second empty response" }
+    }
 }

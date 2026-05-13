@@ -81,6 +81,7 @@ fun AddItemScreen(
     val notes by viewModel.notes.collectAsStateWithLifecycle()
     val isFetchingOg by viewModel.isFetchingOg.collectAsStateWithLifecycle()
     val ogFetchFailed by viewModel.ogFetchFailed.collectAsStateWithLifecycle()
+    val ogFetchEmpty by viewModel.ogFetchEmpty.collectAsStateWithLifecycle()
     val ogFetchSucceeded by viewModel.ogFetchSucceeded.collectAsStateWithLifecycle()
     val isAffiliateDomain by viewModel.isAffiliateDomain.collectAsStateWithLifecycle()
     val isSaving by viewModel.isSaving.collectAsStateWithLifecycle()
@@ -250,6 +251,7 @@ fun AddItemScreen(
                     notes = notes,
                     isFetchingOg = isFetchingOg,
                     ogFetchFailed = ogFetchFailed,
+                    ogFetchEmpty = ogFetchEmpty,
                     ogFetchSucceeded = ogFetchSucceeded,
                     showAffiliateRow = showAffiliateRow,
                     domain = domain,
@@ -288,6 +290,7 @@ private fun PasteUrlModeContent(
     notes: String,
     isFetchingOg: Boolean,
     ogFetchFailed: Boolean,
+    ogFetchEmpty: Boolean,
     ogFetchSucceeded: Boolean,
     showAffiliateRow: Boolean,
     domain: String,
@@ -331,8 +334,18 @@ private fun PasteUrlModeContent(
         if (isFetchingOg && domain.isNotBlank()) {
             FetchingIndicator(domain = domain)
         } else if (ogFetchFailed) {
+            // Hard failure: callable threw (emulator unreachable, network error, etc.)
             Text(
                 text = stringResource(R.string.item_og_fetch_failed_inline),
+                style = typography.bodyS,
+                color = colors.inkSoft,
+            )
+        } else if (ogFetchEmpty && !ogFetchSucceeded) {
+            // Soft failure: callable succeeded but page had no OG metadata
+            // (JS-rendered page, Cloudflare bot check, no og: tags).
+            // Hidden once the user manually fills in any field (ogFetchSucceeded becomes true).
+            Text(
+                text = stringResource(R.string.item_og_no_data_inline),
                 style = typography.bodyS,
                 color = colors.inkSoft,
             )

@@ -309,7 +309,8 @@
     <string name="add_item_autofilled">auto-filled</string>
     <string name="add_item_cta_save">Save to registry &#10003;</string>
     <string name="add_item_cta_add_another">Add another</string>
-    <string name="item_og_fetch_failed_inline">We couldn\'t read that page — fill in the details below.</string>
+    <string name="item_og_fetch_failed_inline">We couldn\'t reach that page — fill in the details below.</string>
+    <string name="item_og_no_data_inline">No details found for that URL — fill in below.</string>
     <string name="item_url_label">Product URL</string>
     <string name="item_url_fetch_button_cd">Fetch product details</string>
     <string name="item_notes_hint_detail">e.g., in silver, please — matches the kitchen</string>

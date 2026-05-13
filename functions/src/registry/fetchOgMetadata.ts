@@ -269,14 +269,26 @@ export const fetchOgMetadata = onCall(
     try {
       const response = await fetch(url, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; GiftRegistryBot/1.0)",
-          "Accept": "text/html",
+          // Use a browser-like User-Agent — some sites (IKEA, retailer CDNs) reject
+          // custom bot UAs with 403 or serve a bot-detection interstitial instead
+          // of the real product page. A realistic UA increases the success rate
+          // without misrepresenting the request type.
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+          "Accept-Language": "ro-RO,ro;q=0.9,en;q=0.8",
         },
-        signal: AbortSignal.timeout(5000),
+        // 10 s — Cloudflare-fronted pages (IKEA, major retailers) can take 5–8 s on
+        // first request (cold cache, geoIP lookup). The original 5 s limit fired too
+        // early, causing a silent all-null response on the first paste.
+        signal: AbortSignal.timeout(10000),
       });
 
       if (!response.ok) {
-        // Return nulls on HTTP error — client falls back to manual entry (D-11)
+        // HTTP error (403, 429, 5xx, etc.) — log for emulator diagnostics and
+        // return nulls so the client falls back to manual entry (D-11).
+        console.warn(`[fetchOgMetadata] HTTP ${response.status} for ${url}`);
         return empty;
       }
 
@@ -288,7 +300,7 @@ export const fetchOgMetadata = onCall(
 
       const priceCandidate = resolvePrice(root);
 
-      return {
+      const result: OgMetadataResponse = {
         title: og("title") ?? root.querySelector("title")?.text?.trim() ?? null,
         imageUrl: normalizeImageUrl(og("image")),
         price: priceCandidate
@@ -298,9 +310,22 @@ export const fetchOgMetadata = onCall(
         priceCurrency: priceCandidate?.currency ?? null,
         siteName: og("site_name"),
       };
-    } catch {
-      // Return nulls on any failure — network timeout, parse error, etc.
-      // Client falls back to manual entry (D-11)
+
+      // Log outcome so emulator console shows what was (or wasn't) extracted,
+      // making it easy to distinguish "blocked by site" from "no OG tags".
+      if (result.title || result.imageUrl || result.price) {
+        console.log(`[fetchOgMetadata] OK — title="${result.title}" price="${result.price}" url=${url}`);
+      } else {
+        console.warn(`[fetchOgMetadata] Fetched ${url} but found no OG metadata (JS-rendered or no tags).`);
+      }
+
+      return result;
+    } catch (err) {
+      // Network timeout, DNS failure, parse error, etc.
+      // Log the reason so emulator console reveals the actual failure mode.
+      const reason = err instanceof Error ? err.message : String(err);
+      console.error(`[fetchOgMetadata] Fetch failed for ${url}: ${reason}`);
+      // Return nulls — client falls back to manual entry (D-11).
       return empty;
     }
   }

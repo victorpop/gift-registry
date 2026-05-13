@@ -121,6 +121,18 @@ class AddItemViewModel @Inject constructor(
     private val _ogFetchFailed = MutableStateFlow(false)
     val ogFetchFailed: StateFlow<Boolean> = _ogFetchFailed.asStateFlow()
 
+    /**
+     * True when the Cloud Function call succeeded but returned no usable metadata
+     * (e.g. site uses JS rendering, Cloudflare blocked the fetch, or there are no
+     * OG tags). Distinct from [ogFetchFailed] which is set when the callable itself
+     * throws (emulator unreachable, network error, SDK-level failure).
+     *
+     * UI shows a softer "No details found" hint rather than the hard "Couldn't reach
+     * that page" error so the user understands the URL was reached but no data came back.
+     */
+    private val _ogFetchEmpty = MutableStateFlow(false)
+    val ogFetchEmpty: StateFlow<Boolean> = _ogFetchEmpty.asStateFlow()
+
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
@@ -208,22 +220,34 @@ class AddItemViewModel @Inject constructor(
         viewModelScope.launch {
             _isFetchingOg.value = true
             _ogFetchFailed.value = false
+            _ogFetchEmpty.value = false
 
             fetchOgMetadata(currentUrl)
                 .onSuccess { og ->
+                    val hasData = !og.title.isNullOrBlank() ||
+                        !og.imageUrl.isNullOrBlank() ||
+                        !og.price.isNullOrBlank()
                     Log.d(
                         "AddItemVM",
-                        "fetchOgMetadata OK url=$currentUrl title=${og.title} image=${og.imageUrl} " +
-                            "price=${og.price} priceAmount=${og.priceAmount} priceCurrency=${og.priceCurrency}"
+                        "fetchOgMetadata OK url=$currentUrl hasData=$hasData " +
+                            "title=${og.title} image=${og.imageUrl} " +
+                            "price=${og.price} priceAmount=${og.priceAmount} " +
+                            "priceCurrency=${og.priceCurrency}"
                     )
-                    // Auto-fill form fields — user can edit before saving
-                    if (!og.title.isNullOrBlank()) title.value = og.title
-                    if (!og.imageUrl.isNullOrBlank()) imageUrl.value = og.imageUrl
-                    if (!og.price.isNullOrBlank()) price.value = og.price
+                    if (hasData) {
+                        // Auto-fill form fields — user can edit before saving
+                        if (!og.title.isNullOrBlank()) title.value = og.title
+                        if (!og.imageUrl.isNullOrBlank()) imageUrl.value = og.imageUrl
+                        if (!og.price.isNullOrBlank()) price.value = og.price
+                    } else {
+                        // Function succeeded but found no OG data — site is JS-rendered
+                        // or blocked the scrape. Show a soft hint to fill in manually.
+                        _ogFetchEmpty.value = true
+                    }
                 }
                 .onFailure { e ->
-                    // Fallback to manual entry
-                    Log.e("AddItemVM", "fetchOgMetadata failed for url=$currentUrl", e)
+                    // Callable itself threw — emulator unreachable, network error, etc.
+                    Log.e("AddItemVM", "fetchOgMetadata callable failed for url=$currentUrl", e)
                     _ogFetchFailed.value = true
                 }
 
@@ -305,6 +329,7 @@ class AddItemViewModel @Inject constructor(
         imageUrl.value = ""
         price.value = ""
         _ogFetchFailed.value = false
+        _ogFetchEmpty.value = false
         // quick-260512-wt8: reset dedup gate so the next paste/type fetches.
         lastFetchedUrl = ""
     }
@@ -317,6 +342,7 @@ class AddItemViewModel @Inject constructor(
         price.value = ""
         notes.value = ""
         _ogFetchFailed.value = false
+        _ogFetchEmpty.value = false
         _savedItemId.value = null
         _error.value = null
         // quick-260512-wt8: reset dedup gate so the next paste/type fetches.
