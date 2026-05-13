@@ -16,6 +16,7 @@ export { inviteToRegistry } from "./registry/inviteToRegistry";
 export { createReservation } from "./reservation/createReservation";
 export { releaseReservation, releaseReservationCallable } from "./reservation/releaseReservation";
 export { hydrateActiveReservation } from "./reservation/hydrateActiveReservation";
+export { getReservationForItem } from "./reservation/getReservationForItem";
 export { resolveReservation } from "./reservation/resolveReservation";
 export { confirmPurchase } from "./reservation/confirmPurchase";
 export { onPurchaseNotification } from "./notifications/onPurchaseNotification";
