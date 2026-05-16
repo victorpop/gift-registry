@@ -260,15 +260,41 @@ describe('ItemReservePage', () => {
     expect(screen.queryByText('u1@x.com')).not.toBeInTheDocument()
   })
 
-  it('P-05 (expired): renders expired state when countdown reaches 0', () => {
-    // expiresAtMs in the past → countdown.expired === true
-    const expiredActive = { ...ACTIVE_RES, expiresAtMs: Date.now() - 1000 }
-    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'hydrated', active: expiredActive })
+  it('P-05 (expired): renders expired state when countdown reaches 0 in-session (per quick-260516-iux Bug B)', async () => {
+    // NOTE: rewritten per quick-260516-iux Bug B. The original P-05 constructed
+    // a stale-expired-on-mount scenario (expiresAtMs in the past at first render)
+    // and expected the expired UI. That scenario now correctly falls through to
+    // the browse branch — see K-08/K-10/K-11. To preserve the "expired UI fires
+    // when countdown hits 0" contract, we now simulate in-session expiration:
+    // mount with a positive countdown so sawNonExpiredRef flips, then advance
+    // fake timers past expiry and force a re-render. K-09 is the dedicated
+    // regression guard for this; P-05 keeps the assertion shape for continuity.
+    vi.useFakeTimers()
+    try {
+      const futureExpiry = Date.now() + 2_000
+      reservationForItemMock.useReservationForItem.mockReturnValue({
+        status: 'hydrated',
+        active: { ...ACTIVE_RES, expiresAtMs: futureExpiry },
+      })
 
-    renderPage()
-    expect(screen.getByTestId('item-reserve-expired')).toBeInTheDocument()
-    expect(screen.getByText(/time ran out/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /back to registry/i })).toBeInTheDocument()
+      const { rerenderSame } = renderPage()
+
+      // Initial render: not expired — reserved-by-me detail visible.
+      expect(screen.getByTestId('item-reserve-detail')).toBeInTheDocument()
+
+      // Advance past expiry, force re-render so useCountdown ticks and the new
+      // countdown.expired=true flows into the render branches.
+      await act(async () => {
+        vi.advanceTimersByTime(3_000)
+        rerenderSame()
+      })
+
+      expect(screen.getByTestId('item-reserve-expired')).toBeInTheDocument()
+      expect(screen.getByText(/time ran out/i)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: /back to registry/i })).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('P-06 (release success → navigate back): navigates to /registry/:id on release success', async () => {

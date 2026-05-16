@@ -24,16 +24,44 @@ import { TopNav, Footer, MonoCaption, Btn, Pill } from '../components/giftmaison
  * Driven by useReservationForItem (NOT useActiveReservation context) so it works for
  * older concurrent reservations too.
  *
- * State priority (top → bottom — first match wins):
- *   1. !id || !itemId                              → null (router safety)
- *   2. items undefined OR lookupStatus idle/loading → loading
- *   3. !item                                       → item-not-found
- *   4. active && countdown.expired                 → expired
- *   5. active                                      → reserved-by-me detail (happy path)
- *   6. !active && item.status === 'available'      → BROWSE_AVAILABLE (k37 — Reserve CTA)
- *   7. !active && item.status === 'reserved'       → BROWSE_RESERVED_BY_OTHER (view-only, no CTA)
- *   8. !active && item.status === 'purchased'      → BROWSE_PURCHASED (view-only, no CTA)
- *   9. (fallback, unreachable)                     → not-yours panel
+ * State priority (top → bottom — first match wins; branches 4 and 5 read
+ * `effectiveActive` instead of `active`):
+ *   1. !id || !itemId                                       → null (router safety)
+ *   2. items undefined OR lookupStatus idle/loading          → loading
+ *   3. !item                                                → item-not-found
+ *   4. effectiveActive && countdown.expired                  → expired (in-session only)
+ *   5. effectiveActive                                      → reserved-by-me detail (happy path)
+ *   6. !effectiveActive && item.status === 'available'      → BROWSE_AVAILABLE (k37 — Reserve CTA)
+ *   7. !effectiveActive && item.status === 'reserved'       → BROWSE_RESERVED_BY_OTHER (view-only, no CTA)
+ *   8. !effectiveActive && item.status === 'purchased'      → BROWSE_PURCHASED (view-only, no CTA)
+ *   9. (fallback, unreachable)                              → not-yours panel
+ *
+ * `effectiveActive` is derived as:
+ *   effectiveActive = (active && countdown?.expired && !sawNonExpiredRef.current)
+ *                       ? null
+ *                       : active
+ *
+ * sawNonExpiredRef flips to true the first time we observe an active reservation
+ * whose countdown is not yet expired during this mount. This distinguishes
+ * legitimate in-session expiration (sawNonExpiredRef true → effectiveActive =
+ * active → branch 4 renders "Your time ran out") from stale-expired-on-mount
+ * (sawNonExpiredRef false → effectiveActive = null → branches 4 and 5 both skip
+ * → flow falls through to item.status browse branches).
+ *
+ * IMPORTANT: useEffects that observe the reservation lifecycle (the
+ * sawNonExpiredRef tracking effect AND the navigate-on-status-flip effect at
+ * line ~131) continue to use the real `active`, NOT effectiveActive. The
+ * reserve-mutation onSuccess also operates on the real shared
+ * useActiveReservation context. effectiveActive is purely a render-branch gate.
+ *
+ * Stale-expired-on-mount handling (quick-260516-iux Bug B): when the page loads
+ * with active.expiresAtMs already in the past (e.g. emulator restart killed the
+ * auto-release setTimeout per quick-260510-pdp, or any other legacy stale-active
+ * row), sawNonExpiredRef is false, so effectiveActive is null, so branches 4
+ * and 5 are skipped. The viewer lands on the item.status browse branch —
+ * typically BROWSE_RESERVED_BY_OTHER because the stale row keeps
+ * item.status === 'reserved' until Cloud Tasks (or a manual refresh of items)
+ * flips it.
  *
  * D-06 enforcement: no reserver/giver name/email is ever rendered on this page in any state.
  *
@@ -100,6 +128,32 @@ export default function ItemReservePage() {
   const itemStatusNavigatedRef = useRef(false)
   // Tracks the previously-observed item status to detect real transitions out of 'reserved'.
   const prevStatusRef = useRef<ItemStatus | undefined>(undefined)
+
+  // sawNonExpiredRef: tracks whether we have EVER observed a non-expired
+  // countdown for this active reservation during the current page mount.
+  // - false on mount ⇒ if active+expired on first observation, the reservation
+  //   was already stale before we arrived. We MUST short-circuit BOTH the
+  //   expired branch (4) AND the reserved-by-me detail branch (5) — neither
+  //   makes sense for a viewer who has no mental model of having reserved this
+  //   item. Fall through to the item.status browse branches.
+  // - true once observed non-expired ⇒ subsequent expiry (countdown ticking to
+  //   0 while user is on the page) is an IN-SESSION expiration → render the
+  //   legitimate "Your time ran out" UI (branch 4 fires normally).
+  // Resets per mount (useRef in component scope) — desired behaviour: a user
+  // who navigates AWAY and BACK to a now-expired reservation should not see the
+  // expired page NOR the reserved-by-me detail if it had already expired before
+  // they returned.
+  const sawNonExpiredRef = useRef(false)
+
+  // Tracking effect: flip sawNonExpiredRef to true the first time we observe the
+  // REAL `active` reservation with a non-expired countdown during this mount.
+  // MUST observe the real `active`, NOT effectiveActive — effectiveActive is the
+  // gated render value; the ref is the gate's input.
+  useEffect(() => {
+    if (active && countdown && !countdown.expired) {
+      sawNonExpiredRef.current = true
+    }
+  }, [active, countdown])
 
   // Release success: clear shared active-reservation context, show toast, navigate back.
   useEffect(() => {
@@ -231,8 +285,22 @@ export default function ItemReservePage() {
     )
   }
 
-  // Expired state: countdown has reached 0 (only checked when active is set).
-  if (active && countdown?.expired) {
+  // Gated `active` for render-branch decisions ONLY. When the page mounts with
+  // an already-expired reservation (sawNonExpiredRef still false), treat active
+  // as null so branches 4 and 5 both fall through to the item.status browse
+  // branches (quick-260516-iux Bug B). The real `active` is still used by
+  // useEffects (release-success, navigate-on-status-flip, sawNonExpiredRef
+  // tracking) and by the reserve-mutation onSuccess. Only the render switches
+  // care about effectiveActive.
+  const effectiveActive =
+    active && countdown?.expired && !sawNonExpiredRef.current
+      ? null
+      : active
+
+  // Expired state: countdown has reached 0 (only checked when effectiveActive is set —
+  // this means we observed a non-expired state earlier in this mount, so the
+  // expiry happened in-session and the "Your time ran out" UI is legitimate).
+  if (effectiveActive && countdown?.expired) {
     return (
       <div className="min-h-screen flex flex-col bg-gm-paper">
         <TopNav />
@@ -259,11 +327,11 @@ export default function ItemReservePage() {
   }
 
   // --- Reserved-by-me detail (happy path) ---
-  if (active) {
+  if (effectiveActive) {
     return renderReservedByMeDetail({
       id,
       item,
-      active,
+      active: effectiveActive,
       countdown,
       release,
       releaseStatus,

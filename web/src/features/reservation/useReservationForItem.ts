@@ -49,7 +49,25 @@ export function useReservationForItem(
     const effectiveEmail = user?.email ?? identity?.email ?? null
 
     // Truly anonymous with no stored guest identity → cannot hydrate.
-    if (!user && !identity) return
+    // We MUST settle status to 'empty' (not leave it 'idle') so ItemReservePage's
+    // loading check (lookupStatus === 'idle' || 'loading') releases — otherwise
+    // not-signed-in viewers with no stored guest identity see an infinite spinner
+    // and never reach the k37 browse branches. The stable `__anon__|registryId|
+    // itemId` key prevents this branch from re-firing on every render BUT remains
+    // distinct from any signed-in/guest key shape — so a mid-render sign-in (user
+    // becomes non-null, or identity gets populated) generates a different key and
+    // re-triggers the fetch normally (covered by U-08).
+    if (!user && !identity) {
+      const anonKey = `__anon__|${registryId}|${itemId}`
+      if (lastKeyRef.current === anonKey) return
+      lastKeyRef.current = anonKey
+      setStatus("empty")
+      setActive(null)
+      return
+    }
+    // Defence-in-depth: identity always has an email per useGuestIdentity's
+    // localStorage shape, so this is effectively unreachable when reached after
+    // the anon-key block above. Kept as a guard against future shape drift.
     if (!effectiveEmail) return
 
     const key = `${registryId}|${itemId}|${user?.uid ?? "guest"}|${effectiveEmail}`
