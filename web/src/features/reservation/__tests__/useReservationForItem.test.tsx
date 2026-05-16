@@ -1,6 +1,6 @@
 /**
  * Tests for useReservationForItem hook (quick-260513-g9g Task 2).
- * Spec IDs: U-01 through U-07.
+ * Spec IDs: U-01 through U-08 (U-02 rewritten + U-08 added per quick-260516-iux).
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
@@ -58,15 +58,14 @@ describe('useReservationForItem', () => {
     expect(callableFn).not.toHaveBeenCalled()
   })
 
-  it('U-02: bails when authReady=true but no user AND no guest identity', async () => {
+  it("U-02: truly-anonymous (no user, no identity) settles to status='empty' (NOT idle) without invoking callable", async () => {
     authMock.useAuth.mockReturnValue({ user: null, isReady: true })
     guestMock.useGuestIdentity.mockReturnValue({ identity: null })
 
     const { result } = renderHook(() => useReservationForItem('reg1', 'it1'))
 
-    await new Promise(r => setTimeout(r, 20))
-
-    expect(result.current.status).toBe('idle')
+    await waitFor(() => expect(result.current.status).toBe('empty'))
+    expect(result.current.active).toBeNull()
     expect(callableFn).not.toHaveBeenCalled()
   })
 
@@ -134,5 +133,28 @@ describe('useReservationForItem', () => {
 
     // callable should have been invoked exactly once
     expect(callableFn).toHaveBeenCalledTimes(1)
+  })
+
+  it('U-08 (identity-flip stability): anon → signed-in mid-render re-triggers fetch (anon key is distinct)', async () => {
+    // Start truly anonymous: should settle to status='empty' without invoking callable.
+    authMock.useAuth.mockReturnValue({ user: null, isReady: true })
+    guestMock.useGuestIdentity.mockReturnValue({ identity: null })
+
+    const { result, rerender } = renderHook(() => useReservationForItem('reg1', 'it1'))
+
+    await waitFor(() => expect(result.current.status).toBe('empty'))
+    expect(callableFn).not.toHaveBeenCalled()
+
+    // Flip auth mock to signed-in. Mock callable to return a hydrated reservation.
+    authMock.useAuth.mockReturnValue({ user: { uid: 'u1', email: 'u1@x.com' }, isReady: true })
+    callableFn.mockResolvedValue({ data: { active: ACTIVE_RES } })
+
+    rerender()
+
+    // Identity changed → key changed (anon key `__anon__|reg1|it1` vs signed-in key
+    // `reg1|it1|u1|u1@x.com`) → effect re-fires the fetch.
+    await waitFor(() => expect(result.current.status).toBe('hydrated'))
+    expect(callableFn).toHaveBeenCalledTimes(1)
+    expect(callableFn).toHaveBeenCalledWith({ registryId: 'reg1', itemId: 'it1' })
   })
 })

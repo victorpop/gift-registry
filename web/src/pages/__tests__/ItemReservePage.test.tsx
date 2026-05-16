@@ -563,4 +563,113 @@ describe('ItemReservePage', () => {
       giverId: null,
     })
   })
+
+  // ---- quick-260516-iux — stale-expired-on-mount + in-session expiration regression ----
+
+  it("K-08 (stale-expired-on-mount + item.status='reserved' falls through to BROWSE_RESERVED_BY_OTHER — NOT expired, NOT reserved-by-me detail)", () => {
+    // Anonymous viewer with stored guest identity. Items snapshot still shows
+    // 'reserved' (stale row) but the active reservation's expiresAtMs is already
+    // in the past (e.g. emulator restart killed the auto-release setTimeout).
+    authMock.useAuth.mockReturnValue({ user: null, isReady: true })
+    guestMock.useGuestIdentity.mockReturnValue({
+      identity: { firstName: 'Ion', lastName: 'Pop', email: 'ion@x.com' },
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({
+      status: 'hydrated',
+      active: { ...ACTIVE_RES, expiresAtMs: Date.now() - 60_000 },
+    })
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [makeItem({ status: 'reserved' })],
+    })
+
+    renderPage()
+
+    // Both branches 4 and 5 must short-circuit on stale-expired-on-mount.
+    expect(screen.queryByTestId('item-reserve-expired')).toBeNull()
+    expect(screen.queryByTestId('item-reserve-detail')).toBeNull()
+    // Flow falls through to branch 7 (reserved-by-other).
+    expect(screen.getByTestId('item-reserve-reserved-by-other')).toBeInTheDocument()
+    // i18n-safe assert: no "time ran out" copy anywhere in the DOM.
+    expect(screen.queryByText(/time ran out/i)).toBeNull()
+  })
+
+  it('K-09 (REGRESSION: in-session expiration countdown→0 STILL renders expired branch)', async () => {
+    // Use fake timers ONLY for this test. Wrap in try/finally so a failed
+    // assertion does not leak fake timers into subsequent tests.
+    vi.useFakeTimers()
+    try {
+      // Baseline: expiry 2 seconds in the future. countdown.expired starts false →
+      // sawNonExpiredRef will flip true on the first effect commit.
+      const start = Date.now()
+      const futureExpiry = start + 2_000
+      reservationForItemMock.useReservationForItem.mockReturnValue({
+        status: 'hydrated',
+        active: { ...ACTIVE_RES, expiresAtMs: futureExpiry },
+      })
+      itemsQueryMock.useItemsQuery.mockReturnValue({ data: [makeItem({ status: 'reserved' })] })
+
+      const { rerenderSame } = renderPage()
+
+      // Initial render: not expired yet → reserved-by-me detail visible.
+      expect(screen.getByTestId('item-reserve-detail')).toBeInTheDocument()
+      expect(screen.queryByTestId('item-reserve-expired')).toBeNull()
+
+      // Advance time past expiry. useCountdown's internal interval fires and the
+      // page re-renders with countdown.expired=true. sawNonExpiredRef is now true
+      // (flipped during the initial commit), so effectiveActive === active and
+      // branch 4 should render the expired UI.
+      await act(async () => {
+        vi.advanceTimersByTime(3_000)
+        rerenderSame()
+      })
+
+      expect(screen.queryByTestId('item-reserve-detail')).toBeNull()
+      expect(screen.getByTestId('item-reserve-expired')).toBeInTheDocument()
+      expect(screen.getByText(/time ran out/i)).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it("K-10 (stale-expired-on-mount + item.status='available' falls through to BROWSE_AVAILABLE)", () => {
+    // Rare combo: auto-release ran on the item (item.status='available') but
+    // the active context is stale. Forced via test fixture.
+    authMock.useAuth.mockReturnValue({ user: null, isReady: true })
+    guestMock.useGuestIdentity.mockReturnValue({
+      identity: { firstName: 'Ion', lastName: 'Pop', email: 'ion@x.com' },
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({
+      status: 'hydrated',
+      active: { ...ACTIVE_RES, expiresAtMs: Date.now() - 60_000 },
+    })
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [makeItem({ status: 'available', reservedBy: null })],
+    })
+
+    renderPage()
+
+    expect(screen.queryByTestId('item-reserve-expired')).toBeNull()
+    expect(screen.queryByTestId('item-reserve-detail')).toBeNull()
+    expect(screen.getByTestId('item-reserve-available')).toBeInTheDocument()
+  })
+
+  it("K-11 (stale-expired-on-mount + item.status='purchased' falls through to BROWSE_PURCHASED)", () => {
+    authMock.useAuth.mockReturnValue({ user: null, isReady: true })
+    guestMock.useGuestIdentity.mockReturnValue({
+      identity: { firstName: 'Ion', lastName: 'Pop', email: 'ion@x.com' },
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({
+      status: 'hydrated',
+      active: { ...ACTIVE_RES, expiresAtMs: Date.now() - 60_000 },
+    })
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [makeItem({ status: 'purchased' })],
+    })
+
+    renderPage()
+
+    expect(screen.queryByTestId('item-reserve-expired')).toBeNull()
+    expect(screen.queryByTestId('item-reserve-detail')).toBeNull()
+    expect(screen.getByTestId('item-reserve-purchased')).toBeInTheDocument()
+  })
 })
