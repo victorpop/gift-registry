@@ -532,8 +532,11 @@ interface ItemDetailHeroProps {
  * FULL untruncated name / price. NEVER renders reserver/giver name (D-06).
  */
 function ItemDetailHero({ item, statusPillKey, pillTone, t }: ItemDetailHeroProps) {
-  return (
-    <div className="flex flex-col sm:flex-row gap-5 p-5 bg-gm-paper rounded-gm-card border border-gm-line">
+  const href = item.affiliateUrl || item.originalUrl || null
+  const retailer = item.merchantDomain ?? 'retailer'
+  const bladeClasses = "flex flex-col sm:flex-row gap-5 p-5 bg-gm-paper rounded-gm-card border border-gm-line"
+  const bladeContent = (
+    <>
       <div className="w-full aspect-[4/3] sm:w-[180px] sm:h-[180px] sm:flex-shrink-0 rounded-[10px] overflow-hidden bg-gm-line">
         {item.imageUrl && (
           <img
@@ -562,8 +565,22 @@ function ItemDetailHero({ item, statusPillKey, pillTone, t }: ItemDetailHeroProp
           </div>
         )}
       </div>
-    </div>
+    </>
   )
+  if (href) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={t('web_reserve.item_page.blade_link_aria', { retailer })}
+        className={`${bladeClasses} block cursor-pointer hover:border-gm-accent transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gm-accent no-underline text-inherit`}
+      >
+        {bladeContent}
+      </a>
+    )
+  }
+  return <div className={bladeClasses}>{bladeContent}</div>
 }
 
 interface NotesBlockProps {
@@ -653,52 +670,72 @@ function renderReservedByMeDetail({
               {/* Left/main column */}
               <div className="flex flex-col gap-5">
                 {/* Reserved item card (hero) */}
-                <div className="flex flex-col sm:flex-row gap-5 p-5 bg-gm-paperDeep rounded-gm-card border border-gm-line">
-                  <div className="w-full aspect-[4/3] sm:w-[160px] sm:h-[160px] sm:flex-shrink-0 rounded-[10px] overflow-hidden bg-gm-line">
-                    {item.imageUrl && (
-                      <img
-                        src={item.imageUrl}
-                        alt={active.itemName}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
-                  <div className="flex-1 flex flex-col gap-[14px] justify-between min-w-0">
-                    <div>
-                      <Pill tone="accent" size="sm">{t('web_reserve.item_pill')}</Pill>
-                      <h2 className="m-0 mt-[10px] mb-1 font-body text-[20px] font-medium text-gm-ink leading-[1.2] tracking-[-0.3px]">
-                        {active.itemName}
-                      </h2>
-                      {item && (item.price != null || item.merchantDomain) && (
-                        <div className="font-body text-[14px] text-gm-inkSoft">
-                          {item.price != null && (
-                            <>
-                              {item.price}{' '}
-                              {item.currency && <span className="text-gm-inkFaint">{item.currency}</span>}
-                              <span className="text-gm-inkFaint mx-2">·</span>
-                            </>
+                {(() => {
+                  const bladeHref = active.affiliateUrl || item.originalUrl || null
+                  const bladeRetailer = active.merchantDomain ?? item.merchantDomain ?? 'retailer'
+                  const bladeCardClasses = "flex flex-col sm:flex-row gap-5 p-5 bg-gm-paperDeep rounded-gm-card border border-gm-line"
+                  const bladeCardContent = (
+                    <>
+                      <div className="w-full aspect-[4/3] sm:w-[160px] sm:h-[160px] sm:flex-shrink-0 rounded-[10px] overflow-hidden bg-gm-line">
+                        {item.imageUrl && (
+                          <img
+                            src={item.imageUrl}
+                            alt={active.itemName}
+                            className="w-full h-full object-cover"
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1 flex flex-col gap-[14px] justify-between min-w-0">
+                        <div>
+                          <Pill tone="accent" size="sm">{t('web_reserve.item_pill')}</Pill>
+                          <h2 className="m-0 mt-[10px] mb-1 font-body text-[20px] font-medium text-gm-ink leading-[1.2] tracking-[-0.3px]">
+                            {active.itemName}
+                          </h2>
+                          {item && (item.price != null || item.merchantDomain) && (
+                            <div className="font-body text-[14px] text-gm-inkSoft">
+                              {item.price != null && (
+                                <>
+                                  {item.price}{' '}
+                                  {item.currency && <span className="text-gm-inkFaint">{item.currency}</span>}
+                                  <span className="text-gm-inkFaint mx-2">·</span>
+                                </>
+                              )}
+                              sold at <strong className="font-medium text-gm-ink">{retailer}</strong>
+                            </div>
                           )}
-                          sold at <strong className="font-medium text-gm-ink">{retailer}</strong>
                         </div>
-                      )}
-                    </div>
-                    {/* Time-to-purchase nested card */}
-                    <div className="p-3 px-[14px] bg-gm-paper rounded-lg border border-gm-line">
-                      <div className="flex justify-between items-baseline mb-2">
-                        <MonoCaption size="micro" tone="faint">{t('web_reserve.time_label')}</MonoCaption>
-                        <span className="font-mono text-[12px] text-gm-accent font-medium" data-testid="reserve-detail-mmss">
-                          {mmss}
-                        </span>
+                        {/* Time-to-purchase nested card */}
+                        <div className="p-3 px-[14px] bg-gm-paper rounded-lg border border-gm-line">
+                          <div className="flex justify-between items-baseline mb-2">
+                            <MonoCaption size="micro" tone="faint">{t('web_reserve.time_label')}</MonoCaption>
+                            <span className="font-mono text-[12px] text-gm-accent font-medium" data-testid="reserve-detail-mmss">
+                              {mmss}
+                            </span>
+                          </div>
+                          <div className="h-[3px] bg-gm-line rounded-[2px] overflow-hidden">
+                            <div
+                              className="h-full bg-gm-accent transition-[width] duration-1000 ease-linear"
+                              style={{ width: `${remainingPct}%` }}
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <div className="h-[3px] bg-gm-line rounded-[2px] overflow-hidden">
-                        <div
-                          className="h-full bg-gm-accent transition-[width] duration-1000 ease-linear"
-                          style={{ width: `${remainingPct}%` }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                    </>
+                  )
+                  return bladeHref ? (
+                    <a
+                      href={bladeHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={t('web_reserve.item_page.blade_link_aria', { retailer: bladeRetailer })}
+                      className={`${bladeCardClasses} block cursor-pointer hover:border-gm-accent transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gm-accent no-underline text-inherit`}
+                    >
+                      {bladeCardContent}
+                    </a>
+                  ) : (
+                    <div className={bladeCardClasses}>{bladeCardContent}</div>
+                  )
+                })()}
 
                 {/* Confirm-back card */}
                 <ConfirmPurchaseBanner reservationId={active.reservationId} minutesLeft={minutesLeft} />

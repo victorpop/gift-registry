@@ -134,7 +134,8 @@
       "reserved_by_other_body": "Someone else has this gift on hold right now. Head back to the registry to pick a different one.",
       "purchased_title": "Already purchased",
       "purchased_body": "This gift has been given. Head back to the registry to see what's still available.",
-      "notes_label": "From the registry owner"
+      "notes_label": "From the registry owner",
+      "blade_link_aria": "Open product page at {{retailer}}"
     }
   },
   "web_pill": {

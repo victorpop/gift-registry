@@ -134,7 +134,8 @@
       "reserved_by_other_body": "Altcineva a luat acest cadou în rezervare chiar acum. Întoarce-te la registru pentru a alege altul.",
       "purchased_title": "Deja cumpărat",
       "purchased_body": "Acest cadou a fost oferit deja. Întoarce-te la registru pentru a vedea ce mai e disponibil.",
-      "notes_label": "De la persoana care a creat lista"
+      "notes_label": "De la persoana care a creat lista",
+      "blade_link_aria": "Deschide pagina produsului pe {{retailer}}"
     }
   },
   "web_pill": {
