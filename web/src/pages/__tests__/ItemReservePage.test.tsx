@@ -184,6 +184,7 @@ describe('ItemReservePage', () => {
     confirmMock.error = null
     activeMock.clear = vi.fn()
     activeMock.set = vi.fn()
+    activeMock.active = null
     createReservationMock.mutate.mockReset()
     createReservationMock.isPending = false
     createReservationMock.opts = null
@@ -697,5 +698,104 @@ describe('ItemReservePage', () => {
     expect(screen.queryByTestId('item-reserve-expired')).toBeNull()
     expect(screen.queryByTestId('item-reserve-detail')).toBeNull()
     expect(screen.getByTestId('item-reserve-purchased')).toBeInTheDocument()
+  })
+
+  it("K-12 (Reserve → seed shared context → reserved-by-me detail): clicking Reserve on BROWSE_AVAILABLE seeds useActiveReservation; next render transitions into reserved-by-me detail", async () => {
+    authMock.useAuth.mockReturnValue({ user: { uid: 'u1', email: 'u1@x.com', displayName: null }, isReady: true })
+    guestMock.useGuestIdentity.mockReturnValue({ identity: null })
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [makeItem({ status: 'available', reservedBy: null })],
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+    activeMock.active = null
+    // Replace the default spy with one that mirrors real context behaviour
+    // (mutates activeMock.active on set) so the next render observes the seeded value.
+    activeMock.set = vi.fn((r: unknown) => { activeMock.active = r })
+
+    const { rerenderSame } = renderPage()
+
+    // Initial: BROWSE_AVAILABLE visible
+    expect(screen.getByTestId('item-reserve-available')).toBeInTheDocument()
+
+    // Click Reserve → mutation fires
+    const cta = screen.getByRole('button', { name: /reserve this gift/i })
+    cta.click()
+    expect(createReservationMock.mutate).toHaveBeenCalledTimes(1)
+
+    // Simulate backend success: fire the captured onSuccess synchronously
+    await act(async () => {
+      createReservationMock.opts!.onSuccess!(
+        {
+          reservationId: 'res-new',
+          affiliateUrl: 'https://emag.ro/item1',
+          expiresAtMs: Date.now() + 30 * 60 * 1000,
+        },
+        { registryId: 'reg1', itemId: 'it1', giverName: 'u1', giverEmail: 'u1@x.com', giverId: 'u1' },
+      )
+    })
+
+    // Confirm context was seeded
+    expect(activeMock.set).toHaveBeenCalledTimes(1)
+    expect((activeMock.active as { itemId: string }).itemId).toBe('it1')
+
+    // Force next render — the page must now read sharedActive via the new derivation
+    await act(async () => {
+      rerenderSame()
+    })
+
+    // BROWSE_AVAILABLE released; reserved-by-me detail visible
+    expect(screen.queryByTestId('item-reserve-available')).toBeNull()
+    expect(screen.getByTestId('item-reserve-detail')).toBeInTheDocument()
+
+    // D-06: no email leak
+    expect(screen.queryByText('u1@x.com')).toBeNull()
+    expect(screen.queryByText('user@example.com')).toBeNull()
+
+    // Cleanup for downstream tests (defensive — beforeEach also resets)
+    activeMock.active = null
+  })
+
+  it('K-13 (regression — hydration-on-fresh-mount): useReservationForItem.active drives reserved-by-me detail when shared context is empty', () => {
+    activeMock.active = null
+    reservationForItemMock.useReservationForItem.mockReturnValue({
+      status: 'hydrated',
+      active: ACTIVE_RES,
+    })
+    // Default items mock (reserved + user@example.com — irrelevant; active takes precedence)
+    renderPage()
+
+    // Reserved-by-me detail visible (driven by lookupActive, not sharedActive)
+    expect(screen.getByTestId('item-reserve-detail')).toBeInTheDocument()
+    // Sanity: shared context was empty throughout — proves derivation fell through to lookupActive
+    expect(activeMock.active).toBeNull()
+  })
+
+  it('K-14 (cross-itemId stale-context guard): when sharedActive.itemId !== route itemId, page uses lookupActive (not the stale sharedActive)', () => {
+    // Shared context leaked from a previous /item/OTHER-ITEM visit in this SPA session.
+    activeMock.active = {
+      reservationId: 'res-other',
+      itemId: 'OTHER-ITEM',
+      itemName: 'Other Item',
+      affiliateUrl: 'https://example.com/other',
+      merchantDomain: null,
+      expiresAtMs: Date.now() + 30 * 60 * 1000,
+    }
+    // No lookup result for the current route itemId.
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+    // Route item is available.
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [makeItem({ status: 'available', reservedBy: null })],
+    })
+
+    renderPage()
+
+    // Page must render BROWSE_AVAILABLE — NOT reserved-by-me detail for the stale shared active.
+    expect(screen.getByTestId('item-reserve-available')).toBeInTheDocument()
+    expect(screen.queryByTestId('item-reserve-detail')).toBeNull()
+    // Stale itemName must NOT leak into the DOM.
+    expect(screen.queryByText('Other Item')).toBeNull()
+
+    // Cleanup
+    activeMock.active = null
   })
 })
