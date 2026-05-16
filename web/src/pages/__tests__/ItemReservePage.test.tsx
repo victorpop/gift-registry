@@ -4,7 +4,7 @@
  */
 import React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor, act } from '@testing-library/react'
+import { render, screen, waitFor, act, within } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import '../../i18n'
@@ -797,5 +797,119 @@ describe('ItemReservePage', () => {
 
     // Cleanup
     activeMock.active = null
+  })
+
+  // ---- quick-260516-lsi — clickable product blade on ItemReservePage ----
+
+  it('K-15: BROWSE_AVAILABLE blade wraps in anchor preferring affiliateUrl', () => {
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [
+        makeItem({
+          status: 'available',
+          reservedBy: null,
+          affiliateUrl: 'https://emag.ro/aff/it1',
+          originalUrl: 'https://emag.ro/it1',
+        }),
+      ],
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+
+    renderPage()
+
+    const container = screen.getByTestId('item-reserve-available')
+    const link = within(container).getByRole('link', { name: /open product page at emag\.ro/i })
+    expect(link.getAttribute('href')).toBe('https://emag.ro/aff/it1')
+    expect(link.getAttribute('target')).toBe('_blank')
+    const rel = link.getAttribute('rel') ?? ''
+    expect(rel).toMatch(/noopener/)
+    expect(rel).toMatch(/noreferrer/)
+  })
+
+  it('K-16: BROWSE_AVAILABLE blade falls back to originalUrl when affiliateUrl is empty', () => {
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [
+        makeItem({
+          status: 'available',
+          reservedBy: null,
+          affiliateUrl: '',
+          originalUrl: 'https://emag.ro/it1',
+        }),
+      ],
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+
+    renderPage()
+
+    const container = screen.getByTestId('item-reserve-available')
+    const link = within(container).getByRole('link', { name: /open product page at emag\.ro/i })
+    expect(link.getAttribute('href')).toBe('https://emag.ro/it1')
+    expect(link.getAttribute('target')).toBe('_blank')
+    const rel = link.getAttribute('rel') ?? ''
+    expect(rel).toMatch(/noopener/)
+    expect(rel).toMatch(/noreferrer/)
+  })
+
+  it('K-17: BROWSE_PURCHASED blade renders as static div when both URLs are empty', () => {
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [
+        makeItem({ status: 'purchased', affiliateUrl: '', originalUrl: '' }),
+      ],
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+
+    renderPage()
+
+    const container = screen.getByTestId('item-reserve-purchased')
+    // No blade link rendered when both URLs are empty.
+    const link = within(container).queryByRole('link', { name: /open product page/i })
+    expect(link).toBeNull()
+    // Sanity: blade content (title) still renders.
+    expect(screen.getByText('Coffee Machine')).toBeInTheDocument()
+    // Sanity: container still mounts.
+    expect(container).toBeInTheDocument()
+  })
+
+  it('K-18: BROWSE_RESERVED_BY_OTHER blade aria-label interpolates merchantDomain', () => {
+    itemsQueryMock.useItemsQuery.mockReturnValue({
+      data: [
+        makeItem({
+          status: 'reserved',
+          affiliateUrl: 'https://altex.ro/aff',
+          originalUrl: 'https://altex.ro/it1',
+          merchantDomain: 'altex.ro',
+        }),
+      ],
+    })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'empty', active: null })
+
+    renderPage()
+
+    const container = screen.getByTestId('item-reserve-reserved-by-other')
+    const link = within(container).getByRole('link', { name: /open product page at altex\.ro/i })
+    expect(link).not.toBeNull()
+    expect(link.getAttribute('aria-label')).toBe('Open product page at altex.ro')
+  })
+
+  it('K-19: reserved-by-me hero blade is anchor; nested time-to-purchase mmss still renders inside', () => {
+    // Default beforeEach already wires ACTIVE_RES (affiliateUrl: https://emag.ro/item1, merchantDomain: emag.ro).
+    renderPage()
+
+    // Precondition: reserved-by-me branch is active.
+    const detail = screen.getByTestId('item-reserve-detail')
+    expect(detail).toBeInTheDocument()
+
+    const bladeAnchor = within(detail).getByRole('link', { name: /open product page at emag\.ro/i })
+    expect(bladeAnchor.getAttribute('href')).toBe('https://emag.ro/item1')
+    expect(bladeAnchor.getAttribute('target')).toBe('_blank')
+    const rel = bladeAnchor.getAttribute('rel') ?? ''
+    expect(rel).toMatch(/noopener/)
+    expect(rel).toMatch(/noreferrer/)
+
+    // Nested time-to-purchase mmss element renders WITHIN the anchor.
+    expect(within(bladeAnchor as HTMLElement).getByTestId('reserve-detail-mmss')).toBeInTheDocument()
+
+    // Regression guard: the "Continue to retailer" CTA in the button row still exists (distinct from the blade anchor).
+    const continueLinks = screen.getAllByRole('link', { name: /continue.*emag/i })
+    expect(continueLinks.length).toBeGreaterThanOrEqual(1)
   })
 })
