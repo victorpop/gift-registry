@@ -57,6 +57,26 @@ export default function StickyReserveBanner() {
     }
   }, [countdown?.expired, clear])
 
+  // Reset toast/clear() guard refs whenever a new release attempt begins (ku3).
+  // useReleaseReservation.release() unconditionally calls setStatus('pending') at the
+  // start of every attempt, so 'pending' is a reliable signal that the previous
+  // release's guard state must be cleared. Without this, the banner stays mounted
+  // across multiple sequential releases (re-hydration via useActiveReservationHydration
+  // brings a different reservation into view between releases) and the success effect's
+  // `!releaseSuccessToastedRef.current` guard is false on the second release — toast
+  // is skipped AND clear() is never called → banner appears wedged until manual refresh.
+  //
+  // Placement (before the success/error effects in source order) is intentional: React
+  // fires effects in declaration order, so if both observe a release transition in the
+  // same render (defensive — useState batching normally splits pending/success across
+  // renders), the reset runs first.
+  useEffect(() => {
+    if (releaseStatus === 'pending') {
+      releaseSuccessToastedRef.current = false
+      releaseErrorToastedForRef.current = null
+    }
+  }, [releaseStatus])
+
   // Show success toast and clear local state after a successful release.
   useEffect(() => {
     if (releaseStatus === 'success' && !releaseSuccessToastedRef.current) {
