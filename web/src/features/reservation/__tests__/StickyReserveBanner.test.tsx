@@ -4,7 +4,7 @@
  */
 import React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import '../../../i18n'
 
 const activeMock = vi.hoisted(() => ({
@@ -99,5 +99,73 @@ describe('StickyReserveBanner — Continue-to-retailer visibility', () => {
     expect(screen.queryByRole('link', { name: /continue/i })).toBeNull()
     expect(screen.getByRole('button', { name: /release/i })).toBeInTheDocument()
     expect(screen.getByTestId('sticky-reserve-banner')).toBeInTheDocument()
+  })
+
+  it('clears toast/clear() guards on each new release so a second release in the same mount fires toast + clear() again (ku3)', async () => {
+    // --- Setup: reservation B currently held by useActiveReservation ---
+    activeMock.active = {
+      reservationId: 'res-B',
+      itemId: 'it-B',
+      itemName: 'Item B',
+      affiliateUrl: 'https://emag.ro/item-B',
+      merchantDomain: 'emag.ro',
+      expiresAtMs: Date.now() + 30 * 60 * 1000,
+    }
+    // Fresh clear() spy (beforeEach does not reset activeMock.clear).
+    activeMock.clear = vi.fn()
+    releaseMock.status = 'idle'
+    releaseMock.error = null
+
+    const { rerender } = render(<StickyReserveBanner />)
+    expect(screen.getByTestId('sticky-reserve-banner')).toBeInTheDocument()
+
+    // --- First release lifecycle: idle → pending → success ---
+    await act(async () => {
+      releaseMock.status = 'pending'
+      rerender(<StickyReserveBanner />)
+    })
+    await act(async () => {
+      releaseMock.status = 'success'
+      rerender(<StickyReserveBanner />)
+    })
+
+    // First release fired toast + clear() exactly once.
+    expect(toastMock.showToast).toHaveBeenCalledTimes(1)
+    expect(activeMock.clear).toHaveBeenCalledTimes(1)
+
+    // --- Hydration re-resolves to reservation A; banner re-renders with A ---
+    await act(async () => {
+      activeMock.active = {
+        reservationId: 'res-A',
+        itemId: 'it-A',
+        itemName: 'Item A',
+        affiliateUrl: 'https://emag.ro/item-A',
+        merchantDomain: 'emag.ro',
+        expiresAtMs: Date.now() + 30 * 60 * 1000,
+      }
+      // Mirror useReleaseReservation's state before the next release() call.
+      releaseMock.status = 'idle'
+      rerender(<StickyReserveBanner />)
+    })
+    expect(screen.getByTestId('sticky-reserve-banner')).toBeInTheDocument()
+
+    // --- Second release lifecycle: idle → pending → success ---
+    await act(async () => {
+      releaseMock.status = 'pending'
+      rerender(<StickyReserveBanner />)
+    })
+    await act(async () => {
+      releaseMock.status = 'success'
+      rerender(<StickyReserveBanner />)
+    })
+
+    // CORE ASSERTIONS — these FAIL before the ku3 fix because the success
+    // useEffect's `!releaseSuccessToastedRef.current` guard stays true after the
+    // first release and skips both showToast + clear() on the second release.
+    expect(toastMock.showToast).toHaveBeenCalledTimes(2)
+    expect(activeMock.clear).toHaveBeenCalledTimes(2)
+
+    // Cleanup so subsequent tests in the file (none today, defensive) don't see leaked state.
+    activeMock.active = null
   })
 })
