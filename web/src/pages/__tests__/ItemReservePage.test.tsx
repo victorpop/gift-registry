@@ -95,6 +95,15 @@ vi.mock('../../features/reservation/useCreateReservation', () => ({
   },
 }))
 
+// queryClient — partial mock of @tanstack/react-query that preserves the real QueryClient
+// and QueryClientProvider (consumed by renderPage below) and ONLY overrides useQueryClient
+// so we can spy on setQueryData inside ItemReservePage's release-success effect (quick-260516-oiy K-20).
+const queryClientMock = vi.hoisted(() => ({ setQueryData: vi.fn() }))
+vi.mock('@tanstack/react-query', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/react-query')>()
+  return { ...actual, useQueryClient: () => queryClientMock }
+})
+
 import ItemReservePage from '../ItemReservePage'
 
 // --- Helpers ---
@@ -188,6 +197,7 @@ describe('ItemReservePage', () => {
     createReservationMock.mutate.mockReset()
     createReservationMock.isPending = false
     createReservationMock.opts = null
+    queryClientMock.setQueryData.mockReset()
     authMock.useAuth.mockReturnValue({ user: { uid: 'u1', email: 'u1@x.com' }, isReady: true })
     guestMock.useGuestIdentity.mockReturnValue({ identity: null })
     // Default: items loaded with the item
@@ -911,5 +921,67 @@ describe('ItemReservePage', () => {
     // Regression guard: the "Continue to retailer" CTA in the button row still exists (distinct from the blade anchor).
     const continueLinks = screen.getAllByRole('link', { name: /continue.*emag/i })
     expect(continueLinks.length).toBeGreaterThanOrEqual(1)
+  })
+
+  // ---- quick-260516-oiy — optimistic items-cache patch on release-success ----
+
+  it('K-20: release-success patches items cache BEFORE navigate so the just-released item appears available on RegistryPage', async () => {
+    // Drive release to success BEFORE mount so the effect fires on first commit (mirrors P-06b).
+    releaseMock.status = 'success'
+
+    renderPage()
+
+    // 1. Cache patch fires exactly once with the correct key + updater shape.
+    await waitFor(() => {
+      expect(queryClientMock.setQueryData).toHaveBeenCalledTimes(1)
+    })
+    const [key, updater] = queryClientMock.setQueryData.mock.calls[0] as [
+      unknown,
+      (old: Item[] | undefined) => Item[] | undefined,
+    ]
+    expect(key).toEqual(['registry', 'reg1', 'items'])
+    expect(typeof updater).toBe('function')
+
+    // 2. Updater overrides ONLY the matching item; unrelated items keep referential identity.
+    const fakeIn: Item[] = [
+      makeItem({
+        id: 'it1',
+        status: 'reserved',
+        reservedBy: 'user@x',
+        reservedAt: new Date(123),
+        expiresAt: new Date(456),
+      }),
+      makeItem({
+        id: 'other',
+        status: 'available',
+        reservedBy: null,
+        reservedAt: null,
+        expiresAt: null,
+      }),
+    ]
+    const out = updater(fakeIn)!
+    expect(out).toHaveLength(2)
+    const patched = out.find((i) => i.id === 'it1')!
+    expect(patched.status).toBe('available')
+    expect(patched.reservedBy).toBeNull()
+    expect(patched.reservedAt).toBeNull()
+    expect(patched.expiresAt).toBeNull()
+    const untouched = out.find((i) => i.id === 'other')!
+    expect(untouched).toBe(fakeIn[1]) // referential identity preserved
+
+    // 3. Updater on undefined input returns undefined (cache-empty safety).
+    expect(updater(undefined)).toBeUndefined()
+
+    // 4. Call order: setQueryData fires BEFORE clearActiveReservation, which itself
+    //    fires before navigate inside the same effect body (ItemReservePage.tsx lines 193-200).
+    //    Asserting < clear is a strict superset proof that the patch happens before navigate.
+    const patchOrder = queryClientMock.setQueryData.mock.invocationCallOrder[0]
+    const clearOrder = activeMock.clear.mock.invocationCallOrder[0]
+    expect(patchOrder).toBeLessThan(clearOrder)
+
+    // 5. Sanity: navigation still completed (registry page mounted).
+    await waitFor(() => {
+      expect(screen.getByTestId('registry-page')).toBeInTheDocument()
+    })
   })
 })
