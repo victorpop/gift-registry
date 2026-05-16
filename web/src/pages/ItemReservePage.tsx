@@ -63,6 +63,24 @@ import { TopNav, Footer, MonoCaption, Btn, Pill } from '../components/giftmaison
  * item.status === 'reserved' until Cloud Tasks (or a manual refresh of items)
  * flips it.
  *
+ * `active` derivation (quick-260516-k4f): the component reads BOTH the shared
+ * useActiveReservation context (`sharedActive`) and the per-item lookup from
+ * useReservationForItem (`lookupActive`), then derives:
+ *
+ *   active = (sharedActive && sharedActive.itemId === itemId) ? sharedActive : lookupActive
+ *
+ * This is necessary because the two hooks are independent state systems: the
+ * Reserve mutation's onSuccess (below) seeds sharedActive via setActive, but
+ * useReservationForItem only fetches via the getReservationForItem callable
+ * and never observes the shared context. Without this derivation, the page
+ * stayed on BROWSE_AVAILABLE / fell through to BROWSE_RESERVED_BY_OTHER for
+ * the user's OWN just-made reservation. The itemId equality guard prevents a
+ * stale shared active from a different /item/:otherItemId visit earlier in
+ * the SPA session from leaking onto THIS page.
+ *
+ * effectiveActive (iux) wraps the derived `active` unchanged — so the stale-
+ * expired-on-mount short-circuit also covers shared-context-sourced actives.
+ *
  * D-06 enforcement: no reserver/giver name/email is ever rendered on this page in any state.
  *
  * Reserve flow on the BROWSE_AVAILABLE branch (k37 user decision — DIRECT mutation):
@@ -83,21 +101,37 @@ export default function ItemReservePage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const itemsQ = useItemsQuery(id)
-  const { status: lookupStatus, active } = useReservationForItem(id, itemId)
+  const { status: lookupStatus, active: lookupActive } = useReservationForItem(id, itemId)
+  const { active: sharedActive, set: setActive, clear: clearActiveReservation } = useActiveReservation()
+  // Derived `active` (quick-260516-k4f): prefer the shared useActiveReservation
+  // context when it matches the route itemId (covers the post-Reserve transition
+  // seeded by the mutation's onSuccess below), otherwise fall back to the
+  // lookupActive returned by useReservationForItem (covers hydration-on-fresh-
+  // mount and navigation-into-existing-reservation paths). The itemId equality
+  // guard prevents a stale shared active from another /item/:otherItemId visit
+  // earlier in the SPA session from leaking onto THIS page.
+  const active = (sharedActive && sharedActive.itemId === itemId) ? sharedActive : lookupActive
   const countdown = useCountdown(active?.expiresAtMs ?? null)
   const { release, status: releaseStatus, error: releaseError } = useReleaseReservation()
   const { user } = useAuth()
   const { identity } = useGuestIdentity()
   const { showToast } = useToast()
-  const { set: setActive, clear: clearActiveReservation } = useActiveReservation()
 
   // Direct Reserve mutation for the BROWSE_AVAILABLE branch (k37). On success:
-  // seed the shared active-reservation context with the new reservation; the next
-  // render of this page will pick it up via useReservationForItem and naturally
-  // transition into the reserved-by-me detail branch — NO manual navigate needed
-  // (the URL is already /registry/:id/item/:itemId). This intentionally differs
-  // from RegistryPage's autoReserveMutation which DOES navigate, because that
-  // mutation runs from the registry index and needs to push the user to detail.
+  // seed the shared useActiveReservation context with the new reservation. The
+  // derived `active` at the top of the component (k4f) prefers sharedActive when
+  // sharedActive.itemId === itemId, so the very next render reads the new
+  // reservation through the derivation and transitions into the reserved-by-me
+  // detail branch (5). No manual navigate needed — the URL is already
+  // /registry/:id/item/:itemId. This intentionally differs from RegistryPage's
+  // autoReserveMutation which DOES navigate, because that mutation runs from
+  // the registry index and needs to push the user to the detail page.
+  //
+  // NOTE: useReservationForItem is NOT what drives the transition — it's an
+  // independent hook that fetches via the getReservationForItem callable and
+  // does NOT observe the shared React context. The previous comment here was
+  // wrong and caused the k4f bug (page stuck on BROWSE_AVAILABLE / falling
+  // through to BROWSE_RESERVED_BY_OTHER after Reserve).
   const reserveMutation = useCreateReservation({
     onSuccess: (data, vars) => {
       const target = itemsQ.data?.find(i => i.id === vars.itemId)
