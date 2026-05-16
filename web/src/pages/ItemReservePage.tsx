@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
 import { Loader2 } from 'lucide-react'
 import type { Item, ItemStatus } from '../lib/firestore-mapping'
 import { useItemsQuery } from '../features/registry/useItemsQuery'
@@ -100,6 +101,7 @@ export default function ItemReservePage() {
   const { id, itemId } = useParams<{ id: string; itemId: string }>()
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
   const itemsQ = useItemsQuery(id)
   const { status: lookupStatus, active: lookupActive } = useReservationForItem(id, itemId)
   const { active: sharedActive, set: setActive, clear: clearActiveReservation } = useActiveReservation()
@@ -189,15 +191,28 @@ export default function ItemReservePage() {
     }
   }, [active, countdown])
 
-  // Release success: clear shared active-reservation context, show toast, navigate back.
+  // Release success: optimistically patch the items cache so the just-released item
+  // appears 'available' on RegistryPage even before its onSnapshot listener (which
+  // tore down when RegistryPage unmounted on navigation TO this page) re-fires after
+  // re-mount. Without this patch, useItemsQuery returns the FROZEN pre-release cache
+  // for ~100-500ms after navigate, showing the item still as RESERVED with the
+  // reserved-by-me banner — directly contradicting the success toast (quick-260516-oiy).
+  // Then: clear shared active-reservation context, show toast, navigate back.
   useEffect(() => {
     if (releaseStatus === 'success' && !releaseSuccessHandledRef.current) {
       releaseSuccessHandledRef.current = true
+      queryClient.setQueryData<Item[]>(['registry', id, 'items'], (old) =>
+        old?.map((it) =>
+          it.id === itemId
+            ? { ...it, status: 'available' as const, reservedBy: null, reservedAt: null, expiresAt: null }
+            : it,
+        ) ?? old,
+      )
       showToast(t('reservation.release_success'), 'success')
       clearActiveReservation()
       navigate(`/registry/${id}`)
     }
-  }, [releaseStatus, id, navigate, showToast, t, clearActiveReservation])
+  }, [releaseStatus, id, itemId, navigate, showToast, t, clearActiveReservation, queryClient])
 
   // Release error: show toast once per error message.
   useEffect(() => {
