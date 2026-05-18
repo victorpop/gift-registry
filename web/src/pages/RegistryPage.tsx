@@ -51,11 +51,16 @@ export default function RegistryPage() {
 
   // Hydrate active reservation from Firestore on page load (refresh, new tab, other device for signed-in).
   // The hook bails when active is already set to avoid clobbering a fresh in-session reservation.
-  // j5j: when location.state carries recentReleasedReservationId (post-release from
-  // ItemReservePage), pass it as ignoreReservationId so the hook treats a brief
-  // composite-index-lag echo of the just-released reservation as null instead of
-  // re-seeding ActiveReservationContext.
-  useActiveReservationHydration(id, { ignoreReservationId: recentReleasedReservationId })
+  // j5j: when location.state carries recentReleasedReservationId, pass it as ignoreReservationId
+  // so the hook treats a brief composite-index-lag echo of the just-released reservation as null.
+  // ke1: ALSO pass recentReleasedItemId as ignoreItemId so the hook suppresses ANY backend-returned
+  // active reservation on the same item — covers stale-active rows from a DIFFERENT reservationId
+  // (e.g. emulator-restart leftovers per iux/pdp, or production Cloud Tasks failures). The two
+  // options OR together: either match suppresses re-seeding ActiveReservationContext.
+  useActiveReservationHydration(id, {
+    ignoreReservationId: recentReleasedReservationId,
+    ignoreItemId: recentReleasedItemId,
+  })
 
   // Compute effective email for reserved-by-me detection (D-06: never render reserver name).
   const effectiveEmail = user?.email ?? identity?.email ?? null

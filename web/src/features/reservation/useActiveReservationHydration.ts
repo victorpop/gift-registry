@@ -39,10 +39,21 @@ interface HydrationResponse {
  *   'expired'; without this guard the context would be re-populated with a stale
  *   active reservation and StickyReserveBanner + ReserveDetailSection would briefly
  *   re-appear on RegistryPage.
+ * @param options.ignoreItemId - When set, if the backend callable resolves with
+ *   an active reservation whose itemId matches this value, the hook treats the
+ *   response as null (setStatus 'empty', does NOT call set()). Used by
+ *   RegistryPage to suppress the hydration race after release-from-
+ *   ItemReservePage (quick-260518-ke1) when the backend returns an UNRELATED
+ *   active reservation row for the same item — typically a stale-active row
+ *   from earlier sessions where Cloud Tasks (or the emulator setTimeout
+ *   fallback per quick-260510-pdp) failed to auto-expire. The j5j
+ *   `ignoreReservationId` guard cannot catch this because the stale row has a
+ *   different reservationId. The two options are evaluated as a logical OR:
+ *   either match triggers suppression.
  */
 export function useActiveReservationHydration(
   registryId: string | undefined,
-  options?: { ignoreReservationId?: string },
+  options?: { ignoreReservationId?: string; ignoreItemId?: string },
 ) {
   const { user, isReady: authReady } = useAuth()
   const { identity } = useGuestIdentity()
@@ -85,11 +96,23 @@ export function useActiveReservationHydration(
       .then((r) => {
         if (cancelled) return
         if (r.data?.active) {
-          // j5j: suppress the just-released reservation if RegistryPage passed it as
-          // ignoreReservationId. The backend may briefly still return this reservation
-          // due to composite-index lag on the status==='active' filter; treating it as
-          // null prevents the hydration-race banner flash on RegistryPage re-mount.
-          if (options?.ignoreReservationId === r.data.active.reservationId) {
+          // j5j + ke1: suppress the returned active reservation when EITHER
+          //   - its reservationId matches the just-released reservation (j5j), OR
+          //   - its itemId matches the just-released item (ke1 — covers the
+          //     stale-active-on-same-item case where the backend returns an
+          //     UNRELATED reservation row for the released item, e.g. from
+          //     emulator restarts that lost the setTimeout auto-expiry per
+          //     quick-260516-iux / quick-260510-pdp, or production Cloud Tasks
+          //     failures).
+          // Safety: options?.ignoreItemId is only undefined when the caller
+          // omits it, and r.data.active.itemId is ALWAYS a non-empty string per
+          // the ActiveReservation type — so undefined===undefined cannot
+          // accidentally trigger suppression for callers who don't pass the
+          // option. Same invariant already protected the j5j check.
+          if (
+            options?.ignoreReservationId === r.data.active.reservationId ||
+            options?.ignoreItemId === r.data.active.itemId
+          ) {
             setStatus("empty")
             return
           }
@@ -111,7 +134,7 @@ export function useActiveReservationHydration(
     return () => {
       cancelled = true
     }
-  }, [registryId, authReady, user, identity, active, set, options?.ignoreReservationId])
+  }, [registryId, authReady, user, identity, active, set, options?.ignoreReservationId, options?.ignoreItemId])
 
   return { status }
 }
