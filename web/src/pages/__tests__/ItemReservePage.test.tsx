@@ -1028,4 +1028,64 @@ describe('ItemReservePage', () => {
       recentReleasedItemId: 'it1',
     })
   })
+
+  // ---- quick-260519-08n — navigate-on-status-flip effect ALSO carries state ----
+
+  it('K-22: navigate-on-status-flip effect navigates with state.recentReleasedReservationId + state.recentReleasedItemId (08n)', async () => {
+    // Setup: items mock returns a reserved item on first render so prevStatusRef captures
+    // 'reserved'. reservationForItem returns the active reservation. Crucially: leave
+    // releaseMock.status at the default 'idle' so the release-success effect (the OTHER
+    // racer covered by K-21) does NOT fire — this isolates the navigate-on-status-flip
+    // effect as the sole navigator.
+    itemsQueryMock.useItemsQuery.mockReturnValue({ data: [makeItem({ status: 'reserved' })] })
+    reservationForItemMock.useReservationForItem.mockReturnValue({ status: 'hydrated', active: ACTIVE_RES })
+
+    // Probe destination captures location.state into the DOM (same pattern as K-21).
+    const ProbeDestination = () => {
+      const loc = useLocation()
+      return (
+        <div
+          data-testid="registry-page"
+          data-state={JSON.stringify(loc.state)}
+        />
+      )
+    }
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const router = createMemoryRouter(
+      [
+        { path: '/registry/:id/item/:itemId', element: <ItemReservePageWithForceUpdate /> },
+        { path: '/registry/:id', element: <ProbeDestination /> },
+      ],
+      { initialEntries: ['/registry/reg1/item/it1'] },
+    )
+    render(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    )
+
+    // Intermediate state: detail UI present, no redirect yet (prevStatusRef captured 'reserved').
+    expect(screen.getByTestId('item-reserve-detail')).toBeInTheDocument()
+    expect(screen.queryByTestId('registry-page')).toBeNull()
+
+    // Flip item status to 'available' (e.g. release fired from another tab or by Cloud
+    // Tasks). Force a re-render so the new mock value is picked up and the
+    // navigate-on-status-flip effect runs.
+    await act(async () => {
+      itemsQueryMock.useItemsQuery.mockReturnValue({ data: [makeItem({ status: 'available' })] })
+      _forceUpdateHandle?.()
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('registry-page')).toBeInTheDocument()
+    })
+
+    const stateAttr = screen.getByTestId('registry-page').getAttribute('data-state')
+    expect(stateAttr).not.toBeNull()
+    const state = JSON.parse(stateAttr!)
+    expect(state).toEqual({
+      recentReleasedReservationId: 'res1',
+      recentReleasedItemId: 'it1',
+    })
+  })
 })
