@@ -5,7 +5,7 @@
 import React from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, waitFor, act, within } from '@testing-library/react'
-import { createMemoryRouter, RouterProvider } from 'react-router'
+import { createMemoryRouter, RouterProvider, useLocation } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import '../../i18n'
 import type { Item } from '../../lib/firestore-mapping'
@@ -982,6 +982,50 @@ describe('ItemReservePage', () => {
     // 5. Sanity: navigation still completed (registry page mounted).
     await waitFor(() => {
       expect(screen.getByTestId('registry-page')).toBeInTheDocument()
+    })
+  })
+
+  // ---- quick-260518-j5j — navigate carries state for post-release hydration + snapshot race suppression ----
+
+  it('K-21: release-success navigates with state.recentReleasedReservationId + state.recentReleasedItemId (j5j)', async () => {
+    // Drive release to success on first commit (same pattern as K-20).
+    releaseMock.status = 'success'
+
+    // Mount with a probe destination that captures location.state into the DOM.
+    // This avoids mocking useNavigate file-wide (which would break existing tests
+    // that observe the destination route element via real router transitions).
+    const ProbeDestination = () => {
+      const loc = useLocation()
+      return (
+        <div
+          data-testid="registry-page"
+          data-state={JSON.stringify(loc.state)}
+        />
+      )
+    }
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const router = createMemoryRouter(
+      [
+        { path: '/registry/:id/item/:itemId', element: <ItemReservePageWithForceUpdate /> },
+        { path: '/registry/:id', element: <ProbeDestination /> },
+      ],
+      { initialEntries: ['/registry/reg1/item/it1'] },
+    )
+    render(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByTestId('registry-page')).toBeInTheDocument()
+    })
+    const stateAttr = screen.getByTestId('registry-page').getAttribute('data-state')
+    expect(stateAttr).not.toBeNull()
+    const state = JSON.parse(stateAttr!)
+    expect(state).toEqual({
+      recentReleasedReservationId: 'res1',
+      recentReleasedItemId: 'it1',
     })
   })
 })

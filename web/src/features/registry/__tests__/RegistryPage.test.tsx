@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -54,6 +54,12 @@ vi.mock('../../reservation/useCreateReservation', () => ({
   useCreateReservation: () => ({ mutate: vi.fn(), isPending: false }),
 }))
 
+// j5j: mock useActiveReservationHydration so we can assert what args RegistryPage passes.
+// The real hook makes a callable network call when conditions are met — mocking is safer than
+// relying on early-return guards. Returns the real hook's shape: { status }.
+const hydrationMock = vi.hoisted(() => ({ useActiveReservationHydration: vi.fn(() => ({ status: 'idle' })) }))
+vi.mock('../../reservation/useActiveReservationHydration', () => hydrationMock)
+
 import RegistryPage from '../../../pages/RegistryPage'
 
 function renderPage(id: string = 'reg-1') {
@@ -99,6 +105,10 @@ const availableItem: Item = {
 }
 
 describe('RegistryPage', () => {
+  beforeEach(() => {
+    hydrationMock.useActiveReservationHydration.mockClear()
+  })
+
   it('renders 6 skeleton cards when registry data is undefined (initial loading)', () => {
     mocks.useRegistryQuery.mockReturnValue({ data: undefined, isLoading: true })
     mocks.useItemsQuery.mockReturnValue({ data: undefined, isLoading: true })
@@ -134,5 +144,77 @@ describe('RegistryPage', () => {
     renderPage()
     expect(screen.getByText('Nothing here yet')).toBeInTheDocument()
     expect(screen.getByText("The registry owner hasn't added any gifts yet. Check back later.")).toBeInTheDocument()
+  })
+
+  // ---- quick-260518-j5j: navigate-state propagation override for the post-release race ----
+
+  it('R-NEW-01: (j5j) when location.state.recentReleasedItemId is set, the released item renders as available even if items cache shows reserved', () => {
+    mocks.useRegistryQuery.mockReturnValue({ data: sampleRegistry, isLoading: false })
+    const reservedItem: Item = {
+      ...availableItem,
+      status: 'reserved',
+      reservedBy: 'someone@x',
+      reservedAt: new Date(),
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+    }
+    mocks.useItemsQuery.mockReturnValue({ data: [reservedItem], isLoading: false })
+
+    // Render with location.state carrying the released item id.
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const router = createMemoryRouter(
+      [{ path: '/registry/:id', element: <RegistryPage /> }],
+      { initialEntries: [{ pathname: '/registry/reg-1', state: { recentReleasedItemId: 'item-1' } }] },
+    )
+    render(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    )
+
+    // ItemCard exposes `data-status={item.status}` on its outermost Link — use that for a
+    // robust assertion (avoids coupling to en.json literals).
+    expect(screen.getByText('Coffee Grinder')).toBeInTheDocument()
+    const card = screen.getByTestId('item-card')
+    expect(card.getAttribute('data-status')).toBe('available')
+  })
+
+  it('R-NEW-02: (j5j) without location.state, items render with their cache shape unchanged', () => {
+    mocks.useRegistryQuery.mockReturnValue({ data: sampleRegistry, isLoading: false })
+    const reservedItem: Item = {
+      ...availableItem,
+      status: 'reserved',
+      reservedBy: 'someone@x',
+      reservedAt: new Date(),
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+    }
+    mocks.useItemsQuery.mockReturnValue({ data: [reservedItem], isLoading: false })
+
+    renderPage() // existing helper — no initial state
+
+    // Reserved item should render with its real status (NOT overridden).
+    expect(screen.getByText('Coffee Grinder')).toBeInTheDocument()
+    const card = screen.getByTestId('item-card')
+    expect(card.getAttribute('data-status')).toBe('reserved')
+  })
+
+  it('R-NEW-03: (j5j) RegistryPage passes ignoreReservationId to useActiveReservationHydration when nav state carries it', () => {
+    mocks.useRegistryQuery.mockReturnValue({ data: sampleRegistry, isLoading: false })
+    mocks.useItemsQuery.mockReturnValue({ data: [availableItem], isLoading: false })
+
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const router = createMemoryRouter(
+      [{ path: '/registry/:id', element: <RegistryPage /> }],
+      { initialEntries: [{ pathname: '/registry/reg-1', state: { recentReleasedReservationId: 'res-abc' } }] },
+    )
+    render(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    )
+
+    expect(hydrationMock.useActiveReservationHydration).toHaveBeenCalled()
+    const callArgs = hydrationMock.useActiveReservationHydration.mock.calls[0]
+    expect(callArgs[0]).toBe('reg-1')
+    expect(callArgs[1]).toEqual({ ignoreReservationId: 'res-abc' })
   })
 })
