@@ -1,6 +1,7 @@
 /**
- * Tests for useActiveReservationHydration's new optional `ignoreReservationId` option
- * (quick-260518-j5j). Spec IDs: H-NEW-01, H-NEW-02.
+ * Tests for useActiveReservationHydration's `ignoreReservationId` option
+ * (quick-260518-j5j) and the `ignoreItemId` hardening (quick-260518-ke1).
+ * Spec IDs: H-NEW-01, H-NEW-02, H-NEW-03, H-NEW-04, H-NEW-05.
  */
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
@@ -37,7 +38,7 @@ const RESERVATION = {
   expiresAtMs: Date.now() + 30 * 60 * 1000,
 }
 
-describe('useActiveReservationHydration (j5j ignoreReservationId)', () => {
+describe('useActiveReservationHydration (j5j ignoreReservationId + ke1 ignoreItemId)', () => {
   beforeEach(() => {
     callableMock.mockReset()
     activeMock.set = vi.fn()
@@ -70,5 +71,44 @@ describe('useActiveReservationHydration (j5j ignoreReservationId)', () => {
       expect(result.current.status).toBe('hydrated')
     })
     expect(activeMock.set).toHaveBeenCalledWith(RESERVATION)
+  })
+
+  it('H-NEW-03: (ke1) when options.ignoreItemId matches the returned active itemId, setStatus("empty") fires and set() is NOT called', async () => {
+    callableMock.mockResolvedValueOnce({ data: { active: RESERVATION } })
+
+    const { result } = renderHook(() =>
+      useActiveReservationHydration('reg1', { ignoreItemId: 'it1' }),
+    )
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('empty')
+    })
+    expect(activeMock.set).not.toHaveBeenCalled()
+  })
+
+  it('H-NEW-04: (ke1) when options.ignoreItemId does NOT match the returned active itemId, set() IS called and status transitions to "hydrated"', async () => {
+    callableMock.mockResolvedValueOnce({ data: { active: RESERVATION } })
+
+    const { result } = renderHook(() =>
+      useActiveReservationHydration('reg1', { ignoreItemId: 'OTHER-item' }),
+    )
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('hydrated')
+    })
+    expect(activeMock.set).toHaveBeenCalledWith(RESERVATION)
+  })
+
+  it('H-NEW-05: (ke1) when BOTH ignoreReservationId and ignoreItemId are set and the returned active matches by EITHER field, hydration is suppressed (logical OR)', async () => {
+    callableMock.mockResolvedValueOnce({ data: { active: RESERVATION } })
+
+    const { result } = renderHook(() =>
+      useActiveReservationHydration('reg1', { ignoreReservationId: 'NO-MATCH', ignoreItemId: 'it1' }),
+    )
+
+    await waitFor(() => {
+      expect(result.current.status).toBe('empty')
+    })
+    expect(activeMock.set).not.toHaveBeenCalled()
   })
 })

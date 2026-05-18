@@ -217,4 +217,32 @@ describe('RegistryPage', () => {
     expect(callArgs[0]).toBe('reg-1')
     expect(callArgs[1]).toEqual({ ignoreReservationId: 'res-abc' })
   })
+
+  it('R-NEW-04: (ke1) RegistryPage threads recentReleasedItemId as ignoreItemId alongside ignoreReservationId', () => {
+    mocks.useRegistryQuery.mockReturnValue({ data: sampleRegistry, isLoading: false })
+    mocks.useItemsQuery.mockReturnValue({ data: [availableItem], isLoading: false })
+
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const router = createMemoryRouter(
+      [{ path: '/registry/:id', element: <RegistryPage /> }],
+      {
+        initialEntries: [
+          {
+            pathname: '/registry/reg-1',
+            state: { recentReleasedReservationId: 'res-abc', recentReleasedItemId: 'item-1' },
+          },
+        ],
+      },
+    )
+    render(
+      <QueryClientProvider client={client}>
+        <RouterProvider router={router} />
+      </QueryClientProvider>,
+    )
+
+    expect(hydrationMock.useActiveReservationHydration).toHaveBeenCalled()
+    const callArgs = hydrationMock.useActiveReservationHydration.mock.calls[0]
+    expect(callArgs[0]).toBe('reg-1')
+    expect(callArgs[1]).toEqual({ ignoreReservationId: 'res-abc', ignoreItemId: 'item-1' })
+  })
 })
