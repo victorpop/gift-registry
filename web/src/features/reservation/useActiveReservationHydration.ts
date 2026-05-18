@@ -29,8 +29,21 @@ interface HydrationResponse {
  * Guest path: sends registryId + giverEmail — backend enforces giverId==null match.
  *
  * Hydration is best-effort: a failure logs a warning but does not block page render.
+ *
+ * @param options.ignoreReservationId - When set, if the backend callable resolves with
+ *   an active reservation whose reservationId matches this value, the hook treats the
+ *   response as null (setStatus 'empty', does NOT call set()). Used by RegistryPage to
+ *   suppress the hydration race after release-from-ItemReservePage (quick-260518-j5j):
+ *   the just-released reservation may transiently still match the composite index on
+ *   the server (status==='active' filter) for ~ms after the backend flips it to
+ *   'expired'; without this guard the context would be re-populated with a stale
+ *   active reservation and StickyReserveBanner + ReserveDetailSection would briefly
+ *   re-appear on RegistryPage.
  */
-export function useActiveReservationHydration(registryId: string | undefined) {
+export function useActiveReservationHydration(
+  registryId: string | undefined,
+  options?: { ignoreReservationId?: string },
+) {
   const { user, isReady: authReady } = useAuth()
   const { identity } = useGuestIdentity()
   const { active, set } = useActiveReservation()
@@ -72,6 +85,14 @@ export function useActiveReservationHydration(registryId: string | undefined) {
       .then((r) => {
         if (cancelled) return
         if (r.data?.active) {
+          // j5j: suppress the just-released reservation if RegistryPage passed it as
+          // ignoreReservationId. The backend may briefly still return this reservation
+          // due to composite-index lag on the status==='active' filter; treating it as
+          // null prevents the hydration-race banner flash on RegistryPage re-mount.
+          if (options?.ignoreReservationId === r.data.active.reservationId) {
+            setStatus("empty")
+            return
+          }
           set(r.data.active)
           setStatus("hydrated")
         } else {
@@ -90,7 +111,7 @@ export function useActiveReservationHydration(registryId: string | undefined) {
     return () => {
       cancelled = true
     }
-  }, [registryId, authReady, user, identity, active, set])
+  }, [registryId, authReady, user, identity, active, set, options?.ignoreReservationId])
 
   return { status }
 }

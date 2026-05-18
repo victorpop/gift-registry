@@ -198,6 +198,11 @@ export default function ItemReservePage() {
   // for ~100-500ms after navigate, showing the item still as RESERVED with the
   // reserved-by-me banner — directly contradicting the success toast (quick-260516-oiy).
   // Then: clear shared active-reservation context, show toast, navigate back.
+  //
+  // Additionally (quick-260518-j5j) pass navigate state carrying the released
+  // reservation/item IDs so RegistryPage can suppress the hydration-race
+  // re-population of the active-reservation context AND the snapshot-race
+  // items-cache flicker that the oiy patch alone cannot fully prevent.
   useEffect(() => {
     if (releaseStatus === 'success' && !releaseSuccessHandledRef.current) {
       releaseSuccessHandledRef.current = true
@@ -210,9 +215,14 @@ export default function ItemReservePage() {
       )
       showToast(t('reservation.release_success'), 'success')
       clearActiveReservation()
-      navigate(`/registry/${id}`)
+      navigate(`/registry/${id}`, {
+        state: {
+          recentReleasedReservationId: active!.reservationId,
+          recentReleasedItemId: itemId,
+        },
+      })
     }
-  }, [releaseStatus, id, itemId, navigate, showToast, t, clearActiveReservation, queryClient])
+  }, [releaseStatus, id, itemId, navigate, showToast, t, clearActiveReservation, queryClient, active])
 
   // Release error: show toast once per error message.
   useEffect(() => {

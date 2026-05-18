@@ -49,7 +49,6 @@ describe('useActiveReservationHydration (j5j ignoreReservationId)', () => {
   it('H-NEW-01: (j5j) when options.ignoreReservationId matches the returned active reservationId, setStatus("empty") fires and set() is NOT called', async () => {
     callableMock.mockResolvedValueOnce({ data: { active: RESERVATION } })
 
-    // @ts-expect-error j5j: 2nd arg not yet implemented in source — removed in GREEN
     const { result } = renderHook(() =>
       useActiveReservationHydration('reg1', { ignoreReservationId: 'r1' }),
     )
@@ -63,7 +62,6 @@ describe('useActiveReservationHydration (j5j ignoreReservationId)', () => {
   it('H-NEW-02: (j5j) when options.ignoreReservationId does NOT match the returned active reservationId, set() IS called and status transitions to "hydrated"', async () => {
     callableMock.mockResolvedValueOnce({ data: { active: RESERVATION } })
 
-    // @ts-expect-error j5j: 2nd arg not yet implemented in source — removed in GREEN
     const { result } = renderHook(() =>
       useActiveReservationHydration('reg1', { ignoreReservationId: 'OTHER-id' }),
     )

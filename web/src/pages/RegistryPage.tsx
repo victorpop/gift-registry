@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useParams, useSearchParams, useNavigate } from 'react-router'
+import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { useRegistryQuery } from '../features/registry/useRegistryQuery'
 import { useItemsQuery } from '../features/registry/useItemsQuery'
@@ -37,9 +37,25 @@ export default function RegistryPage() {
   const registryQ = useRegistryQuery(id)
   const itemsQ = useItemsQuery(id)
 
+  // j5j: read navigation state on first render (NOT inside a useEffect — must be visible
+  // to the FIRST render to suppress the post-release races). location.state is the value
+  // passed via navigate(path, { state }) from ItemReservePage's release-success handler.
+  // When absent (refresh, deep link, navigate without state), the values are undefined
+  // and all j5j logic becomes a no-op identity — pre-j5j behavior is preserved exactly.
+  const location = useLocation()
+  const navState = location.state as
+    | { recentReleasedReservationId?: string; recentReleasedItemId?: string }
+    | null
+  const recentReleasedReservationId = navState?.recentReleasedReservationId
+  const recentReleasedItemId = navState?.recentReleasedItemId
+
   // Hydrate active reservation from Firestore on page load (refresh, new tab, other device for signed-in).
   // The hook bails when active is already set to avoid clobbering a fresh in-session reservation.
-  useActiveReservationHydration(id)
+  // j5j: when location.state carries recentReleasedReservationId (post-release from
+  // ItemReservePage), pass it as ignoreReservationId so the hook treats a brief
+  // composite-index-lag echo of the just-released reservation as null instead of
+  // re-seeding ActiveReservationContext.
+  useActiveReservationHydration(id, { ignoreReservationId: recentReleasedReservationId })
 
   // Compute effective email for reserved-by-me detection (D-06: never render reserver name).
   const effectiveEmail = user?.email ?? identity?.email ?? null
@@ -178,14 +194,43 @@ export default function RegistryPage() {
     })
   }
 
+  // j5j: render-shape override for the snapshot-race window after release-from-ItemReservePage.
+  // When location.state carries recentReleasedItemId, override that item's status to
+  // 'available' (clearing reservedBy/reservedAt/expiresAt) IF AND ONLY IF the cache still
+  // shows it as 'reserved'. This neutralizes the case where useItemsQuery's new onSnapshot
+  // listener fires first with stale Firestore client-cache data (item.status === 'reserved'),
+  // overwriting oiy's optimistic patch. Once the user navigates away (or the real server
+  // snapshot fires with fresh data), the override never re-engages — location.state is
+  // consumed once per mount.
+  //
+  // Constraints:
+  //   - itemsQ.data === undefined ⇒ itemsForRender === undefined (preserves loading-state render).
+  //   - recentReleasedItemId absent ⇒ return itemsQ.data unchanged (referential identity).
+  //   - released item not 'reserved' anymore ⇒ no override (identity). NEVER downgrades 'purchased'.
+  //   - released item not present (deleted) ⇒ no override (identity).
+  const itemsForRender = useMemo<Item[] | undefined>(() => {
+    if (!itemsQ.data) return undefined
+    if (!recentReleasedItemId) return itemsQ.data
+    const target = itemsQ.data.find(it => it.id === recentReleasedItemId)
+    if (!target) return itemsQ.data
+    if (target.status !== 'reserved') return itemsQ.data
+    return itemsQ.data.map(it =>
+      it.id === recentReleasedItemId
+        ? { ...it, status: 'available' as const, reservedBy: null, reservedAt: null, expiresAt: null }
+        : it,
+    )
+  }, [itemsQ.data, recentReleasedItemId])
+
   // Counts per status — drives FilterChips count badges (optional UX).
+  // j5j: consume itemsForRender so the progress strip + filter chip counts reflect the
+  // override (no flash of stale counts contradicting the grid).
   const counts = useMemo(() => {
-    const all = itemsQ.data?.length ?? 0
-    const reserved = itemsQ.data?.filter(i => i.status === 'reserved').length ?? 0
-    const purchased = itemsQ.data?.filter(i => i.status === 'purchased').length ?? 0
+    const all = itemsForRender?.length ?? 0
+    const reserved = itemsForRender?.filter(i => i.status === 'reserved').length ?? 0
+    const purchased = itemsForRender?.filter(i => i.status === 'purchased').length ?? 0
     const available = all - reserved - purchased
     return { all, available, reserved, purchased } as Record<ItemFilter, number>
-  }, [itemsQ.data])
+  }, [itemsForRender])
 
   const totalChosen = (counts.reserved ?? 0) + (counts.purchased ?? 0)
   const total = counts.all ?? 0
@@ -242,9 +287,9 @@ export default function RegistryPage() {
               </div>
 
               {/* Item grid OR empty state */}
-              {itemsQ.data && itemsQ.data.length > 0 ? (
+              {itemsForRender && itemsForRender.length > 0 ? (
                 <ItemGrid
-                  items={itemsQ.data}
+                  items={itemsForRender}
                   registryId={registryQ.data!.id}
                   filter={filter}
                   renderReservedByMeClick={renderReservedByMeClick}
