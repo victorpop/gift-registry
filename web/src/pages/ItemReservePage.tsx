@@ -240,6 +240,15 @@ export default function ItemReservePage() {
   // release fired from another tab / via Cloud Tasks). We must observe 'reserved' first —
   // otherwise a stale 'available' snapshot on initial mount would bounce the user back before
   // the reservation propagates. itemStatusNavigatedRef ensures we fire at most once per mount.
+  //
+  // quick-260519-08n: pass navigation state with recentReleasedReservationId +
+  // recentReleasedItemId — same payload as the release-success effect above (j5j).
+  // Firestore's items snapshot listener consistently fires before useReleaseReservation
+  // flips its own status to 'success', so this effect wins the navigate race after a
+  // release fired from this page. Without the state payload here, RegistryPage's
+  // j5j/ke1 hydration + items-shape override guards have nothing to match against and
+  // StickyReserveBanner + ReserveDetailSection + the reserved-card flicker briefly
+  // re-appear. Carrying the payload from BOTH racers closes the window.
   const currentItemStatus = itemsQ.data?.find(i => i.id === itemId)?.status
   useEffect(() => {
     const prev = prevStatusRef.current
@@ -251,7 +260,12 @@ export default function ItemReservePage() {
     if (currentItemStatus !== 'purchased' && currentItemStatus !== 'available') return
 
     itemStatusNavigatedRef.current = true
-    navigate(`/registry/${id}`)
+    navigate(`/registry/${id}`, {
+      state: {
+        recentReleasedReservationId: active.reservationId,
+        recentReleasedItemId: active.itemId,
+      },
+    })
   }, [currentItemStatus, active, id, navigate])
 
   // --- Reserve CTA click handler (BROWSE_AVAILABLE branch) ---
