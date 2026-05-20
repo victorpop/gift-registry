@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Phase 14 context gathered
-last_updated: "2026-05-20T14:00:42.653Z"
-last_activity: "2026-05-19 - Completed quick task 260519-08n: j5j follow-up — pass nav state in navigate-on-status-flip effect (status-flip race winning over release-success)"
+stopped_at: Completed 14-01-register-web-app-and-hosting-deploy-PLAN.md
+last_updated: "2026-05-20T16:25:44.577Z"
+last_activity: 2026-05-20
 progress:
   total_phases: 14
   completed_phases: 13
-  total_plans: 69
-  completed_plans: 69
+  total_plans: 73
+  completed_plans: 70
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
-**Current focus:** Phase 13 — web-fallback-visual-refresh
+**Current focus:** Phase 14 — web-fallback-live-deploy-guest-uat
 
 ## Current Position
 
-Phase: 14
-Plan: Not started
-Status: Executing Phase 13
-Last activity: 2026-05-19 - Completed quick task 260519-08n: j5j follow-up — pass nav state in navigate-on-status-flip effect (status-flip race winning over release-success)
+Phase: 14 (web-fallback-live-deploy-guest-uat) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
+Last activity: 2026-05-20
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -111,6 +111,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13-web-fallback-visual-refresh P06 | 4min | 4 tasks | 8 files |
 | Phase 13-web-fallback-visual-refresh P04 | 8min | 3 tasks | 7 files |
 | Phase 13-web-fallback-visual-refresh P05 | 6min | 3 tasks | 6 files |
+| Phase 14-web-fallback-live-deploy-guest-uat P01 | 90min | 7 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -304,6 +305,9 @@ Recent decisions affecting current work:
 - [Phase 13-web-fallback-visual-refresh]: [Phase 13-05] ConfirmPurchaseBanner gains optional minutesLeft prop (default 30) — confirm_body interpolates {{minutes}}, ReserveDetailSection passes live countdown.minutes
 - [Phase 13]: GuestIdentityModal uses barrel import (not direct atom import) — its existing test (GuestIdentityModal.test.tsx) is firebase-free from Phase 5, probing only form behaviour; no firebase mock needed unlike AuthModal.test.tsx
 - [Phase 13]: ToastProvider severity pattern: left-border accent (border-l-4 gm-accent/warn/line) rather than full-card colouring — keeps card legible on paper bg while communicating severity; success=terracotta, error=amber, neutral=faint
+- [Phase 14-web-fallback-live-deploy-guest-uat]: Fix-forward rollback: firebase hosting:rollback restores broken blank-page bundle — always redeploy corrected build instead
+- [Phase 14-web-fallback-live-deploy-guest-uat]: App Check stays monitor-only on first deploy: VITE_RECAPTCHA_SITE_KEY empty per D-04; Plan 14-04 wires site key after monitor-mode verification
+- [Phase 14-web-fallback-live-deploy-guest-uat]: Firestore guest-read PERMISSION_DENIED deferred to Plan 14-03: stale prod rules lack visibility.get default; Wave 1 goal (non-blank page) fully met
 
 ### Pending Todos
 
@@ -381,6 +385,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-20T14:00:42.645Z
-Stopped at: Phase 14 context gathered
-Resume file: .planning/phases/14-web-fallback-live-deploy-guest-uat/14-CONTEXT.md
+Last session: 2026-05-20T16:25:44.571Z
+Stopped at: Completed 14-01-register-web-app-and-hosting-deploy-PLAN.md
+Resume file: None
