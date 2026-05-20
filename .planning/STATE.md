@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 14-01-register-web-app-and-hosting-deploy-PLAN.md
-last_updated: "2026-05-20T16:25:44.577Z"
+stopped_at: Completed 14-03-firestore-and-storage-rules-deploy-PLAN.md
+last_updated: "2026-05-20T16:35:43.943Z"
 last_activity: 2026-05-20
 progress:
   total_phases: 14
   completed_phases: 13
   total_plans: 73
-  completed_plans: 70
+  completed_plans: 71
   percent: 0
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 14 (web-fallback-live-deploy-guest-uat) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-05-20
 
@@ -112,6 +112,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 13-web-fallback-visual-refresh P04 | 8min | 3 tasks | 7 files |
 | Phase 13-web-fallback-visual-refresh P05 | 6min | 3 tasks | 6 files |
 | Phase 14-web-fallback-live-deploy-guest-uat P01 | 90min | 7 tasks | 2 files |
+| Phase 14-web-fallback-live-deploy-guest-uat P03 | 10min | 2 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -308,6 +309,8 @@ Recent decisions affecting current work:
 - [Phase 14-web-fallback-live-deploy-guest-uat]: Fix-forward rollback: firebase hosting:rollback restores broken blank-page bundle — always redeploy corrected build instead
 - [Phase 14-web-fallback-live-deploy-guest-uat]: App Check stays monitor-only on first deploy: VITE_RECAPTCHA_SITE_KEY empty per D-04; Plan 14-04 wires site key after monitor-mode verification
 - [Phase 14-web-fallback-live-deploy-guest-uat]: Firestore guest-read PERMISSION_DENIED deferred to Plan 14-03: stale prod rules lack visibility.get default; Wave 1 goal (non-blank page) fully met
+- [Phase 14-web-fallback-live-deploy-guest-uat]: firestore:rules get subcommand unavailable in installed firebase-tools; deploy-log grep gate + SHA256 fingerprint used as parity fallback for deployed rules verification
+- [Phase 14-web-fallback-live-deploy-guest-uat]: 403 on registries/heTs42jyX1XPDtBSJbR3 is NOT caused by stale rules (defensive visibility.get defaults were already deployed); root cause is registry visibility/existence — deferred to Plan 14-04 UAT inspection
 
 ### Pending Todos
 
@@ -385,6 +388,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-20T16:25:44.571Z
-Stopped at: Completed 14-01-register-web-app-and-hosting-deploy-PLAN.md
+Last session: 2026-05-20T16:35:43.937Z
+Stopped at: Completed 14-03-firestore-and-storage-rules-deploy-PLAN.md
 Resume file: None
