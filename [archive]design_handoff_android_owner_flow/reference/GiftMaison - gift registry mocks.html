@@ -1,0 +1,2357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>GiftMaison — gift registry mockups</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #f0eee9; }
+  body { font-family: Inter, system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+  /* Tweaks panel */
+  .tw-panel {
+    position: fixed; right: 20px; bottom: 20px; z-index: 999;
+    width: 280px; background: #fff; border-radius: 16px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.05);
+    padding: 18px 20px; font-family: Inter, system-ui, sans-serif;
+    display: none;
+  }
+  .tw-panel.on { display: block; }
+  .tw-panel h4 {
+    margin: 0 0 4px; font-family: 'Instrument Serif', serif;
+    font-size: 20px; font-weight: 400; font-style: italic;
+    letter-spacing: -0.3px;
+  }
+  .tw-panel .sub {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 1px; text-transform: uppercase; color: #888;
+    margin-bottom: 14px;
+  }
+  .tw-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    letter-spacing: 1.2px; text-transform: uppercase; color: #888;
+    display: block; margin-bottom: 8px;
+  }
+  .tw-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tw-opt {
+    padding: 10px 12px; border-radius: 10px;
+    border: 1.5px solid #eae5dd; background: #faf8f4;
+    cursor: pointer; font-size: 13px; font-weight: 500;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .tw-opt.sel { border-color: #111; background: #fff; }
+  .tw-opt .swatch { width: 14px; height: 14px; border-radius: 4px; }
+  .tw-opt .n { font-size: 12px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<div class="tw-panel" id="tweaks-panel">
+  <h4>Tweaks</h4>
+  <div class="sub">Occasion theme</div>
+  <span class="tw-label">Changes accent + headline</span>
+  <div class="tw-grid" id="theme-opts"></div>
+</div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="react">
+
+// DesignCanvas.jsx — Figma-ish design canvas wrapper
+// Warm gray grid bg + Sections + Artboards + PostIt notes.
+// No assets, no deps.
+
+const DC = {
+  bg: '#f0eee9',
+  grid: 'rgba(0,0,0,0.06)',
+  label: 'rgba(60,50,40,0.7)',
+  title: 'rgba(40,30,20,0.85)',
+  subtitle: 'rgba(60,50,40,0.6)',
+  postitBg: '#fef4a8',
+  postitText: '#5a4a2a',
+  font: '-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif',
+};
+
+// ─────────────────────────────────────────────────────────────
+// Main canvas — transform-based pan/zoom viewport
+//
+// Input mapping (Figma-style):
+//   • trackpad pinch  → zoom   (ctrlKey wheel; Safari gesture* events)
+//   • trackpad scroll → pan    (two-finger)
+//   • mouse wheel     → zoom   (notched; distinguished from trackpad scroll)
+//   • middle-drag / primary-drag-on-bg → pan
+//
+// Transform state lives in a ref and is written straight to the DOM
+// (translate3d + will-change) so wheel ticks don't go through React —
+// keeps pans at 60fps on dense canvases.
+// ─────────────────────────────────────────────────────────────
+function DesignCanvas({ children, minScale = 0.1, maxScale = 8, style = {} }) {
+  const vpRef = React.useRef(null);
+  const worldRef = React.useRef(null);
+  const tf = React.useRef({ x: 0, y: 0, scale: 1 });
+
+  const apply = React.useCallback(() => {
+    const { x, y, scale } = tf.current;
+    const el = worldRef.current;
+    if (el) el.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`;
+  }, []);
+
+  React.useEffect(() => {
+    const vp = vpRef.current;
+    if (!vp) return;
+
+    const zoomAt = (cx, cy, factor) => {
+      const r = vp.getBoundingClientRect();
+      const px = cx - r.left, py = cy - r.top;
+      const t = tf.current;
+      const next = Math.min(maxScale, Math.max(minScale, t.scale * factor));
+      const k = next / t.scale;
+      // keep the world point under the cursor fixed
+      t.x = px - (px - t.x) * k;
+      t.y = py - (py - t.y) * k;
+      t.scale = next;
+      apply();
+    };
+
+    // Mouse-wheel vs trackpad-scroll heuristic. A physical wheel sends
+    // line-mode deltas (Firefox) or large integer pixel deltas with no X
+    // component (Chrome/Safari, typically multiples of 100/120). Trackpad
+    // two-finger scroll sends small/fractional pixel deltas, often with
+    // non-zero deltaX. ctrlKey is set by the browser for trackpad pinch.
+    const isMouseWheel = (e) =>
+      e.deltaMode !== 0 ||
+      (e.deltaX === 0 && Number.isInteger(e.deltaY) && Math.abs(e.deltaY) >= 40);
+
+    const onWheel = (e) => {
+      e.preventDefault();
+      if (isGesturing) return; // Safari: gesture* owns the pinch — discard concurrent wheels
+      if (e.ctrlKey) {
+        // trackpad pinch (or explicit ctrl+wheel)
+        zoomAt(e.clientX, e.clientY, Math.exp(-e.deltaY * 0.01));
+      } else if (isMouseWheel(e)) {
+        // notched mouse wheel — fixed-ratio step per click
+        zoomAt(e.clientX, e.clientY, Math.exp(-Math.sign(e.deltaY) * 0.18));
+      } else {
+        // trackpad two-finger scroll — pan
+        tf.current.x -= e.deltaX;
+        tf.current.y -= e.deltaY;
+        apply();
+      }
+    };
+
+    // Safari sends native gesture* events for trackpad pinch with a smooth
+    // e.scale; preferring these over the ctrl+wheel fallback gives a much
+    // better feel there. No-ops on other browsers. Safari also fires
+    // ctrlKey wheel events during the same pinch — isGesturing makes
+    // onWheel drop those entirely so they neither zoom nor pan.
+    let gsBase = 1;
+    let isGesturing = false;
+    const onGestureStart = (e) => { e.preventDefault(); isGesturing = true; gsBase = tf.current.scale; };
+    const onGestureChange = (e) => {
+      e.preventDefault();
+      zoomAt(e.clientX, e.clientY, (gsBase * e.scale) / tf.current.scale);
+    };
+    const onGestureEnd = (e) => { e.preventDefault(); isGesturing = false; };
+
+    // Drag-pan: middle button anywhere, or primary button starting on the
+    // canvas background (not inside an artboard).
+    let drag = null;
+    const onPointerDown = (e) => {
+      const onBg = e.target === vp || e.target === worldRef.current;
+      if (!(e.button === 1 || (e.button === 0 && onBg))) return;
+      e.preventDefault();
+      vp.setPointerCapture(e.pointerId);
+      drag = { id: e.pointerId, lx: e.clientX, ly: e.clientY };
+      vp.style.cursor = 'grabbing';
+    };
+    const onPointerMove = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      tf.current.x += e.clientX - drag.lx;
+      tf.current.y += e.clientY - drag.ly;
+      drag.lx = e.clientX; drag.ly = e.clientY;
+      apply();
+    };
+    const onPointerUp = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      vp.releasePointerCapture(e.pointerId);
+      drag = null;
+      vp.style.cursor = '';
+    };
+
+    vp.addEventListener('wheel', onWheel, { passive: false });
+    vp.addEventListener('gesturestart', onGestureStart, { passive: false });
+    vp.addEventListener('gesturechange', onGestureChange, { passive: false });
+    vp.addEventListener('gestureend', onGestureEnd, { passive: false });
+    vp.addEventListener('pointerdown', onPointerDown);
+    vp.addEventListener('pointermove', onPointerMove);
+    vp.addEventListener('pointerup', onPointerUp);
+    vp.addEventListener('pointercancel', onPointerUp);
+    return () => {
+      vp.removeEventListener('wheel', onWheel);
+      vp.removeEventListener('gesturestart', onGestureStart);
+      vp.removeEventListener('gesturechange', onGestureChange);
+      vp.removeEventListener('gestureend', onGestureEnd);
+      vp.removeEventListener('pointerdown', onPointerDown);
+      vp.removeEventListener('pointermove', onPointerMove);
+      vp.removeEventListener('pointerup', onPointerUp);
+      vp.removeEventListener('pointercancel', onPointerUp);
+    };
+  }, [apply, minScale, maxScale]);
+
+  const gridSvg = `url("data:image/svg+xml,%3Csvg width='120' height='120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M120 0H0v120' fill='none' stroke='${encodeURIComponent(DC.grid)}' stroke-width='1'/%3E%3C/svg%3E")`;
+  return (
+    <div
+      ref={vpRef}
+      className="design-canvas"
+      style={{
+        height: '100vh', width: '100vw',
+        background: DC.bg,
+        overflow: 'hidden',
+        overscrollBehavior: 'none',
+        touchAction: 'none',
+        position: 'relative',
+        fontFamily: DC.font,
+        boxSizing: 'border-box',
+        ...style,
+      }}
+    >
+      <div
+        ref={worldRef}
+        style={{
+          position: 'absolute', top: 0, left: 0,
+          transformOrigin: '0 0',
+          willChange: 'transform',
+          width: 'max-content', minWidth: '100%',
+          minHeight: '100%',
+          padding: '60px 0 80px',
+          backgroundImage: gridSvg,
+          backgroundSize: '120px 120px',
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Section — title + subtitle + h-stack of artboards (no wrap)
+// ─────────────────────────────────────────────────────────────
+function DCSection({ title, subtitle, children, gap = 48 }) {
+  return (
+    <div style={{ marginBottom: 80, position: 'relative' }}>
+      <div style={{ padding: '0 60px 36px' }}>
+        <div style={{
+          fontSize: 22, fontWeight: 600, color: DC.title,
+          letterSpacing: -0.3, marginBottom: 4,
+        }}>{title}</div>
+        {subtitle && (
+          <div style={{
+            fontSize: 14, fontWeight: 400, color: DC.subtitle,
+          }}>{subtitle}</div>
+        )}
+      </div>
+      {/* h-stack — clips offscreen, never wraps */}
+      <div style={{
+        display: 'flex', gap, padding: '0 60px',
+        alignItems: 'flex-start', width: 'max-content',
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Artboard — labeled card
+// ─────────────────────────────────────────────────────────────
+function DCArtboard({ label, children, width, height, style = {} }) {
+  return (
+    <div style={{ position: 'relative', flexShrink: 0 }}>
+      {label && (
+        <div style={{
+          position: 'absolute', bottom: '100%', left: 0,
+          paddingBottom: 8,
+          fontSize: 12, fontWeight: 500, color: DC.label,
+          whiteSpace: 'nowrap',
+        }}>{label}</div>
+      )}
+      <div style={{
+        borderRadius: 2,
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06)',
+        overflow: 'hidden',
+        width, height,
+        background: '#fff',
+        ...style,
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Post-it — absolute-positioned sticky note
+// ─────────────────────────────────────────────────────────────
+function DCPostIt({ children, top, left, right, bottom, rotate = -2, width = 180 }) {
+  return (
+    <div style={{
+      position: 'absolute', top, left, right, bottom, width,
+      background: DC.postitBg, padding: '14px 16px',
+      fontFamily: '"Comic Sans MS", "Marker Felt", "Segoe Print", cursive',
+      fontSize: 14, lineHeight: 1.4, color: DC.postitText,
+      boxShadow: '0 2px 8px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08)',
+      transform: `rotate(${rotate}deg)`,
+      zIndex: 5,
+    }}>{children}</div>
+  );
+}
+
+Object.assign(window, { DesignCanvas, DCSection, DCArtboard, DCPostIt });
+
+
+</script>
+<script type="text/babel" data-presets="react">
+// theme.jsx — GiftMaison brand tokens + occasion palettes
+
+const THEMES = {
+  housewarming: {
+    name: 'Housewarming',
+    headline: 'Welcome home',
+    subline: 'A place, now filled',
+    paper: 'oklch(0.972 0.012 75)',      // warm cream
+    paperDeep: 'oklch(0.94 0.018 72)',   // warmer card
+    ink: 'oklch(0.22 0.015 50)',         // soft near-black
+    inkSoft: 'oklch(0.42 0.02 55)',
+    inkFaint: 'oklch(0.62 0.025 60)',
+    line: 'oklch(0.88 0.015 70)',
+    accent: 'oklch(0.58 0.15 38)',       // terracotta
+    accentInk: 'oklch(0.98 0.01 75)',
+    accentSoft: 'oklch(0.92 0.04 42)',
+    second: 'oklch(0.48 0.07 145)',      // deep olive
+    secondSoft: 'oklch(0.9 0.03 135)',
+    ok: 'oklch(0.58 0.11 150)',
+    warn: 'oklch(0.68 0.14 65)',
+  },
+  wedding: {
+    name: 'Wedding',
+    headline: 'Two, together',
+    subline: 'Small tokens for a big day',
+    paper: 'oklch(0.975 0.008 20)',
+    paperDeep: 'oklch(0.95 0.013 15)',
+    ink: 'oklch(0.22 0.015 340)',
+    inkSoft: 'oklch(0.42 0.02 340)',
+    inkFaint: 'oklch(0.62 0.025 340)',
+    line: 'oklch(0.88 0.015 20)',
+    accent: 'oklch(0.56 0.13 355)',      // rose
+    accentInk: 'oklch(0.98 0.01 20)',
+    accentSoft: 'oklch(0.92 0.04 355)',
+    second: 'oklch(0.42 0.04 280)',
+    secondSoft: 'oklch(0.9 0.02 280)',
+    ok: 'oklch(0.58 0.11 150)',
+    warn: 'oklch(0.68 0.14 65)',
+  },
+  baby: {
+    name: 'Baby shower',
+    headline: 'Tiny, loved',
+    subline: 'Hand-picked by family',
+    paper: 'oklch(0.975 0.01 225)',
+    paperDeep: 'oklch(0.95 0.018 220)',
+    ink: 'oklch(0.22 0.02 240)',
+    inkSoft: 'oklch(0.42 0.025 235)',
+    inkFaint: 'oklch(0.62 0.03 230)',
+    line: 'oklch(0.88 0.02 225)',
+    accent: 'oklch(0.6 0.1 230)',        // soft dusty blue
+    accentInk: 'oklch(0.98 0.01 225)',
+    accentSoft: 'oklch(0.92 0.04 225)',
+    second: 'oklch(0.52 0.09 55)',       // warm mustard counter
+    secondSoft: 'oklch(0.92 0.04 65)',
+    ok: 'oklch(0.58 0.11 150)',
+    warn: 'oklch(0.68 0.14 65)',
+  },
+  birthday: {
+    name: 'Birthday',
+    headline: 'Another lap',
+    subline: 'Here\u2019s to the year ahead',
+    paper: 'oklch(0.975 0.012 90)',
+    paperDeep: 'oklch(0.95 0.02 85)',
+    ink: 'oklch(0.22 0.015 60)',
+    inkSoft: 'oklch(0.42 0.025 65)',
+    inkFaint: 'oklch(0.62 0.03 70)',
+    line: 'oklch(0.88 0.02 80)',
+    accent: 'oklch(0.64 0.16 75)',       // marigold
+    accentInk: 'oklch(0.2 0.02 70)',
+    accentSoft: 'oklch(0.92 0.05 80)',
+    second: 'oklch(0.42 0.12 350)',      // plum counter
+    secondSoft: 'oklch(0.9 0.03 350)',
+    ok: 'oklch(0.58 0.11 150)',
+    warn: 'oklch(0.62 0.17 30)',
+  },
+};
+
+const TYPE = {
+  display: '"Instrument Serif", "Cormorant Garamond", Georgia, serif',
+  body: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  mono: '"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace',
+};
+
+// Sample photography (Unsplash — housewarming objects)
+const PHOTOS = {
+  bowl: 'https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=600&q=70',
+  lamp: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&q=70',
+  plant: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600&q=70',
+  linen: 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=600&q=70',
+  coffee: 'https://images.unsplash.com/photo-1516224498413-84ecf3a1e7fd?w=600&q=70',
+  knives: 'https://images.unsplash.com/photo-1593618998160-e34014e67546?w=600&q=70',
+  board: 'https://images.unsplash.com/photo-1580554530778-ca36943938b2?w=600&q=70',
+  candle: 'https://images.unsplash.com/photo-1603006905003-be475563bc59?w=600&q=70',
+  vase: 'https://images.unsplash.com/photo-1578500351865-d6c3706f46bc?w=600&q=70',
+  throw: 'https://images.unsplash.com/photo-1540638349517-3abd5afc9847?w=600&q=70',
+  espresso: 'https://images.unsplash.com/photo-1494314671902-399b18174975?w=600&q=70',
+  mugs: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=600&q=70',
+  couple: 'https://images.unsplash.com/photo-1513694203232-719a280e022f?w=800&q=70',
+  apt: 'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?w=800&q=70',
+};
+
+// Sample registry items
+const SAMPLE_ITEMS = [
+  { id: 'i1', title: 'Stoneware mixing bowl set', retailer: 'emag.ro', price: 189, currency: 'RON', image: PHOTOS.bowl, status: 'available' },
+  { id: 'i2', title: 'Sculptural table lamp, ceramic base', retailer: 'dedeman.ro', price: 420, currency: 'RON', image: PHOTOS.lamp, status: 'reserved', reservedBy: 'Ioana M.', minutesLeft: 23 },
+  { id: 'i3', title: 'Fiddle-leaf fig, medium', retailer: 'emag.ro', price: 145, currency: 'RON', image: PHOTOS.plant, status: 'purchased', purchasedBy: 'Andrei' },
+  { id: 'i4', title: 'Linen duvet cover, dune', retailer: 'zara.home', price: 349, currency: 'RON', image: PHOTOS.linen, status: 'available' },
+  { id: 'i5', title: 'Moka pot, 6-cup', retailer: 'emag.ro', price: 119, currency: 'RON', image: PHOTOS.coffee, status: 'available' },
+  { id: 'i6', title: 'Santoku knife, hand-forged', retailer: 'emag.ro', price: 280, currency: 'RON', image: PHOTOS.knives, status: 'available' },
+  { id: 'i7', title: 'Walnut cutting board', retailer: 'dedeman.ro', price: 165, currency: 'RON', image: PHOTOS.board, status: 'available' },
+  { id: 'i8', title: 'Beeswax pillar candle set', retailer: 'emag.ro', price: 85, currency: 'RON', image: PHOTOS.candle, status: 'purchased', purchasedBy: 'Maria' },
+  { id: 'i9', title: 'Hand-thrown flower vase', retailer: 'etsy.com', price: 240, currency: 'RON', image: PHOTOS.vase, status: 'available' },
+  { id: 'i10', title: 'Wool throw blanket, ochre', retailer: 'zara.home', price: 399, currency: 'RON', image: PHOTOS.throw, status: 'available' },
+  { id: 'i11', title: 'Espresso machine, semi-auto', retailer: 'emag.ro', price: 1849, currency: 'RON', image: PHOTOS.espresso, status: 'available' },
+  { id: 'i12', title: 'Stoneware mug set of four', retailer: 'emag.ro', price: 160, currency: 'RON', image: PHOTOS.mugs, status: 'available' },
+];
+
+Object.assign(window, { THEMES, TYPE, PHOTOS, SAMPLE_ITEMS });
+
+</script>
+<script type="text/babel" data-presets="react">
+// web-screens.jsx — Web giver flow, rendered inside browser windows
+
+// ─────────────────────────────────────────────────────────────
+// Shared atoms
+// ─────────────────────────────────────────────────────────────
+
+function Logo({ t, size = 22, withTag = false }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+      <span style={{
+        fontFamily: TYPE.display, fontSize: size, fontStyle: 'italic',
+        color: t.ink, letterSpacing: -0.2, lineHeight: 1,
+      }}>giftmaison<span style={{ color: t.accent }}>.</span></span>
+      {withTag && (
+        <span style={{
+          fontFamily: TYPE.mono, fontSize: 10, color: t.inkFaint,
+          textTransform: 'uppercase', letterSpacing: 1.5,
+        }}>gift registry</span>
+      )}
+    </div>
+  );
+}
+
+function Pill({ t, children, tone = 'neutral', size = 'sm' }) {
+  const tones = {
+    neutral: { bg: t.paperDeep, fg: t.inkSoft, border: t.line },
+    accent: { bg: t.accentSoft, fg: t.accent, border: 'transparent' },
+    second: { bg: t.secondSoft, fg: t.second, border: 'transparent' },
+    ok: { bg: 'oklch(0.94 0.04 150)', fg: t.ok, border: 'transparent' },
+    warn: { bg: 'oklch(0.95 0.04 70)', fg: t.warn, border: 'transparent' },
+  };
+  const tn = tones[tone];
+  const pad = size === 'sm' ? '3px 8px' : '5px 10px';
+  const fs = size === 'sm' ? 11 : 12;
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: 5,
+      padding: pad, borderRadius: 999, background: tn.bg, color: tn.fg,
+      border: `1px solid ${tn.border}`, fontFamily: TYPE.mono, fontSize: fs,
+      letterSpacing: 0.3, textTransform: 'uppercase', fontWeight: 500,
+      whiteSpace: 'nowrap',
+    }}>{children}</span>
+  );
+}
+
+function Btn({ t, children, variant = 'primary', size = 'md', icon, style = {}, ...rest }) {
+  const base = {
+    primary: { bg: t.ink, fg: t.paper, border: t.ink },
+    accent: { bg: t.accent, fg: t.accentInk, border: t.accent },
+    ghost: { bg: 'transparent', fg: t.ink, border: t.line },
+    quiet: { bg: 'transparent', fg: t.inkSoft, border: 'transparent' },
+  };
+  const v = base[variant];
+  const pad = size === 'lg' ? '14px 22px' : size === 'sm' ? '7px 12px' : '11px 18px';
+  const fs = size === 'lg' ? 15 : size === 'sm' ? 12 : 13.5;
+  return (
+    <button style={{
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+      padding: pad, borderRadius: 999, background: v.bg, color: v.fg,
+      border: `1px solid ${v.border}`, fontFamily: TYPE.body, fontSize: fs,
+      fontWeight: 500, letterSpacing: -0.1, cursor: 'pointer', lineHeight: 1,
+      ...style,
+    }} {...rest}>
+      {icon}{children}
+    </button>
+  );
+}
+
+function Field({ t, label, value, placeholder, hint, autofilled, prefix, suffix }) {
+  return (
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <span style={{
+        fontFamily: TYPE.mono, fontSize: 10, textTransform: 'uppercase',
+        letterSpacing: 1.3, color: t.inkFaint, fontWeight: 500,
+      }}>{label}{autofilled && <span style={{ color: t.ok, marginLeft: 8 }}>✓ auto-filled</span>}</span>
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: 8,
+        padding: '11px 14px', borderRadius: 8,
+        background: t.paper, border: `1px solid ${t.line}`,
+        fontFamily: TYPE.body, fontSize: 14, color: value ? t.ink : t.inkFaint,
+      }}>
+        {prefix && <span style={{ color: t.inkFaint, fontSize: 13 }}>{prefix}</span>}
+        <span style={{ flex: 1 }}>{value || placeholder}</span>
+        {suffix}
+      </div>
+      {hint && <span style={{ fontSize: 11.5, color: t.inkFaint, fontFamily: TYPE.body }}>{hint}</span>}
+    </label>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Web: top nav (shared by all web artboards)
+// ─────────────────────────────────────────────────────────────
+function WebNav({ t, signedIn = false }) {
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '20px 40px', borderBottom: `1px solid ${t.line}`,
+      background: t.paper,
+    }}>
+      <Logo t={t} size={24} withTag />
+      <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+        <span style={{ fontFamily: TYPE.mono, fontSize: 11, color: t.inkFaint, letterSpacing: 0.5 }}>EN / RO</span>
+        {signedIn ? (
+          <div style={{
+            width: 32, height: 32, borderRadius: '50%', background: t.second,
+            color: t.paper, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontFamily: TYPE.body, fontSize: 12, fontWeight: 500,
+          }}>AM</div>
+        ) : (
+          <Btn t={t} variant="ghost" size="sm">Sign in</Btn>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// Item card (web grid)
+// ─────────────────────────────────────────────────────────────
+function ItemCard({ t, item, featured = false }) {
+  const isReserved = item.status === 'reserved';
+  const isPurchased = item.status === 'purchased';
+  const isAvailable = item.status === 'available';
+
+  return (
+    <div style={{
+      background: t.paper, borderRadius: 14, overflow: 'hidden',
+      border: `1px solid ${t.line}`,
+      display: 'flex', flexDirection: 'column',
+      opacity: isPurchased ? 0.55 : 1,
+    }}>
+      <div style={{
+        position: 'relative', aspectRatio: featured ? '16 / 10' : '4 / 3',
+        background: t.paperDeep, overflow: 'hidden',
+      }}>
+        <img src={item.image} alt="" style={{
+          width: '100%', height: '100%', objectFit: 'cover',
+          filter: isPurchased ? 'grayscale(1)' : 'none',
+        }} />
+        {isPurchased && (
+          <div style={{
+            position: 'absolute', inset: 0, display: 'flex', alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <div style={{
+              background: t.paper, padding: '6px 14px', borderRadius: 999,
+              fontFamily: TYPE.mono, fontSize: 11, color: t.inkSoft,
+              textTransform: 'uppercase', letterSpacing: 1.3, fontWeight: 500,
+            }}>✓ Given by {item.purchasedBy}</div>
+          </div>
+        )}
+        <div style={{ position: 'absolute', top: 12, left: 12 }}>
+          {isAvailable && <Pill t={t} tone="neutral">Available</Pill>}
+          {isReserved && <Pill t={t} tone="accent">◉ Reserved</Pill>}
+          {isPurchased && <Pill t={t} tone="ok">Purchased</Pill>}
+        </div>
+      </div>
+      <div style={{ padding: '14px 16px 16px', display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
+        <div>
+          <h3 style={{
+            margin: 0, fontFamily: TYPE.body, fontSize: featured ? 17 : 15,
+            fontWeight: 500, color: t.ink, lineHeight: 1.25, letterSpacing: -0.2,
+          }}>{item.title}</h3>
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+            marginTop: 6,
+          }}>
+            <span style={{ fontFamily: TYPE.body, fontSize: 14, color: t.ink, fontWeight: 500 }}>
+              {item.price} <span style={{ color: t.inkFaint, fontSize: 11, fontFamily: TYPE.mono }}>{item.currency}</span>
+            </span>
+            <span style={{ fontFamily: TYPE.mono, fontSize: 10, color: t.inkFaint, letterSpacing: 0.5 }}>
+              {item.retailer}
+            </span>
+          </div>
+        </div>
+
+        {isReserved && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px',
+            background: t.accentSoft, borderRadius: 8,
+          }}>
+            <div style={{
+              width: 8, height: 8, borderRadius: '50%', background: t.accent,
+              boxShadow: `0 0 0 4px ${t.accentSoft}`,
+              animation: 'pulse 1.6s ease-in-out infinite',
+            }} />
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <span style={{ fontFamily: TYPE.body, fontSize: 12, color: t.accent, fontWeight: 500 }}>
+                Reserved by {item.reservedBy}
+              </span>
+              <span style={{ fontFamily: TYPE.mono, fontSize: 10.5, color: t.accent, letterSpacing: 0.4 }}>
+                {item.minutesLeft} MIN LEFT · auto-releases if not purchased
+              </span>
+            </div>
+          </div>
+        )}
+
+        {isAvailable && (
+          <Btn t={t} variant="primary" size="sm" style={{ alignSelf: 'stretch' }}>
+            Reserve this gift →
+          </Btn>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCREEN 1: Registry detail (hero)
+// ─────────────────────────────────────────────────────────────
+function RegistryScreen({ t }) {
+  return (
+    <div style={{ background: t.paper, minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+      <WebNav t={t} />
+
+      {/* Registry header */}
+      <div style={{ padding: '48px 40px 36px', borderBottom: `1px solid ${t.line}` }}>
+        <div style={{ display: 'flex', gap: 40, alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          <div style={{ flex: 1, maxWidth: 640 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+              <Pill t={t} tone="accent">⌂ Housewarming</Pill>
+              <Pill t={t} tone="neutral">Public link</Pill>
+              <span style={{ fontFamily: TYPE.mono, fontSize: 11, color: t.inkFaint, letterSpacing: 0.4 }}>
+                · May 16, 2026
+              </span>
+            </div>
+            <h1 style={{
+              margin: 0, fontFamily: TYPE.display, fontSize: 58, fontWeight: 400,
+              color: t.ink, lineHeight: 0.96, letterSpacing: -1.5,
+            }}>
+              Ana & Mihai, <span style={{ fontStyle: 'italic', color: t.accent }}>at last</span> on Strada Popa
+            </h1>
+            <p style={{
+              margin: '18px 0 0', fontFamily: TYPE.body, fontSize: 16,
+              color: t.inkSoft, lineHeight: 1.55, maxWidth: 540, textWrap: 'pretty',
+            }}>
+              Seven years, three moves, one very patient cat — and finally keys to a place we own.
+              If you'd like to mark the occasion, we've put together a little list. No pressure, no
+              duplicates, no re-gifting the teapot from the wedding.
+            </p>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-end' }}>
+            <div style={{
+              padding: '14px 18px', background: t.paperDeep, borderRadius: 10,
+              display: 'flex', flexDirection: 'column', gap: 8, minWidth: 200,
+            }}>
+              <span style={{ fontFamily: TYPE.mono, fontSize: 10, color: t.inkFaint, letterSpacing: 1.2, textTransform: 'uppercase' }}>
+                Progress
+              </span>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <span style={{ fontFamily: TYPE.display, fontSize: 34, color: t.ink, lineHeight: 1 }}>2</span>
+                <span style={{ fontFamily: TYPE.body, fontSize: 14, color: t.inkFaint }}>of 12 chosen</span>
+              </div>
+              <div style={{ height: 4, background: t.line, borderRadius: 2, overflow: 'hidden' }}>
+                <div style={{ width: '16.6%', height: '100%', background: t.accent }} />
+              </div>
+            </div>
+            <Btn t={t} variant="ghost" size="sm" icon="↗">Share this registry</Btn>
+          </div>
+        </div>
+      </div>
+
+      {/* Item grid */}
+      <div style={{ padding: '32px 40px 48px' }}>
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          marginBottom: 20,
+        }}>
+          <h2 style={{
+            margin: 0, fontFamily: TYPE.display, fontSize: 24, fontWeight: 400,
+            color: t.ink, letterSpacing: -0.5,
+          }}>The list <span style={{ color: t.inkFaint, fontFamily: TYPE.mono, fontSize: 13, letterSpacing: 0.5 }}>— 12 items</span></h2>
+          <div style={{ display: 'flex', gap: 6, padding: 4, background: t.paperDeep, borderRadius: 999 }}>
+            {['All', 'Available', 'Reserved', 'Purchased'].map((x, i) => (
+              <button key={x} style={{
+                padding: '6px 14px', borderRadius: 999, border: 'none',
+                background: i === 0 ? t.paper : 'transparent',
+                boxShadow: i === 0 ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+                fontFamily: TYPE.body, fontSize: 12.5, fontWeight: 500,
+                color: i === 0 ? t.ink : t.inkFaint, cursor: 'pointer',
+              }}>{x}</button>
+            ))}
+          </div>
+        </div>
+
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20,
+        }}>
+          {SAMPLE_ITEMS.slice(0, 9).map(it => <ItemCard key={it.id} t={t} item={it} />)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCREEN 2: Reserve flow — just-reserved state with timer
+// ─────────────────────────────────────────────────────────────
+function ReserveScreen({ t }) {
+  const reserved = { ...SAMPLE_ITEMS[1], status: 'reserved', reservedBy: 'you', minutesLeft: 29 };
+  return (
+    <div style={{ background: t.paper, minHeight: '100%' }}>
+      <WebNav t={t} signedIn />
+
+      {/* Sticky reservation banner */}
+      <div style={{
+        background: t.ink, color: t.paper, padding: '14px 40px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 20,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <div style={{
+            width: 10, height: 10, borderRadius: '50%', background: t.accent,
+            boxShadow: `0 0 0 5px ${t.accent}30`,
+          }} />
+          <div>
+            <div style={{ fontFamily: TYPE.body, fontSize: 14, fontWeight: 500 }}>
+              You reserved <em style={{ fontFamily: TYPE.display, fontStyle: 'italic', fontWeight: 400 }}>Sculptural table lamp</em>
+            </div>
+            <div style={{ fontFamily: TYPE.mono, fontSize: 11, opacity: 0.65, letterSpacing: 0.5, marginTop: 2 }}>
+              29:47 remaining · finish your purchase at dedeman.ro
+            </div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <Btn t={t} variant="quiet" size="sm" style={{ color: t.paper, border: `1px solid ${t.paper}30` }}>
+            Release reservation
+          </Btn>
+          <Btn t={t} variant="accent" size="sm">
+            Continue to dedeman.ro →
+          </Btn>
+        </div>
+      </div>
+
+      <div style={{ padding: '36px 40px' }}>
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 340px', gap: 32, alignItems: 'flex-start',
+        }}>
+          {/* Main: the reserved item, detailed */}
+          <div>
+            <span style={{ fontFamily: TYPE.mono, fontSize: 11, color: t.inkFaint, letterSpacing: 1.2, textTransform: 'uppercase' }}>
+              Your reservation · Step 2 of 2
+            </span>
+            <h1 style={{
+              margin: '10px 0 28px', fontFamily: TYPE.display, fontSize: 44, fontWeight: 400,
+              color: t.ink, letterSpacing: -1, lineHeight: 1.05,
+            }}>
+              Nice one. <span style={{ fontStyle: 'italic', color: t.accent }}>Now finish the purchase</span> at the retailer.
+            </h1>
+
+            <div style={{
+              display: 'flex', gap: 20, padding: 20,
+              background: t.paperDeep, borderRadius: 14, border: `1px solid ${t.line}`,
+            }}>
+              <div style={{
+                width: 160, height: 160, borderRadius: 10, overflow: 'hidden', flexShrink: 0,
+                background: t.line,
+              }}>
+                <img src={reserved.image} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+              </div>
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, justifyContent: 'space-between' }}>
+                <div>
+                  <Pill t={t} tone="accent">◉ Reserved for you</Pill>
+                  <h2 style={{
+                    margin: '10px 0 4px', fontFamily: TYPE.body, fontSize: 20,
+                    fontWeight: 500, color: t.ink, letterSpacing: -0.3,
+                  }}>{reserved.title}</h2>
+                  <div style={{ fontFamily: TYPE.body, fontSize: 14, color: t.inkSoft }}>
+                    {reserved.price} <span style={{ color: t.inkFaint }}>{reserved.currency}</span>
+                    <span style={{ color: t.inkFaint, margin: '0 8px' }}>·</span>
+                    sold at <strong style={{ fontWeight: 500, color: t.ink }}>{reserved.retailer}</strong>
+                  </div>
+                </div>
+                <div style={{
+                  padding: '12px 14px', background: t.paper, borderRadius: 8,
+                  border: `1px solid ${t.line}`,
+                }}>
+                  <div style={{
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline',
+                    marginBottom: 8,
+                  }}>
+                    <span style={{ fontFamily: TYPE.mono, fontSize: 10, color: t.inkFaint, letterSpacing: 1.2, textTransform: 'uppercase' }}>
+                      Time to purchase
+                    </span>
+                    <span style={{ fontFamily: TYPE.mono, fontSize: 12, color: t.accent, fontWeight: 500 }}>
+                      29:47
+                    </span>
+                  </div>
+                  <div style={{ height: 3, background: t.line, borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ width: '99%', height: '100%', background: t.accent, transition: 'width 1s linear' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Confirm back */}
+            <div style={{
+              marginTop: 20, padding: '20px 22px', borderRadius: 14,
+              background: t.accentSoft, border: `1px solid ${t.accent}30`,
+              display: 'flex', gap: 18, alignItems: 'center',
+            }}>
+              <div style={{ flex: 1 }}>
+                <h3 style={{
+                  margin: 0, fontFamily: TYPE.display, fontSize: 22, fontWeight: 400,
+                  color: t.ink, letterSpacing: -0.3,
+                }}>Bought it? Mark it as purchased.</h3>
+                <p style={{
+                  margin: '4px 0 0', fontFamily: TYPE.body, fontSize: 13.5,
+                  color: t.inkSoft, lineHeight: 1.45,
+                }}>
+                  This releases the timer and lets Ana & Mihai know. Otherwise the item frees up in 29 minutes.
+                </p>
+              </div>
+              <Btn t={t} variant="accent">I completed the purchase ✓</Btn>
+            </div>
+          </div>
+
+          {/* Sidebar: why the timer */}
+          <aside style={{
+            padding: 24, background: t.paperDeep, borderRadius: 14, border: `1px solid ${t.line}`,
+          }}>
+            <span style={{ fontFamily: TYPE.mono, fontSize: 10, color: t.inkFaint, letterSpacing: 1.3, textTransform: 'uppercase' }}>
+              How the timer works
+            </span>
+            <ol style={{
+              margin: '16px 0 0', padding: 0, listStyle: 'none',
+              display: 'flex', flexDirection: 'column', gap: 14,
+            }}>
+              {[
+                ['Now', 'Nobody else can reserve this gift.'],
+                ['You buy it at dedeman.ro', 'Use any payment method. We never see your card.'],
+                ['Tap "I completed the purchase"', 'It locks as given, with your name visible only to the owner.'],
+                ['Or 30 minutes pass', 'No action, no worries — the item releases and we email you a one-tap re-reserve link.'],
+              ].map(([h, b], i) => (
+                <li key={i} style={{ display: 'flex', gap: 12 }}>
+                  <span style={{
+                    width: 22, height: 22, borderRadius: '50%', background: t.ink,
+                    color: t.paper, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: TYPE.mono, fontSize: 11, flexShrink: 0,
+                  }}>{i + 1}</span>
+                  <div>
+                    <div style={{ fontFamily: TYPE.body, fontSize: 13.5, color: t.ink, fontWeight: 500 }}>{h}</div>
+                    <div style={{ fontFamily: TYPE.body, fontSize: 12.5, color: t.inkSoft, marginTop: 2, lineHeight: 1.45 }}>{b}</div>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCREEN 3: Auth — sign in / sign up / guest
+// ─────────────────────────────────────────────────────────────
+function AuthScreen({ t }) {
+  return (
+    <div style={{
+      background: t.paper, minHeight: '100%', display: 'flex',
+    }}>
+      {/* Left: form */}
+      <div style={{
+        flex: '0 0 520px', padding: '56px 56px 40px',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        <Logo t={t} size={22} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: 400 }}>
+          <span style={{ fontFamily: TYPE.mono, fontSize: 11, color: t.inkFaint, letterSpacing: 1.3, textTransform: 'uppercase' }}>
+            You're invited to a registry
+          </span>
+          <h1 style={{
+            margin: '10px 0 8px', fontFamily: TYPE.display, fontSize: 44, fontWeight: 400,
+            color: t.ink, letterSpacing: -1, lineHeight: 1.05,
+          }}>
+            <span style={{ fontStyle: 'italic' }}>Pick up</span> where you left off
+          </h1>
+          <p style={{
+            margin: 0, fontFamily: TYPE.body, fontSize: 14.5, color: t.inkSoft, lineHeight: 1.55,
+          }}>
+            Sign in so you keep your reservations across devices — or skip ahead as a guest and
+            we'll only ask for your name.
+          </p>
+
+          {/* Tabs */}
+          <div style={{
+            display: 'flex', gap: 24, marginTop: 36, borderBottom: `1px solid ${t.line}`,
+          }}>
+            {['Sign in', 'Create account'].map((tab, i) => (
+              <button key={tab} style={{
+                padding: '10px 2px', background: 'none', border: 'none',
+                borderBottom: `2px solid ${i === 0 ? t.ink : 'transparent'}`,
+                marginBottom: -1, fontFamily: TYPE.body, fontSize: 14,
+                fontWeight: i === 0 ? 500 : 400, color: i === 0 ? t.ink : t.inkFaint,
+                cursor: 'pointer',
+              }}>{tab}</button>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 24 }}>
+            <Field t={t} label="Email" value="andrei.popescu@gmail.com" />
+            <Field t={t} label="Password" value="••••••••••" suffix={
+              <span style={{ fontFamily: TYPE.mono, fontSize: 10, color: t.inkFaint, letterSpacing: 0.8, textTransform: 'uppercase' }}>
+                show
+              </span>
+            } />
+            <Btn t={t} variant="primary" size="lg" style={{ width: '100%', marginTop: 6 }}>
+              Sign in
+            </Btn>
+          </div>
+
+          {/* Divider */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, margin: '24px 0' }}>
+            <div style={{ flex: 1, height: 1, background: t.line }} />
+            <span style={{ fontFamily: TYPE.mono, fontSize: 10, color: t.inkFaint, letterSpacing: 1.5, textTransform: 'uppercase' }}>
+              or
+            </span>
+            <div style={{ flex: 1, height: 1, background: t.line }} />
+          </div>
+
+          <Btn t={t} variant="ghost" size="lg" style={{ width: '100%' }} icon={
+            <span style={{ width: 16, height: 16, borderRadius: '50%', background: `conic-gradient(from 0deg, ${t.accent}, ${t.second}, ${t.accent})`, display: 'inline-block' }} />
+          }>
+            Continue with Google
+          </Btn>
+
+          <div style={{
+            marginTop: 28, padding: '18px 20px', background: t.paperDeep,
+            borderRadius: 10, border: `1px dashed ${t.line}`,
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16,
+          }}>
+            <div>
+              <div style={{ fontFamily: TYPE.body, fontSize: 13.5, fontWeight: 500, color: t.ink }}>
+                Just here to reserve a gift?
+              </div>
+              <div style={{ fontFamily: TYPE.body, fontSize: 12.5, color: t.inkSoft, marginTop: 2 }}>
+                Continue as guest — we'll only ask for your name.
+              </div>
+            </div>
+            <Btn t={t} variant="ghost" size="sm">Skip →</Btn>
+          </div>
+        </div>
+
+        <span style={{ fontFamily: TYPE.mono, fontSize: 10, color: t.inkFaint, letterSpacing: 0.5 }}>
+          © giftmaison 2026 · terms · privacy · en / ro
+        </span>
+      </div>
+
+      {/* Right: editorial image */}
+      <div style={{
+        flex: 1, position: 'relative', overflow: 'hidden', background: t.paperDeep,
+      }}>
+        <img src={PHOTOS.apt} alt="" style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover',
+        }} />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: `linear-gradient(180deg, transparent 40%, ${t.ink}88 100%)`,
+        }} />
+        <div style={{
+          position: 'absolute', bottom: 40, left: 40, right: 40, color: t.paper,
+        }}>
+          <p style={{
+            margin: 0, fontFamily: TYPE.display, fontSize: 28, fontStyle: 'italic',
+            lineHeight: 1.15, letterSpacing: -0.5, textWrap: 'balance',
+          }}>
+            "Best housewarming gift? Something they'd never buy themselves but secretly wanted."
+          </p>
+          <span style={{
+            display: 'block', marginTop: 12, fontFamily: TYPE.mono, fontSize: 11,
+            letterSpacing: 1.2, textTransform: 'uppercase', opacity: 0.8,
+          }}>
+            — Ioana M., housewarming 2025
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCREEN 4: Guest-to-account conversion (after reserving)
+// ─────────────────────────────────────────────────────────────
+function GuestConvertScreen({ t }) {
+  return (
+    <div style={{ background: t.paper, minHeight: '100%', position: 'relative' }}>
+      <WebNav t={t} />
+      {/* Dimmed registry in background */}
+      <div style={{ padding: '40px 40px', opacity: 0.35, pointerEvents: 'none', filter: 'blur(2px)' }}>
+        <h1 style={{
+          margin: 0, fontFamily: TYPE.display, fontSize: 48, fontWeight: 400,
+          color: t.ink, letterSpacing: -1.2, lineHeight: 1,
+        }}>Ana & Mihai's housewarming</h1>
+        <div style={{
+          display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginTop: 32,
+        }}>
+          {SAMPLE_ITEMS.slice(0, 3).map(it => <ItemCard key={it.id} t={t} item={it} />)}
+        </div>
+      </div>
+
+      {/* Modal */}
+      <div style={{
+        position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 40,
+      }}>
+        <div style={{
+          width: 520, background: t.paper, borderRadius: 20,
+          border: `1px solid ${t.line}`,
+          boxShadow: '0 40px 80px rgba(0,0,0,0.18)',
+          overflow: 'hidden',
+        }}>
+          <div style={{
+            padding: '32px 36px 24px',
+            background: `linear-gradient(180deg, ${t.accentSoft}, ${t.paper})`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <Pill t={t} tone="accent">✓ Reserved</Pill>
+              <span style={{ fontFamily: TYPE.mono, fontSize: 11, color: t.inkFaint, letterSpacing: 0.5 }}>
+                Sculptural table lamp · 29:58 left
+              </span>
+            </div>
+            <h2 style={{
+              margin: 0, fontFamily: TYPE.display, fontSize: 34, fontWeight: 400,
+              color: t.ink, letterSpacing: -0.8, lineHeight: 1.05,
+            }}>
+              Save your spot, <span style={{ fontStyle: 'italic', color: t.accent }}>Andrei</span>?
+            </h2>
+            <p style={{
+              margin: '10px 0 0', fontFamily: TYPE.body, fontSize: 14.5,
+              color: t.inkSoft, lineHeight: 1.55,
+            }}>
+              You've reserved a gift as a guest. Create a free account and we'll keep the
+              reservation tied to you across devices — plus send a gentle nudge before the timer runs out.
+            </p>
+          </div>
+
+          <div style={{ padding: '24px 36px 28px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                ['🕰', 'Track your 30-minute timer from any device'],
+                ['✉', 'Email nudge 5 minutes before it expires'],
+                ['🎁', 'See every registry you\'re giving to, in one place'],
+              ].map(([ic, txt], i) => (
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{
+                    width: 28, height: 28, borderRadius: 8, background: t.paperDeep,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13,
+                  }}>{ic}</span>
+                  <span style={{ fontFamily: TYPE.body, fontSize: 13.5, color: t.ink }}>{txt}</span>
+                </div>
+              ))}
+            </div>
+
+            <Field t={t} label="Set a password to finish" placeholder="At least 8 characters" />
+
+            <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+              <Btn t={t} variant="quiet" style={{ flex: 1 }}>Not now, thanks</Btn>
+              <Btn t={t} variant="primary" style={{ flex: 1.4 }}>Create my account →</Btn>
+            </div>
+            <span style={{
+              fontFamily: TYPE.mono, fontSize: 10, color: t.inkFaint,
+              letterSpacing: 0.5, textAlign: 'center',
+            }}>
+              Using andrei.popescu@gmail.com from your guest reservation
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCREEN 5: Reservation expired + re-reserve
+// ─────────────────────────────────────────────────────────────
+function ExpiredScreen({ t }) {
+  return (
+    <div style={{ background: t.paper, minHeight: '100%' }}>
+      <WebNav t={t} signedIn />
+      <div style={{
+        padding: '64px 40px', display: 'grid', gridTemplateColumns: '1fr 420px',
+        gap: 48, alignItems: 'center',
+      }}>
+        <div>
+          <span style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '5px 10px', borderRadius: 999, background: t.secondSoft,
+            fontFamily: TYPE.mono, fontSize: 11, color: t.second,
+            letterSpacing: 1, textTransform: 'uppercase', fontWeight: 500,
+          }}>⌛ Reservation expired</span>
+          <h1 style={{
+            margin: '16px 0 12px', fontFamily: TYPE.display, fontSize: 56, fontWeight: 400,
+            color: t.ink, letterSpacing: -1.4, lineHeight: 1,
+          }}>
+            The timer ran out, <span style={{ fontStyle: 'italic' }}>but the gift's still free.</span>
+          </h1>
+          <p style={{
+            margin: 0, fontFamily: TYPE.body, fontSize: 16, color: t.inkSoft,
+            lineHeight: 1.55, maxWidth: 560, textWrap: 'pretty',
+          }}>
+            Your 30-minute window for the <em style={{ fontFamily: TYPE.display, fontStyle: 'italic', color: t.ink }}>Sculptural table lamp</em> passed
+            and we released the reservation at 18:47. Good news — nobody else has grabbed it yet.
+          </p>
+
+          <div style={{ display: 'flex', gap: 12, marginTop: 32, flexWrap: 'wrap' }}>
+            <Btn t={t} variant="accent" size="lg">Re-reserve now →</Btn>
+            <Btn t={t} variant="ghost" size="lg">Back to the full registry</Btn>
+          </div>
+
+          <div style={{
+            marginTop: 40, padding: '20px 22px', background: t.paperDeep, borderRadius: 12,
+            fontFamily: TYPE.body, fontSize: 13, color: t.inkSoft, lineHeight: 1.55,
+            maxWidth: 560,
+          }}>
+            <strong style={{ color: t.ink, fontWeight: 500 }}>Why do we expire reservations? </strong>
+            It keeps the registry honest. A 30-minute window is long enough to check out at the
+            retailer, short enough that a forgotten tab doesn't block another gift-giver for days.
+          </div>
+        </div>
+
+        <div style={{
+          position: 'relative', borderRadius: 18, overflow: 'hidden',
+          border: `1px solid ${t.line}`, background: t.paperDeep,
+        }}>
+          <div style={{ aspectRatio: '4 / 3', overflow: 'hidden' }}>
+            <img src={PHOTOS.lamp} alt="" style={{
+              width: '100%', height: '100%', objectFit: 'cover',
+              filter: 'grayscale(0.3)',
+            }} />
+          </div>
+          <div style={{ padding: '18px 20px 20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <h3 style={{
+                margin: 0, fontFamily: TYPE.body, fontSize: 17, fontWeight: 500,
+                color: t.ink, letterSpacing: -0.3,
+              }}>Sculptural table lamp</h3>
+              <span style={{ fontFamily: TYPE.mono, fontSize: 11, color: t.inkFaint, letterSpacing: 0.4 }}>
+                dedeman.ro
+              </span>
+            </div>
+            <div style={{
+              marginTop: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            }}>
+              <span style={{ fontFamily: TYPE.body, fontSize: 15, color: t.ink, fontWeight: 500 }}>
+                420 <span style={{ color: t.inkFaint, fontSize: 11, fontFamily: TYPE.mono }}>RON</span>
+              </span>
+              <Pill t={t} tone="ok">◯ Available again</Pill>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+Object.assign(window, {
+  WebNav, Logo, Pill, Btn, Field, ItemCard,
+  RegistryScreen, ReserveScreen, AuthScreen, GuestConvertScreen, ExpiredScreen,
+});
+
+</script>
+<script type="text/babel" data-presets="react">
+// android-screens.jsx — Owner flow in Android frames
+
+function AndroidStatus({ t, dark = false }) {
+  const c = dark ? t.paper : t.ink;
+  return (
+    <div style={{
+      height: 34, display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between', padding: '0 18px',
+      position: 'relative', flexShrink: 0,
+    }}>
+      <span style={{ fontFamily: TYPE.body, fontSize: 13, fontWeight: 600, color: c }}>9:41</span>
+      <div style={{
+        position: 'absolute', left: '50%', top: 6, transform: 'translateX(-50%)',
+        width: 22, height: 22, borderRadius: 100, background: '#0c0c0c',
+      }} />
+      <div style={{ display: 'flex', gap: 5, alignItems: 'center', color: c }}>
+        <div style={{ fontFamily: TYPE.mono, fontSize: 10 }}>●●●●</div>
+        <div style={{ width: 18, height: 9, border: `1px solid ${c}`, borderRadius: 2, position: 'relative' }}>
+          <div style={{ position: 'absolute', inset: 1, background: c, width: '80%' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AndroidNav({ t, dark = false }) {
+  return (
+    <div style={{ height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <div style={{
+        width: 100, height: 4, borderRadius: 2,
+        background: dark ? t.paper : t.ink, opacity: 0.4,
+      }} />
+    </div>
+  );
+}
+
+function BottomNav({ t, active = 'home' }) {
+  const Icon = ({ name, sel }) => {
+    const c = sel ? t.accent : t.inkFaint;
+    const s = { width: 22, height: 22, stroke: c, fill: 'none', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round' };
+    if (name === 'home') return <svg {...s} viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a2 2 0 0 1-2 2h-4v-7h-6v7H5a2 2 0 0 1-2-2z"/></svg>;
+    if (name === 'stores') return <svg {...s} viewBox="0 0 24 24"><path d="M3 9l1.5-5h15L21 9"/><path d="M4 9v11h16V9"/><path d="M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0"/></svg>;
+    if (name === 'registries') return <svg {...s} viewBox="0 0 24 24"><path d="M5 3h10l4 4v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M15 3v4h4"/><path d="M8 11h8M8 15h8M8 19h5"/></svg>;
+    if (name === 'you') return <svg {...s} viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>;
+    return null;
+  };
+  const Tab = ({ id, label }) => {
+    const sel = id === active;
+    return (
+      <div style={{
+        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+        padding: '6px 0 4px', cursor: 'pointer',
+      }}>
+        <div style={{
+          padding: '4px 14px', borderRadius: 999,
+          background: sel ? t.accentSoft : 'transparent',
+        }}>
+          <Icon name={id} sel={sel} />
+        </div>
+        <span style={{
+          fontFamily: TYPE.mono, fontSize: 9.5, letterSpacing: 0.6,
+          textTransform: 'uppercase', color: sel ? t.accent : t.inkFaint,
+          fontWeight: sel ? 600 : 500,
+        }}>{label}</span>
+      </div>
+    );
+  };
+  return (
+    <div style={{
+      position: 'relative', flexShrink: 0,
+      background: t.paper, borderTop: `1px solid ${t.line}`,
+      padding: '4px 4px 6px', display: 'flex', alignItems: 'stretch',
+    }}>
+      <Tab id="home" label="Home" />
+      <Tab id="stores" label="Stores" />
+      {/* Center FAB — uses the same Tab layout so icon + label align with siblings */}
+      <div style={{
+        flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3,
+        padding: '6px 0 4px', cursor: 'pointer',
+      }}>
+        <div style={{
+          width: 34, height: 34, borderRadius: '50%',
+          background: t.accent, color: t.accentInk,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: `0 4px 10px ${t.accent}55`,
+          fontFamily: TYPE.body, fontSize: 22, fontWeight: 300, lineHeight: 1,
+        }}>+</div>
+        <span style={{
+          fontFamily: TYPE.mono, fontSize: 9.5, letterSpacing: 0.6,
+          textTransform: 'uppercase', color: t.accent, fontWeight: 600,
+        }}>Add</span>
+      </div>
+      <Tab id="registries" label="Lists" />
+      <Tab id="you" label="You" />
+    </div>
+  );
+}
+
+function Phone({ t, children, dark = false, nav = 'home', showBottomNav = true }) {
+  return (
+    <div style={{
+      width: 340, height: 720, borderRadius: 40, overflow: 'hidden',
+      background: dark ? t.ink : t.paper,
+      border: `9px solid ${t.ink}`,
+      boxShadow: '0 30px 80px rgba(0,0,0,0.22)',
+      display: 'flex', flexDirection: 'column', boxSizing: 'border-box',
+      fontFamily: TYPE.body, position: 'relative',
+    }}>
+      <AndroidStatus t={t} dark={dark} />
+      <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        {children}
+      </div>
+      {showBottomNav && <BottomNav t={t} active={nav} />}
+      <AndroidNav t={t} dark={dark} />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCREEN 6: Owner home — list of registries
+// ─────────────────────────────────────────────────────────────
+function OwnerHomeScreen({ t }) {
+  const registries = [
+    { name: "Ana & Mihai's housewarming", occasion: 'Housewarming', date: 'May 16', items: 12, reserved: 2, purchased: 1, img: PHOTOS.apt, primary: true },
+    { name: "Dad's 60th", occasion: 'Birthday', date: 'Jul 3', items: 8, reserved: 3, purchased: 2, img: PHOTOS.candle },
+    { name: 'Sofia + baby', occasion: 'Baby shower', date: 'Sep 12', items: 14, reserved: 5, purchased: 4, img: PHOTOS.linen },
+  ];
+  return (
+    <Phone t={t} nav="home">
+      <div style={{ padding: '16px 20px 12px', display: 'flex', flexDirection: 'column', gap: 4, flexShrink: 0 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Logo t={t} size={18} />
+          <div style={{
+            width: 30, height: 30, borderRadius: '50%', background: t.second, color: t.paper,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 11, fontWeight: 500,
+          }}>AM</div>
+        </div>
+        <h1 style={{
+          margin: '12px 0 2px', fontFamily: TYPE.display, fontSize: 32, fontWeight: 400,
+          color: t.ink, letterSpacing: -0.8, lineHeight: 1,
+        }}>Your registries</h1>
+        <span style={{ fontFamily: TYPE.mono, fontSize: 10.5, color: t.inkFaint, letterSpacing: 1, textTransform: 'uppercase' }}>
+          3 active · 34 items total
+        </span>
+      </div>
+
+      <div style={{ padding: '0 20px 12px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: 6, padding: 4, background: t.paperDeep, borderRadius: 999 }}>
+          {['Active', 'Drafts', 'Past'].map((x, i) => (
+            <button key={x} style={{
+              flex: 1, padding: '7px', borderRadius: 999, border: 'none',
+              background: i === 0 ? t.paper : 'transparent',
+              fontFamily: TYPE.body, fontSize: 12, fontWeight: 500,
+              color: i === 0 ? t.ink : t.inkFaint,
+            }}>{x}</button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflow: 'auto', padding: '4px 20px 100px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {registries.map((r, i) => (
+          <div key={i} style={{
+            background: r.primary ? t.ink : t.paperDeep,
+            color: r.primary ? t.paper : t.ink,
+            borderRadius: 16, overflow: 'hidden',
+            border: r.primary ? 'none' : `1px solid ${t.line}`,
+          }}>
+            <div style={{ position: 'relative', aspectRatio: '16 / 9', overflow: 'hidden' }}>
+              <img src={r.img} alt="" style={{
+                width: '100%', height: '100%', objectFit: 'cover',
+                filter: r.primary ? 'brightness(0.7)' : 'none',
+              }} />
+              <div style={{
+                position: 'absolute', top: 10, left: 10,
+                padding: '3px 8px', borderRadius: 999,
+                background: r.primary ? `${t.paper}e0` : t.paper,
+                fontFamily: TYPE.mono, fontSize: 9.5, color: t.ink,
+                textTransform: 'uppercase', letterSpacing: 1, fontWeight: 500,
+              }}>{r.occasion}</div>
+              <div style={{
+                position: 'absolute', bottom: 10, right: 10,
+                fontFamily: TYPE.mono, fontSize: 10, color: t.paper,
+                letterSpacing: 0.5,
+              }}>{r.date}</div>
+            </div>
+            <div style={{ padding: '12px 14px' }}>
+              <h3 style={{
+                margin: 0, fontFamily: TYPE.display, fontSize: 18, fontWeight: 400,
+                letterSpacing: -0.3, lineHeight: 1.1,
+              }}>{r.name}</h3>
+              <div style={{
+                display: 'flex', gap: 14, marginTop: 10, alignItems: 'center',
+                fontFamily: TYPE.mono, fontSize: 10.5, letterSpacing: 0.4,
+                color: r.primary ? `${t.paper}b0` : t.inkFaint,
+              }}>
+                <span><strong style={{ color: r.primary ? t.paper : t.ink, fontWeight: 500 }}>{r.items}</strong> items</span>
+                <span style={{ width: 2, height: 2, borderRadius: '50%', background: 'currentColor' }} />
+                <span>{r.reserved} reserved</span>
+                <span style={{ width: 2, height: 2, borderRadius: '50%', background: 'currentColor' }} />
+                <span>{r.purchased} given</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+    </Phone>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCREEN 7: Create/edit registry
+// ─────────────────────────────────────────────────────────────
+function CreateRegistryScreen({ t }) {
+  const occasions = [
+    ['⌂', 'Housewarming', true],
+    ['♡', 'Wedding', false],
+    ['◐', 'Baby', false],
+    ['✦', 'Birthday', false],
+    ['❅', 'Christmas', false],
+    ['+', 'Custom', false],
+  ];
+  return (
+    <Phone t={t} nav="">
+      {/* App bar */}
+      <div style={{
+        padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexShrink: 0,
+      }}>
+        <button style={{
+          width: 36, height: 36, border: 'none', background: 'transparent',
+          fontFamily: TYPE.body, fontSize: 18, color: t.ink,
+        }}>←</button>
+        <span style={{ fontFamily: TYPE.mono, fontSize: 10, color: t.inkFaint, letterSpacing: 1.2, textTransform: 'uppercase' }}>
+          Step 1 of 2
+        </span>
+        <button style={{
+          padding: '6px 12px', background: 'transparent', border: 'none',
+          fontFamily: TYPE.body, fontSize: 13, color: t.inkFaint,
+        }}>Skip</button>
+      </div>
+
+      <div style={{ flex: 1, overflow: 'auto', padding: '8px 20px 20px' }}>
+        <h1 style={{
+          margin: '8px 0 6px', fontFamily: TYPE.display, fontSize: 32, fontWeight: 400,
+          color: t.ink, letterSpacing: -0.8, lineHeight: 1,
+        }}>What's the <span style={{ fontStyle: 'italic', color: t.accent }}>occasion?</span></h1>
+        <p style={{
+          margin: '0 0 22px', fontFamily: TYPE.body, fontSize: 13.5, color: t.inkSoft, lineHeight: 1.5,
+        }}>
+          We'll set the tone, suggested categories, and email theme to match.
+        </p>
+
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 24,
+        }}>
+          {occasions.map(([ic, name, sel]) => (
+            <div key={name} style={{
+              padding: '16px 14px', borderRadius: 14,
+              background: sel ? t.accent : t.paperDeep,
+              color: sel ? t.accentInk : t.ink,
+              border: `1.5px solid ${sel ? t.accent : t.line}`,
+              display: 'flex', flexDirection: 'column', gap: 6,
+            }}>
+              <span style={{
+                fontFamily: TYPE.display, fontSize: 22, fontStyle: 'italic', fontWeight: 400,
+                lineHeight: 1, color: sel ? t.accentInk : t.accent,
+              }}>{ic}</span>
+              <span style={{ fontFamily: TYPE.body, fontSize: 13, fontWeight: 500 }}>{name}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <Field t={t} label="Registry name" value="Ana & Mihai's housewarming" />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+            <Field t={t} label="Date" value="May 16, 2026" />
+            <Field t={t} label="Time" value="18:00" />
+          </div>
+          <Field t={t} label="Place" value="Strada Popa Soare 14, Buc." />
+
+          <div style={{
+            padding: 12, borderRadius: 12, background: t.paperDeep, border: `1px solid ${t.line}`,
+            display: 'flex', flexDirection: 'column', gap: 8,
+          }}>
+            <span style={{ fontFamily: TYPE.mono, fontSize: 10, color: t.inkFaint, letterSpacing: 1.2, textTransform: 'uppercase' }}>
+              Visibility
+            </span>
+            {[
+              ['Public', 'Anyone with the link can view', true],
+              ['Private', 'Invite by email only', false],
+            ].map(([n, d, sel]) => (
+              <div key={n} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 2px' }}>
+                <div style={{
+                  width: 18, height: 18, borderRadius: '50%',
+                  border: `2px solid ${sel ? t.accent : t.inkFaint}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  {sel && <div style={{ width: 8, height: 8, borderRadius: '50%', background: t.accent }} />}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontFamily: TYPE.body, fontSize: 13.5, color: t.ink, fontWeight: 500 }}>{n}</div>
+                  <div style={{ fontFamily: TYPE.body, fontSize: 12, color: t.inkFaint }}>{d}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        padding: '12px 20px', borderTop: `1px solid ${t.line}`, background: t.paper, flexShrink: 0,
+      }}>
+        <Btn t={t} variant="primary" size="lg" style={{ width: '100%' }}>
+          Continue · add items →
+        </Btn>
+      </div>
+    </Phone>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCREEN 8: Add item — Add URL / Browse stores
+// ─────────────────────────────────────────────────────────────
+function AddItemScreen({ t }) {
+  const labelStyle = {
+    fontFamily: TYPE.mono, fontSize: 9, color: t.inkFaint,
+    letterSpacing: 1.2, textTransform: 'uppercase', fontWeight: 500,
+    marginBottom: 6, display: 'block',
+  };
+  const fieldStyle = {
+    padding: '11px 13px', borderRadius: 10,
+    background: t.paperDeep, border: `1px solid transparent`,
+    fontFamily: TYPE.body, fontSize: 13.5, color: t.ink,
+    display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+    boxSizing: 'border-box',
+  };
+  return (
+    <Phone t={t} nav="">
+      <div style={{
+        padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        flexShrink: 0,
+      }}>
+        <button style={{
+          width: 36, height: 36, border: 'none', background: 'transparent',
+          fontFamily: TYPE.body, fontSize: 20, color: t.ink,
+        }}>×</button>
+        <span style={{ fontFamily: TYPE.body, fontSize: 14, fontWeight: 500, color: t.ink }}>
+          Add item
+        </span>
+        <span style={{ width: 36 }} />
+      </div>
+
+      {/* Tabs — Add URL / Browse stores */}
+      <div style={{
+        padding: '0 16px', display: 'flex', gap: 6, flexShrink: 0, marginBottom: 14,
+      }}>
+        <div style={{ flex: 1, padding: 3, background: t.paperDeep, borderRadius: 999, display: 'flex' }}>
+          {[['Add URL', true], ['Browse stores', false]].map(([x, sel]) => (
+            <button key={x} style={{
+              flex: 1, padding: '9px', borderRadius: 999, border: 'none',
+              background: sel ? t.paper : 'transparent',
+              fontFamily: TYPE.body, fontSize: 12.5, fontWeight: 500,
+              color: sel ? t.ink : t.inkFaint, whiteSpace: 'nowrap',
+              boxShadow: sel ? '0 1px 2px rgba(0,0,0,0.06)' : 'none',
+            }}>{x}</button>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflow: 'auto', padding: '0 18px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {/* Product URL — top, focused, smart-fetch */}
+        <div>
+          <span style={labelStyle}>Product URL</span>
+          <div style={{
+            ...fieldStyle, background: t.paper, border: `1.5px solid ${t.accent}`,
+            flexDirection: 'column', alignItems: 'stretch', gap: 8, padding: '11px 13px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontFamily: TYPE.mono, fontSize: 9, color: t.accent, letterSpacing: 1.2, textTransform: 'uppercase', fontWeight: 600 }}>
+                ⌕ Fetched from emag.ro
+              </span>
+              <div style={{ width: 4, height: 4, borderRadius: '50%', background: t.accent, animation: 'pulse 1s infinite' }} />
+            </div>
+            <div style={{
+              fontFamily: TYPE.mono, fontSize: 11, color: t.inkSoft,
+              lineHeight: 1.35, wordBreak: 'break-all',
+            }}>
+              emag.ro/espressor-manual-delonghi-dedica-ec685-bg-silver<span style={{ opacity: 0.5 }}>/pd/DSGB42BBM/</span>
+            </div>
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              paddingTop: 6, borderTop: `1px solid ${t.line}`,
+            }}>
+              <span style={{ fontFamily: TYPE.mono, fontSize: 9.5, color: t.ok, letterSpacing: 0.4 }}>
+                ✓ Affiliate tag applied invisibly
+              </span>
+              <button style={{
+                padding: '3px 9px', borderRadius: 999, border: `1px solid ${t.line}`,
+                background: 'transparent', fontFamily: TYPE.mono, fontSize: 9.5,
+                color: t.inkFaint, letterSpacing: 0.5,
+              }}>clear</button>
+            </div>
+          </div>
+        </div>
+
+        {/* Divider — "auto-filled from the link" */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 10,
+          fontFamily: TYPE.mono, fontSize: 9, color: t.inkFaint,
+          letterSpacing: 1.2, textTransform: 'uppercase', margin: '2px 0',
+        }}>
+          <div style={{ flex: 1, height: 1, background: t.line }} />
+          <span>auto-filled — edit if needed</span>
+          <div style={{ flex: 1, height: 1, background: t.line }} />
+        </div>
+
+        {/* Product name */}
+        <div>
+          <span style={labelStyle}>Product name</span>
+          <div style={fieldStyle}>
+            <span style={{ flex: 1 }}>De'Longhi Dedica Espressor Manual EC685</span>
+          </div>
+        </div>
+
+        {/* Product image */}
+        <div>
+          <span style={labelStyle}>Product image</span>
+          <div style={{
+            display: 'flex', gap: 10, alignItems: 'stretch',
+          }}>
+            <div style={{
+              width: 80, height: 80, borderRadius: 10, overflow: 'hidden',
+              background: t.paperDeep, border: `1px solid ${t.line}`, flexShrink: 0,
+              position: 'relative',
+            }}>
+              <img src={PHOTOS.espresso} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <div style={{
+                position: 'absolute', bottom: 4, right: 4,
+                width: 18, height: 18, borderRadius: '50%', background: t.ok, color: t.paper,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 10, fontWeight: 700,
+              }}>✓</div>
+            </div>
+            <button style={{
+              flex: 1, borderRadius: 10, border: `1px dashed ${t.line}`,
+              background: 'transparent', color: t.inkSoft,
+              fontFamily: TYPE.body, fontSize: 12, cursor: 'pointer',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+              gap: 4, padding: '8px',
+            }}>
+              <span style={{ fontFamily: TYPE.display, fontSize: 22, color: t.accent, lineHeight: 1 }}>＋</span>
+              <span style={{ fontSize: 11 }}>Replace · upload</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Product price */}
+        <div>
+          <span style={labelStyle}>Price</span>
+          <div style={fieldStyle}>
+            <span style={{ flex: 1, fontWeight: 500 }}>1,849</span>
+            <div style={{
+              padding: '3px 10px', borderRadius: 999, background: t.paper,
+              border: `1px solid ${t.line}`, fontFamily: TYPE.mono, fontSize: 10.5,
+              color: t.inkSoft, letterSpacing: 0.5,
+            }}>RON ▾</div>
+          </div>
+        </div>
+
+        {/* Note for gift givers */}
+        <div>
+          <span style={labelStyle}>Note for gift givers <span style={{ textTransform: 'none', letterSpacing: 0, color: t.inkFaint, fontFamily: TYPE.body, fontSize: 10 }}>— optional</span></span>
+          <div style={{ ...fieldStyle, minHeight: 64, alignItems: 'flex-start', padding: '11px 13px' }}>
+            <span style={{ flex: 1, color: t.inkFaint, lineHeight: 1.4 }}>
+              e.g., in silver, please — matches the kitchen
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div style={{
+        padding: '12px 20px', borderTop: `1px solid ${t.line}`, background: t.paper,
+        display: 'flex', gap: 10, flexShrink: 0,
+      }}>
+        <Btn t={t} variant="ghost" style={{ flex: 1 }}>Add another</Btn>
+        <Btn t={t} variant="primary" style={{ flex: 1.5 }}>Save to registry ✓</Btn>
+      </div>
+    </Phone>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCREEN 9: Add action sheet (triggered by center + FAB)
+// ─────────────────────────────────────────────────────────────
+function AddSheetScreen({ t }) {
+  return (
+    <Phone t={t} nav="">
+      {/* Dimmed home behind */}
+      <div style={{ position: 'absolute', inset: 0, background: `${t.ink}55`, zIndex: 1 }} />
+      <div style={{ padding: '16px 20px', opacity: 0.3, filter: 'blur(1px)' }}>
+        <Logo t={t} size={18} />
+        <h1 style={{ margin: '14px 0 2px', fontFamily: TYPE.display, fontSize: 28, color: t.ink, letterSpacing: -0.6 }}>Your registries</h1>
+      </div>
+
+      {/* Action sheet */}
+      <div style={{
+        position: 'absolute', left: 10, right: 10, bottom: 10, zIndex: 2,
+        background: t.paper, borderRadius: 22, padding: '20px 18px 18px',
+        boxShadow: '0 -10px 40px rgba(0,0,0,0.15)', border: `1px solid ${t.line}`,
+      }}>
+        <div style={{ width: 36, height: 4, borderRadius: 2, background: t.line, margin: '0 auto 14px' }} />
+        <h3 style={{ margin: 0, fontFamily: TYPE.display, fontSize: 22, fontWeight: 400, color: t.ink, letterSpacing: -0.4 }}>
+          What are you adding?
+        </h3>
+        <p style={{ margin: '4px 0 16px', fontFamily: TYPE.body, fontSize: 12.5, color: t.inkSoft }}>
+          Start a new list, or drop a gift into one you're already keeping.
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {[
+            ['✦', 'New registry', 'Pick an occasion, set a date, share the link'],
+            ['⌘', 'Item from URL', 'Paste any product link · auto-fills title & photo'],
+            ['⌕', 'Browse stores', 'EMAG, Dedeman, Zara Home + more'],
+            ['✎', 'Add manually', 'Just a title and price'],
+          ].map(([ic, h, s], i) => (
+            <div key={i} style={{
+              display: 'flex', alignItems: 'center', gap: 14, padding: '12px 14px',
+              borderRadius: 12, background: i === 0 ? t.accentSoft : t.paperDeep,
+              border: `1px solid ${i === 0 ? 'transparent' : t.line}`,
+            }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10,
+                background: i === 0 ? t.accent : t.paper, color: i === 0 ? t.accentInk : t.accent,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: TYPE.display, fontSize: 18, fontStyle: 'italic',
+              }}>{ic}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontFamily: TYPE.body, fontSize: 13.5, fontWeight: 500, color: t.ink }}>{h}</div>
+                <div style={{ fontFamily: TYPE.body, fontSize: 11.5, color: t.inkSoft, lineHeight: 1.35 }}>{s}</div>
+              </div>
+              <span style={{ color: t.inkFaint, fontSize: 14 }}>›</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Phone>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCREEN 09: Registry detail — owner's view of items in one registry
+// ─────────────────────────────────────────────────────────────
+function RegistryDetailScreen({ t }) {
+  const items = [
+    { title: 'Stoneware mixing bowl set', store: 'emag.ro', price: '189', img: PHOTOS.bowl, status: 'available' },
+    { title: 'Sculptural ceramic table lamp', store: 'dedeman.ro', price: '420', img: PHOTOS.lamp, status: 'reserved', by: 'Ioana M.', mins: 23 },
+    { title: 'Fiddle-leaf fig, medium', store: 'emag.ro', price: '145', img: PHOTOS.plant, status: 'purchased', by: 'Andrei' },
+    { title: 'Linen duvet cover, dune', store: 'zara.home', price: '349', img: PHOTOS.linen, status: 'available' },
+    { title: 'Moka pot, 6-cup classic', store: 'emag.ro', price: '119', img: PHOTOS.coffee, status: 'available' },
+    { title: 'Beeswax pillar candle set', store: 'emag.ro', price: '85', img: PHOTOS.candle, status: 'purchased', by: 'Maria' },
+    { title: 'Santoku knife, hand-forged', store: 'emag.ro', price: '280', img: PHOTOS.knives, status: 'available' },
+    { title: 'Walnut cutting board', store: 'dedeman.ro', price: '165', img: PHOTOS.board, status: 'reserved', by: 'Radu P.', mins: 12 },
+    { title: 'Hand-thrown flower vase', store: 'etsy.com', price: '240', img: PHOTOS.vase, status: 'available' },
+    { title: 'Wool throw blanket, ochre', store: 'zara.home', price: '399', img: PHOTOS.throw, status: 'available' },
+    { title: "Espressor De'Longhi EC685", store: 'emag.ro', price: '1,849', img: PHOTOS.espresso, status: 'available' },
+    { title: 'Stoneware mug set of four', store: 'emag.ro', price: '160', img: PHOTOS.mugs, status: 'available' },
+  ];
+  const StatusChip = ({ s }) => {
+    if (s.status === 'reserved') return (
+      <div style={{
+        display: 'inline-flex', alignItems: 'center', gap: 5,
+        padding: '2px 7px', borderRadius: 999, background: t.accent, color: t.accentInk,
+        fontFamily: TYPE.mono, fontSize: 8.5, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase',
+      }}>
+        <div style={{ width: 4, height: 4, borderRadius: '50%', background: t.accentInk, animation: 'pulse 1.4s infinite' }} />
+        {s.mins}m
+      </div>
+    );
+    if (s.status === 'purchased') return (
+      <div style={{
+        display: 'inline-flex', alignItems: 'center', gap: 4,
+        padding: '2px 7px', borderRadius: 999, background: t.secondSoft, color: t.second,
+        fontFamily: TYPE.mono, fontSize: 8.5, fontWeight: 600, letterSpacing: 0.5, textTransform: 'uppercase',
+      }}>✓ given</div>
+    );
+    return (
+      <div style={{
+        padding: '2px 7px', borderRadius: 999, background: 'transparent',
+        border: `1px solid ${t.line}`, color: t.inkFaint,
+        fontFamily: TYPE.mono, fontSize: 8.5, fontWeight: 500, letterSpacing: 0.5, textTransform: 'uppercase',
+      }}>open</div>
+    );
+  };
+  return (
+    <Phone t={t} nav="registries">
+      {/* Hero image with parallax-ish app bar */}
+      <div style={{ position: 'relative', height: 180, flexShrink: 0, overflow: 'hidden' }}>
+        <img src={PHOTOS.apt} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        <div style={{
+          position: 'absolute', inset: 0, background: `linear-gradient(180deg, ${t.ink}44 0%, transparent 40%, ${t.ink}aa 100%)`,
+        }} />
+        <div style={{
+          position: 'absolute', top: 10, left: 12, right: 12,
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        }}>
+          <button style={{
+            width: 32, height: 32, borderRadius: '50%', border: 'none',
+            background: `${t.paper}e0`, color: t.ink,
+            fontFamily: TYPE.body, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>←</button>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button style={{
+              width: 32, height: 32, borderRadius: '50%', border: 'none',
+              background: `${t.paper}e0`, color: t.ink, fontSize: 13,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>↗</button>
+            <button style={{
+              width: 32, height: 32, borderRadius: '50%', border: 'none',
+              background: `${t.paper}e0`, color: t.ink, fontSize: 18, lineHeight: 0.6,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>⋯</button>
+          </div>
+        </div>
+        <div style={{
+          position: 'absolute', left: 16, right: 16, bottom: 10,
+          color: t.paper,
+        }}>
+          <div style={{
+            display: 'inline-block', padding: '2px 8px', borderRadius: 999,
+            background: `${t.paper}30`, backdropFilter: 'blur(8px)',
+            fontFamily: TYPE.mono, fontSize: 9, letterSpacing: 1.2,
+            textTransform: 'uppercase', marginBottom: 6,
+          }}>Housewarming · May 16</div>
+          <h1 style={{
+            margin: 0, fontFamily: TYPE.display, fontSize: 24, fontWeight: 400,
+            letterSpacing: -0.4, lineHeight: 1.05,
+          }}>Ana &amp; Mihai's <span style={{ fontStyle: 'italic' }}>housewarming</span></h1>
+        </div>
+      </div>
+
+      {/* Stats strip */}
+      <div style={{
+        display: 'flex', padding: '12px 16px', gap: 6, flexShrink: 0,
+        borderBottom: `1px solid ${t.line}`, background: t.paper,
+      }}>
+        {[
+          ['12', 'items'],
+          ['2', 'reserved'],
+          ['1', 'given'],
+          ['47', 'views'],
+        ].map(([n, l], i) => (
+          <div key={l} style={{
+            flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
+            padding: '2px 0',
+            borderRight: i < 3 ? `1px solid ${t.line}` : 'none',
+          }}>
+            <span style={{ fontFamily: TYPE.display, fontSize: 22, fontWeight: 400, color: t.ink, lineHeight: 1 }}>{n}</span>
+            <span style={{ fontFamily: TYPE.mono, fontSize: 8.5, letterSpacing: 1, textTransform: 'uppercase', color: t.inkFaint, marginTop: 3 }}>{l}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Share banner */}
+      <div style={{
+        margin: '10px 16px 0', padding: '9px 12px', borderRadius: 10,
+        background: t.accentSoft, display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0,
+      }}>
+        <div style={{
+          width: 26, height: 26, borderRadius: 7, background: t.accent, color: t.accentInk,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontFamily: TYPE.display, fontSize: 14, fontStyle: 'italic',
+        }}>↗</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontFamily: TYPE.mono, fontSize: 10.5, color: t.accent, fontWeight: 600, letterSpacing: 0.3 }}>
+            giftmaison.com/r/ana-mihai-housewarming
+          </div>
+          <div style={{ fontFamily: TYPE.body, fontSize: 10.5, color: t.inkSoft }}>Tap to copy or share</div>
+        </div>
+      </div>
+
+      {/* Filter row */}
+      <div style={{
+        padding: '12px 16px 8px', display: 'flex', gap: 6, flexShrink: 0, overflowX: 'auto',
+      }}>
+        {[['All', '12', true], ['Open', '9', false], ['Reserved', '2', false], ['Completed', '1', false]].map(([n, c, sel]) => (
+          <button key={n} style={{
+            padding: '6px 12px', borderRadius: 999,
+            border: `1px solid ${sel ? t.ink : t.line}`,
+            background: sel ? t.ink : 'transparent', color: sel ? t.paper : t.ink,
+            fontFamily: TYPE.body, fontSize: 12, fontWeight: 500,
+            whiteSpace: 'nowrap', display: 'inline-flex', gap: 6, alignItems: 'center',
+          }}>
+            {n}
+            <span style={{
+              fontFamily: TYPE.mono, fontSize: 9.5,
+              color: sel ? `${t.paper}99` : t.inkFaint,
+            }}>{c}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Items — full-width rows: image · title+price · status */}
+      <div style={{
+        flex: 1, overflow: 'auto', padding: '4px 14px 90px',
+        display: 'flex', flexDirection: 'column',
+      }}>
+        {items.map((it, i) => {
+          const isPurchased = it.status === 'purchased';
+          const isReserved = it.status === 'reserved';
+          return (
+            <div key={i} style={{
+              display: 'flex', gap: 12, padding: '12px 2px',
+              borderBottom: i < items.length - 1 ? `1px solid ${t.line}` : 'none',
+              opacity: isPurchased ? 0.55 : 1, alignItems: 'center',
+            }}>
+              <div style={{
+                width: 58, height: 58, borderRadius: 10, overflow: 'hidden',
+                background: t.paperDeep, flexShrink: 0, position: 'relative',
+              }}>
+                <img src={it.img} alt="" style={{
+                  width: '100%', height: '100%', objectFit: 'cover',
+                  filter: isPurchased ? 'grayscale(1)' : 'none',
+                }} />
+                {isPurchased && (
+                  <div style={{
+                    position: 'absolute', inset: 0, display: 'flex',
+                    alignItems: 'center', justifyContent: 'center',
+                    color: t.paper, fontSize: 18, background: `${t.ink}40`,
+                  }}>✓</div>
+                )}
+              </div>
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <div style={{
+                  fontFamily: TYPE.body, fontSize: 13, fontWeight: 500, color: t.ink,
+                  lineHeight: 1.25, letterSpacing: -0.1, whiteSpace: 'nowrap',
+                  overflow: 'hidden', textOverflow: 'ellipsis',
+                  textDecoration: isPurchased ? 'line-through' : 'none',
+                }}>{it.title}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontFamily: TYPE.body, fontSize: 12.5, fontWeight: 500, color: t.ink }}>
+                    {it.price} <span style={{ fontFamily: TYPE.mono, fontSize: 9, color: t.inkFaint, fontWeight: 400 }}>RON</span>
+                  </span>
+                  <span style={{ width: 2, height: 2, borderRadius: '50%', background: t.inkFaint }} />
+                  <span style={{ fontFamily: TYPE.mono, fontSize: 9.5, color: t.inkFaint, letterSpacing: 0.3 }}>
+                    {it.store}
+                  </span>
+                </div>
+                {isReserved && (
+                  <div style={{ fontFamily: TYPE.body, fontSize: 10.5, color: t.accent, lineHeight: 1.2 }}>
+                    Reserved by {it.by}
+                  </div>
+                )}
+                {isPurchased && (
+                  <div style={{ fontFamily: TYPE.body, fontSize: 10.5, color: t.second, lineHeight: 1.2 }}>
+                    Given by {it.by}
+                  </div>
+                )}
+              </div>
+              <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
+                <StatusChip s={it} />
+                <button style={{
+                  width: 26, height: 26, borderRadius: '50%', border: `1px solid ${t.line}`,
+                  background: 'transparent', color: t.inkFaint,
+                  fontSize: 14, lineHeight: 0.6, cursor: 'pointer',
+                }}>⋯</button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Phone>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────
+// SCREEN 10: Onboarding + Sign up (name / email / password + Google banner)
+// ─────────────────────────────────────────────────────────────
+function OnboardingAuthScreen({ t }) {
+  const inputStyle = {
+    padding: '13px 14px', borderRadius: 12,
+    background: t.paperDeep, border: `1px solid transparent`,
+    fontFamily: TYPE.body, fontSize: 13.5, color: t.ink,
+    display: 'flex', alignItems: 'center', gap: 8, width: '100%',
+    boxSizing: 'border-box',
+  };
+  const labelStyle = {
+    fontFamily: TYPE.mono, fontSize: 9, color: t.inkFaint,
+    letterSpacing: 1.2, textTransform: 'uppercase', fontWeight: 500,
+    marginBottom: 5, display: 'block',
+  };
+  return (
+    <Phone t={t} showBottomNav={false}>
+      {/* Top bar — logo + Need help */}
+      <div style={{
+        padding: '12px 20px 0', display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', flexShrink: 0,
+      }}>
+        <span style={{
+          fontFamily: TYPE.display, fontSize: 22, fontStyle: 'italic',
+          color: t.ink, letterSpacing: -0.2, lineHeight: 1,
+        }}>giftmaison<span style={{ color: t.accent }}>.</span></span>
+        <button style={{
+          background: 'transparent', border: 'none', padding: 0,
+          fontFamily: TYPE.body, fontSize: 12.5, color: t.inkSoft,
+          textDecoration: 'underline', cursor: 'pointer',
+        }}>Need help?</button>
+      </div>
+
+      <div style={{
+        flex: 1, padding: '14px 20px 18px', display: 'flex', flexDirection: 'column',
+        overflow: 'auto',
+      }}>
+        {/* Headline */}
+        <h1 style={{
+          margin: '4px 0 4px', fontFamily: TYPE.display, fontSize: 34, fontWeight: 400,
+          color: t.ink, letterSpacing: -0.9, lineHeight: 1.02,
+        }}>Start your<br /><span style={{ fontStyle: 'italic', color: t.accent }}>first registry.</span></h1>
+        <p style={{
+          margin: '0 0 20px', fontFamily: TYPE.body, fontSize: 12.5,
+          color: t.inkSoft, lineHeight: 1.45,
+        }}>
+          A warm, shareable list — set up in under a minute.
+        </p>
+
+        {/* Google banner — bold accent treatment */}
+        <button style={{
+          display: 'flex', alignItems: 'center', gap: 14,
+          padding: '14px 16px', borderRadius: 16,
+          background: t.accent, border: 'none',
+          fontFamily: TYPE.body, color: t.accentInk,
+          cursor: 'pointer', marginBottom: 16, width: '100%', textAlign: 'left',
+          boxShadow: `0 10px 24px ${t.accent}55, inset 0 1px 0 ${t.accentInk}20`,
+          position: 'relative', overflow: 'hidden',
+        }}>
+          {/* Decorative ring */}
+          <div style={{
+            position: 'absolute', right: -40, top: -40,
+            width: 120, height: 120, borderRadius: '50%',
+            border: `1px solid ${t.accentInk}25`, pointerEvents: 'none',
+          }} />
+          <div style={{
+            position: 'absolute', right: -20, top: -60,
+            width: 120, height: 120, borderRadius: '50%',
+            border: `1px solid ${t.accentInk}18`, pointerEvents: 'none',
+          }} />
+
+          <div style={{
+            width: 20, height: 20, borderRadius: '50%', background: t.paper,
+            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+          }}>
+            <svg width="12" height="12" viewBox="0 0 18 18" aria-hidden="true">
+              <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.17-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z"/>
+              <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.83.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z"/>
+              <path fill="#FBBC05" d="M3.97 10.72a5.41 5.41 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z"/>
+              <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+            </svg>
+          </div>
+          <div style={{
+            flex: 1, minWidth: 0, position: 'relative', zIndex: 1,
+            height: 40, display: 'flex', alignItems: 'center',
+            fontSize: 15, fontWeight: 600, letterSpacing: -0.2,
+          }}>
+            Continue with Google
+          </div>
+          <span style={{
+            fontFamily: TYPE.display, fontSize: 22, fontStyle: 'italic',
+            opacity: 0.9, lineHeight: 1, position: 'relative', zIndex: 1,
+          }}>→</span>
+        </button>
+
+        {/* Divider */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '2px 0 16px' }}>
+          <div style={{ flex: 1, height: 1, background: t.line }} />
+          <span style={{
+            fontFamily: TYPE.mono, fontSize: 9, color: t.inkFaint,
+            letterSpacing: 1.5, textTransform: 'uppercase',
+          }}>or sign up with email</span>
+          <div style={{ flex: 1, height: 1, background: t.line }} />
+        </div>
+
+        {/* First + Last name row */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 10 }}>
+          <div>
+            <span style={labelStyle}>First name</span>
+            <div style={inputStyle}>
+              <span style={{ flex: 1, color: t.inkFaint }}>Ana</span>
+            </div>
+          </div>
+          <div>
+            <span style={labelStyle}>Last name</span>
+            <div style={inputStyle}>
+              <span style={{ flex: 1, color: t.inkFaint }}>Popescu</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Email */}
+        <div style={{ marginBottom: 10 }}>
+          <span style={labelStyle}>Email address</span>
+          <div style={{ ...inputStyle, background: t.paper, border: `1.5px solid ${t.accent}` }}>
+            <span style={{ flex: 1 }}>ana.popescu@gmail.com</span>
+            <div style={{ width: 2, height: 16, background: t.accent, animation: 'pulse 1.1s infinite' }} />
+          </div>
+        </div>
+
+        {/* Password */}
+        <div style={{ marginBottom: 16 }}>
+          <span style={labelStyle}>Password</span>
+          <div style={inputStyle}>
+            <span style={{ flex: 1, fontFamily: TYPE.mono, letterSpacing: 2, color: t.ink }}>••••••••</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={t.inkFaint} strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3l18 18"/>
+              <path d="M10.6 6.1A10.9 10.9 0 0 1 12 6c7 0 10 6 10 6a13.3 13.3 0 0 1-1.7 2.6"/>
+              <path d="M6.6 6.6A13 13 0 0 0 2 12s3 6 10 6a10.8 10.8 0 0 0 4.4-.9"/>
+              <path d="M14.1 14.1A3 3 0 0 1 9.9 9.9"/>
+            </svg>
+          </div>
+          <span style={{
+            fontFamily: TYPE.body, fontSize: 10.5, color: t.inkFaint, marginTop: 6, display: 'block',
+          }}>At least 8 characters with one number.</span>
+        </div>
+
+        {/* Sign up — primary */}
+        <button style={{
+          padding: '14px', borderRadius: 999,
+          background: t.ink, color: t.paper, border: 'none',
+          fontFamily: TYPE.body, fontSize: 14, fontWeight: 600,
+          cursor: 'pointer', width: '100%', letterSpacing: -0.1,
+        }}>
+          Sign up
+        </button>
+
+        {/* Terms */}
+        <p style={{
+          margin: '12px 0 0', fontFamily: TYPE.body, fontSize: 10.5,
+          color: t.inkFaint, textAlign: 'center', lineHeight: 1.5,
+        }}>
+          By continuing you agree to our <span style={{ color: t.ink, textDecoration: 'underline' }}>Terms of Service</span> and <span style={{ color: t.ink, textDecoration: 'underline' }}>Privacy</span>.
+        </p>
+
+        <div style={{ flex: 1, minHeight: 18 }} />
+
+        {/* Already have an account — pill */}
+        <button style={{
+          padding: '13px 16px', borderRadius: 999,
+          background: t.paper, border: `1px solid ${t.line}`,
+          fontFamily: TYPE.body, fontSize: 13, color: t.ink,
+          cursor: 'pointer', width: '100%', textAlign: 'center',
+        }}>
+          Already have an account? <strong style={{ fontWeight: 600 }}>Log in</strong>
+        </button>
+      </div>
+    </Phone>
+  );
+}
+
+Object.assign(window, { OwnerHomeScreen, CreateRegistryScreen, AddItemScreen, AddSheetScreen, RegistryDetailScreen, OnboardingAuthScreen, Phone, BottomNav });
+
+
+</script>
+
+
+<script type="text/babel">
+const TWEAKS = /*EDITMODE-BEGIN*/{
+  "occasion": "housewarming"
+}/*EDITMODE-END*/;
+
+// Minimal browser-window wrapper (our own so we can control sizing)
+function Frame({ url, width, height, children }) {
+  return (
+    <div style={{
+      width, height, borderRadius: 12, overflow: 'hidden',
+      boxShadow: '0 24px 60px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.06)',
+      display: 'flex', flexDirection: 'column', background: '#e8e6e1',
+    }}>
+      <div style={{
+        height: 36, display: 'flex', alignItems: 'center', gap: 14,
+        padding: '0 14px', background: '#e8e6e1', borderBottom: '1px solid rgba(0,0,0,0.06)',
+      }}>
+        <div style={{ display: 'flex', gap: 7 }}>
+          <div style={{ width: 11, height: 11, borderRadius: '50%', background: '#ff5f57' }} />
+          <div style={{ width: 11, height: 11, borderRadius: '50%', background: '#febc2e' }} />
+          <div style={{ width: 11, height: 11, borderRadius: '50%', background: '#28c840' }} />
+        </div>
+        <div style={{
+          flex: 1, maxWidth: 420, margin: '0 auto', padding: '4px 14px',
+          background: '#f5f3ee', borderRadius: 7,
+          fontFamily: 'JetBrains Mono, monospace', fontSize: 11.5, color: '#4a4540',
+          textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        }}>🔒 {url}</div>
+        <div style={{ width: 52 }} />
+      </div>
+      <div style={{ flex: 1, overflow: 'hidden', background: '#fff' }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [theme, setTheme] = React.useState(TWEAKS.occasion || 'housewarming');
+  const t = THEMES[theme];
+
+  // Tweaks plumbing
+  React.useEffect(() => {
+    const panel = document.getElementById('tweaks-panel');
+    const onMsg = (e) => {
+      if (e.data?.type === '__activate_edit_mode') panel.classList.add('on');
+      if (e.data?.type === '__deactivate_edit_mode') panel.classList.remove('on');
+    };
+    window.addEventListener('message', onMsg);
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+    return () => window.removeEventListener('message', onMsg);
+  }, []);
+
+  // Render theme options
+  React.useEffect(() => {
+    const grid = document.getElementById('theme-opts');
+    if (!grid) return;
+    grid.innerHTML = '';
+    Object.entries(THEMES).forEach(([key, th]) => {
+      const div = document.createElement('div');
+      div.className = 'tw-opt' + (key === theme ? ' sel' : '');
+      div.innerHTML = `<div class="swatch" style="background:${th.accent}"></div><div class="n">${th.name}</div>`;
+      div.onclick = () => {
+        setTheme(key);
+        window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { occasion: key } }, '*');
+      };
+      grid.appendChild(div);
+    });
+  }, [theme]);
+
+  return (
+    <DesignCanvas>
+      {/* Title block */}
+      <div style={{ padding: '0 60px 60px', maxWidth: 1400 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <span style={{
+            fontFamily: 'Instrument Serif, serif', fontSize: 44, fontStyle: 'italic',
+            letterSpacing: -1, lineHeight: 1, color: '#2a2420',
+          }}>giftmaison<span style={{ color: t.accent }}>.</span></span>
+          <span style={{
+            fontFamily: 'JetBrains Mono, monospace', fontSize: 11, color: '#7a6f65',
+            letterSpacing: 1.5, textTransform: 'uppercase', marginLeft: 4,
+          }}>gift registry · design mocks v1</span>
+        </div>
+        <h1 style={{
+          margin: 0, fontFamily: 'Instrument Serif, serif', fontSize: 54, fontWeight: 400,
+          letterSpacing: -1.4, lineHeight: 1.02, color: '#2a2420', maxWidth: 900,
+        }}>
+          A <span style={{ fontStyle: 'italic', color: t.accent }}>warm, trustworthy</span> home for gifts that
+          get bought — not duplicated, not forgotten, not endlessly reserved.
+        </h1>
+        <p style={{
+          margin: '20px 0 0', fontFamily: 'Inter, sans-serif', fontSize: 15, color: '#5a5048',
+          maxWidth: 680, lineHeight: 1.55,
+        }}>
+          Product name: <strong>GiftMaison</strong> — warm, house-of-gifts. Works identically in
+          English and Romanian, unclaimed in the gifting space, warm in tone.
+          Canvas below: web giver flow (top row, Chrome) and Android owner flow (bottom row, phone frames).
+          Toggle <strong>Tweaks</strong> in the toolbar to swap the occasion theme.
+        </p>
+      </div>
+
+      <DCSection title="Web — gift giver flow" subtitle="1440×900 Chrome. The visitor who lands on a shared registry link.">
+        <DCArtboard label="01 · Registry detail (hero)" width={1440} height={960}>
+          <Frame url="giftmaison.com/r/ana-mihai-housewarming" width={1440} height={924}>
+            <div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
+              <RegistryScreen t={t} />
+            </div>
+          </Frame>
+        </DCArtboard>
+
+        <DCArtboard label="02 · Reserve + 30-min timer" width={1440} height={960}>
+          <Frame url="giftmaison.com/r/ana-mihai-housewarming/reserve/lamp-01" width={1440} height={924}>
+            <div style={{ width: '100%', height: '100%', overflow: 'auto' }}>
+              <ReserveScreen t={t} />
+            </div>
+          </Frame>
+        </DCArtboard>
+
+        <DCArtboard label="03 · Auth — sign in / up / guest" width={1280} height={880}>
+          <Frame url="giftmaison.com/sign-in?next=/r/ana-mihai" width={1280} height={844}>
+            <div style={{ width: '100%', height: '100%' }}>
+              <AuthScreen t={t} />
+            </div>
+          </Frame>
+        </DCArtboard>
+
+        <DCArtboard label="04 · Guest → account after reserving" width={1280} height={880}>
+          <Frame url="giftmaison.com/r/ana-mihai-housewarming" width={1280} height={844}>
+            <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+              <GuestConvertScreen t={t} />
+            </div>
+          </Frame>
+        </DCArtboard>
+
+        <DCArtboard label="05 · Reservation expired · re-reserve" width={1280} height={720}>
+          <Frame url="giftmaison.com/r/.../re-reserve?token=…" width={1280} height={684}>
+            <div style={{ width: '100%', height: '100%' }}>
+              <ExpiredScreen t={t} />
+            </div>
+          </Frame>
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection title="Android — registry owner flow" subtitle="Material 3 conventions loosened slightly to match the GiftMaison voice. Jetpack Compose target. Bottom nav is consistent across all owner screens.">
+        <DCArtboard label="06 · Onboarding + auth" width={360} height={760} style={{ background: 'transparent', boxShadow: 'none' }}>
+          <OnboardingAuthScreen t={t} />
+        </DCArtboard>
+
+        <DCArtboard label="07 · Home — all registries" width={360} height={760} style={{ background: 'transparent', boxShadow: 'none' }}>
+          <OwnerHomeScreen t={t} />
+        </DCArtboard>
+
+        <DCArtboard label="08 · Registry detail — items list" width={360} height={760} style={{ background: 'transparent', boxShadow: 'none' }}>
+          <RegistryDetailScreen t={t} />
+        </DCArtboard>
+
+        <DCArtboard label="09 · Create registry" width={360} height={760} style={{ background: 'transparent', boxShadow: 'none' }}>
+          <CreateRegistryScreen t={t} />
+        </DCArtboard>
+
+        <DCArtboard label="10 · Add item · paste URL" width={360} height={760} style={{ background: 'transparent', boxShadow: 'none' }}>
+          <AddItemScreen t={t} />
+        </DCArtboard>
+
+        <DCPostIt top={-20} left={1180} rotate={3} width={220}>
+          "Affiliate tag is invisible to givers" — key trust signal per REQUIREMENTS.md (AFF-03). Kept subtle, owner-side only.
+        </DCPostIt>
+      </DCSection>
+
+      <div style={{ padding: '0 60px 60px', maxWidth: 900, fontFamily: 'Inter, sans-serif', fontSize: 13, color: '#5a5048', lineHeight: 1.6 }}>
+        <div style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase', color: '#8a7f75', marginBottom: 10 }}>Design system notes</div>
+        <p style={{ margin: '0 0 10px' }}><strong>Type:</strong> Instrument Serif (expressive display, italics for the warm register) + Inter (all UI copy) + JetBrains Mono (microcopy, metadata, countdown). No emoji in brand UI; simple glyphs only.</p>
+        <p style={{ margin: '0 0 10px' }}><strong>Color:</strong> warm cream paper with a single accent per occasion — terracotta for housewarming, rose for weddings, dusty blue for baby, marigold for birthdays. Ink is a soft near-black, never pure #000. Reserved and expired states borrow the accent; purchased uses a quiet olive-green.</p>
+        <p style={{ margin: '0 0 10px' }}><strong>Status semantics:</strong> available = outlined pill; reserved = accent-filled pill with pulsing dot + time remaining; purchased = olive pill + grayscale image (still visible, so givers know what's already been given).</p>
+        <p style={{ margin: 0 }}><strong>Not yet designed:</strong> browse-stores WebView (Phase 7), settings/profile, notifications inbox, email templates, empty states for a brand-new registry, dark mode.</p>
+      </div>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
