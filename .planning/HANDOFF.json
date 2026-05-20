@@ -1,0 +1,50 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-05-20T13:34:15.921Z",
+  "phase": null,
+  "phase_name": "quick-task verification chain (k37 web product tiles + product detail page)",
+  "phase_dir": null,
+  "plan": null,
+  "task": null,
+  "total_tasks": null,
+  "status": "awaiting_user_verification",
+  "completed_tasks": [
+    {"id": "260513-k37", "name": "Improve web product tiles + add product detail page", "status": "Verified", "commits": "6e2a2cb, fc9e1f2, 8c1f4cb, 8c28555"},
+    {"id": "260516-iux", "name": "Fix ItemReservePage rendering 'Your time ran out' + infinite loading for anonymous viewers", "status": "Verified", "commits": "836442b, 5ef542b, b43cf47"},
+    {"id": "260516-k4f", "name": "Fix ItemReservePage not transitioning to reserved-by-me after Reserve from BROWSE_AVAILABLE", "status": "Verified", "commits": "93eca0d, 7a10591, 775ba78"},
+    {"id": "260516-ku3", "name": "Fix StickyReserveBanner not clearing on second release in same mount (sequential-release bug)", "status": "Verified", "commits": "495945d, 6f50c03, a12a411"},
+    {"id": "260516-lbf", "name": "Fix web product tiles missing shop/price/currency — adapt firestore mapper to Android schema", "status": "Verified", "commits": "47e8af7, 9d150d7, 20f0897"},
+    {"id": "260516-lsi", "name": "Make product blade on ItemReservePage clickable — opens merchant URL in new tab", "status": "Verified", "commits": "d54f7e2, 5b6c88f, f95119b"},
+    {"id": "260516-oiy", "name": "Optimistic items-cache patch on release from ItemReservePage — stale tile fix", "status": "complete (pending user re-verify)", "commits": "2a7a623, 584675d, f1891d0"},
+    {"id": "260518-j5j", "name": "Pass navigate state from release-from-ItemReservePage to suppress hydration + items-snapshot races on RegistryPage", "status": "complete (pending user re-verify)", "commits": "f90da85, c0aef4c, 3e456ed"},
+    {"id": "260518-ke1", "name": "Harden release race guard with ignoreItemId — suppress stale-active reservation for same item", "status": "complete (pending user re-verify)", "commits": "3b874be, 8fba738, 8285726"},
+    {"id": "260519-08n", "name": "j5j follow-up: pass navigation state in navigate-on-status-flip effect (status-flip race)", "status": "awaiting_user_verification", "commits": "2681626, f8919ee, 9f9dde7, 1225bee"}
+  ],
+  "remaining_tasks": [],
+  "blockers": [],
+  "human_actions_pending": [
+    {
+      "action": "Hard-refresh Safari and re-test the release flow: reserve any item → on detail page click the inline 'Release reservation' button → confirm sticky banner + ReserveDetailSection + tile RESERVED state are all gone immediately on /registry/:id (no manual refresh needed, no flicker regardless of devtools state).",
+      "context": "Final user verification of the j5j → ke1 → 08n combined fix for the long-standing release-race bug. 08n closed the last race path (status-flip useEffect was navigating without state, winning the race against release-success). If user confirms, mark 08n row 'Verified' in STATE.md and the entire k37 verification chain closes.",
+      "blocking": true
+    },
+    {
+      "action": "Address pre-existing untracked files in .planning/quick/ — multiple older quick-task PLAN.md files (260510-noi, 260510-o7w, 260510-pdp, 260510-sai, 260510-v4v, 260513-k37) never got committed by their original /gsd:quick runs (looks like a gsd-tools bug). Decide whether to bulk-commit them as 'docs(quick-...): add missing PLAN.md' or leave them untracked.",
+      "context": "git status shows ~10 untracked PLAN.md files that accumulated across past quick tasks. Not blocking but should be cleaned up.",
+      "blocking": false
+    },
+    {
+      "action": "Decide whether to also persist the Android-side schema (priceAmount, priceCurrency, merchantDomain) per the lbf follow-up candidate noted in STATE.md, so the web mapper doesn't have to parse Android's display-format price string for newly-added items.",
+      "context": "Currently web mapper (post-lbf) parses 'NNN,NN RON' format from Android. Works fine for both legacy + new items. Optional cleanup for canonical data shape.",
+      "blocking": false
+    }
+  ],
+  "decisions": [
+    {"decision": "Pursued progressive hardening for the release race: j5j (ignoreReservationId) → ke1 (ignoreItemId) → 08n (extend status-flip effect to pass nav state)", "rationale": "Each iteration closed a discovered race path. 08n was the final piece — Firestore onSnapshot fires faster than useReleaseReservation's setStatus('success'), so the status-flip useEffect won the navigation race. Without state, j5j/ke1 guards had nothing to match.", "phase": "verification"},
+    {"decision": "Discarded all diagnostic console + localStorage logging after diagnosis", "rationale": "Diag logs were uncommitted (lived only in main checkout) and noise for production. 08n executor confirmed grep for DIAG|diagLog|__DIAG__ returns zero in committed code.", "phase": "verification"},
+    {"decision": "Adapted ItemReservePage state machine to handle the auto-reserve flow (RegistryPage.tsx:91 onSuccess) AND the direct mutation flow (ItemReservePage.tsx:54 onSuccess) consistently", "rationale": "Anonymous-no-identity users go through RegistryPage's autoReserveMutation; signed-in / anonymous-with-identity go through ItemReservePage's reserveMutation. Both now flow through the same release path that passes nav state.", "phase": "k4f / 08n"}
+  ],
+  "uncommitted_files": [],
+  "next_action": "Wait for user to hard-refresh Safari and re-test the release flow described above. If user says 'approved', flip 260519-08n's STATE row Status from blank to 'Verified' and commit (single Edit + gsd-tools commit).",
+  "context_notes": "Long debug session — the user discovered the bug doesn't occur with Safari devtools open (classic timing-race signal). localStorage-persisted diag logs revealed the status-flip useEffect was the racing navigator that beat release-success by ~100-130ms because the Firestore onSnapshot for item.status='available' fires faster than the release callable's promise resolution. The 08n fix is a 6-line code change (status-flip navigate now passes the same state as release-success). All 207 web tests + tsc clean. The chain of fixes from k37 onwards is solid; this final piece should close the verification loop. Dev server (Vite) was running at http://localhost:5173 during the session — task bu2vwhggx — should still be running for user verification."
+}
