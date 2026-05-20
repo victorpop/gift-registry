@@ -213,7 +213,7 @@ describe('RegistryPage', () => {
     )
 
     expect(hydrationMock.useActiveReservationHydration).toHaveBeenCalled()
-    const callArgs = hydrationMock.useActiveReservationHydration.mock.calls[0]
+    const callArgs = hydrationMock.useActiveReservationHydration.mock.calls[0] as unknown[]
     expect(callArgs[0]).toBe('reg-1')
     expect(callArgs[1]).toEqual({ ignoreReservationId: 'res-abc' })
   })
@@ -241,7 +241,7 @@ describe('RegistryPage', () => {
     )
 
     expect(hydrationMock.useActiveReservationHydration).toHaveBeenCalled()
-    const callArgs = hydrationMock.useActiveReservationHydration.mock.calls[0]
+    const callArgs = hydrationMock.useActiveReservationHydration.mock.calls[0] as unknown[]
     expect(callArgs[0]).toBe('reg-1')
     expect(callArgs[1]).toEqual({ ignoreReservationId: 'res-abc', ignoreItemId: 'item-1' })
   })
