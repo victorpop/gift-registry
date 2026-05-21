@@ -61,3 +61,18 @@ Same SMTP configuration affects ALL transactional emails sent by the app:
   access; this is about email deliverability (REG-06/07 + NOTF-02/03).
 - Worth filing as a quick-task once the SMTP config is inspected, because
   the fix path differs between "tweak DNS records" and "migrate provider."
+
+## Related (not this bug)
+
+- UAT-6 first attempt (2026-05-21) also revealed a separate production
+  bug: `createReservation` was enqueuing into a non-existent Cloud Tasks
+  queue (`release-reservation` hyphenated vs. the auto-created
+  `releaseReservation` camelCase), so no Cloud Task ever fired and no
+  expiry email was ever generated. Fixed in commit `bf4ca31` and
+  deployed `2026-05-21T15:25:26Z`. See
+  `.planning/phases/14-web-fallback-live-deploy-guest-uat/14-04-UAT-RESULTS.md`
+  → "Production bug fixed during Plan 14-04" section for full diagnosis.
+- The email-deliverability issue tracked in THIS todo is independent
+  of the queue-name bug — it's about whether Gmail strips CTA links on
+  emails our SMTP-extension actually does send, which the queue-name
+  fix has no bearing on.

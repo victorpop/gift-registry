@@ -33,7 +33,7 @@ Layered per D-08:
 | 3 | Guest localStorage persists across browser restart | Chrome (incognito → quit → relaunch) | **PASS** | Tested via `ItemReservePage` "STEP 2 OF 2" CTA. After Cmd+Q + relaunch, the page detected prior guest identity from localStorage and reserved silently (no modal re-prompt). This is by design per `web/src/pages/ItemReservePage.tsx:273-296` — the `if (identity)` branch fires `reserveMutation.mutate` directly when identity exists, bypassing the guest-identity modal. The localStorage hydration round-trip is the proof; modal-skipping is the observable evidence. | 2026-05-21 |
 | 4 | Romanian browser-locale autodetection on cold load (WEB-D-15) | Chrome (system+browser language switched to Romanian, full Cmd+Q + relaunch, fresh incognito) | **PASS** | UI rendered in Romanian on cold incognito load after switching system/Chrome to Romanian — i18next browser-detection working end-to-end against the deployed bundle. | 2026-05-21 |
 | 5 | SPA deep-link to PRIVATE registry, unauthenticated → 404 | Chrome (fresh incognito, no auth session) | **PASS** | Direct paste of private-registry URL rendered the generic 404 page. No data leak (existence not revealed, owner-only data not shown). Firestore returned `permission-denied`, caught and mapped to 404 by the client per WEB-D-13/14. | 2026-05-21 |
-| 6 | Email deep-link re-reserve end-to-end (natural 30-min path — D-09 amendment 2026-05-21) | Android prod-pointed APK + web fallback (incognito) + user's own mailbox | **IN PROGRESS** | User reserves an item via the prod-pointed Android app on phone `WCR0219729000994`, waits the full 30-min for natural expiry, then clicks the re-reserve CTA in the inbox email. Replaces the abandoned D-09 seed-script approach (see 14-CONTEXT.md "D-09 amendment"). Awaiting user kickoff + 30-min wait + email click. | — |
+| 6 | Email deep-link re-reserve end-to-end (natural 30-min path — D-09 amendment 2026-05-21) | Android prod-pointed APK + web fallback (incognito) + user's own mailbox | **IN PROGRESS (retest after queue-name fix)** | First attempt (17:40:44 UTC+3 reserve → 18:10:44 expected expiry) revealed a prod bug: `createReservation` was enqueuing into a non-existent Cloud Tasks queue, so no Cloud Task ever fired and the item never auto-released. Bug fixed and deployed at `2026-05-21T15:25:26Z` (commit `bf4ca31`). Stuck reservation will be cleaned manually in Firestore Console. User to restart UAT-6 with a different item on the fixed deployment. | — |
 | 7 | Google OAuth popup flow on deployed build | TBD | **PENDING** | Awaiting Task 7 verification. | — |
 
 ---
@@ -112,6 +112,70 @@ difference is whether the Cloud Task was enqueued with a 60-second or
 30-minute delay. The 30-min delay is what production users will actually
 experience, so this UAT is arguably MORE faithful to the production
 behaviour than the seed-script shortcut would have been.
+
+---
+
+## Production bug fixed during Plan 14-04
+
+### 2026-05-21 — `createReservation` Cloud Tasks queue name mismatch (auto-release silently broken since Phase 5/6 deploy)
+
+- **Surfaced during:** UAT-6 first attempt (natural 30-min path).
+- **Symptom:** User reserved an item via the prod-pointed Android app on
+  phone `WCR0219729000994` at `2026-05-21 17:40:44 UTC+3`. At
+  `18:10:44 UTC+3` (the recorded `expiresAt`) the reservation did NOT
+  auto-release:
+  - Firestore item still `status="reserved"`, with intact `reservedAt`,
+    `reservedBy`, `expiresAt` fields.
+  - No expiry email arrived in the giver's mailbox.
+  - The Android app's sticky countdown banner read
+    "0 MIN LEFT — AUTO-RELEASES IF NOT PURCHASED" with no state transition.
+- **Root cause:** `functions/src/reservation/createReservation.ts:24`
+  declared `const QUEUE_NAME = "release-reservation"` (hyphenated).
+  Firebase 2nd-gen `onTaskDispatched` auto-creates a Cloud Tasks queue
+  whose name matches the function export — `releaseReservation`
+  (camelCase). The hyphenated queue does not exist in this project, so
+  every `tasksClient.createTask({ parent: queuePath, ... })` call has
+  been throwing `NOT_FOUND` since the original Phase 5/6 functions
+  deploy. The error is caught by the `try/catch` on line 104, logs
+  `[createReservation] Cloud Tasks enqueue failed (emulator?):` as a
+  warning, and proceeds — committing the reservation with
+  `cloudTaskName=""` and no scheduled release. The emulator-only
+  `setTimeout` fallback (lines 115-128) gated by `FUNCTIONS_EMULATOR=true`
+  is the only thing that has ever made the release fire in dev, which
+  is why no Phase 5/6 emulator test caught it.
+- **Confirmation:** User verified via
+  https://console.cloud.google.com/cloudtasks?project=gift-registry-ro
+  that only a `releaseReservation` queue (camelCase) exists — no
+  `release-reservation` queue ever existed.
+- **Why tests didn't catch it:** Unit tests for `createReservation`
+  stub `CloudTasksClient` and don't assert against a real queue path.
+  Tests for `releaseReservation` invoke the handler directly, never
+  through the Cloud Tasks → onTaskDispatched dispatch path.
+- **Fix:** Changed `QUEUE_NAME` from `"release-reservation"` to
+  `"releaseReservation"` (one-line edit, commit `bf4ca31`). Built
+  cleanly with `npm run build` before deploy.
+- **Deploy:** `firebase deploy --only functions:createReservation
+  --project gift-registry-ro`, completed `2026-05-21T15:25:26Z`
+  (18:25 UTC+3). Deploy log at `/tmp/14-04-fix-deploy.log`. No other
+  function touched; no rules / hosting / firebase.json change.
+- **Stuck reservation cleanup:** The reservation from the first UAT
+  attempt has `cloudTaskName=""` and no Cloud Task scheduled, so it
+  will never auto-release on its own. User to clean it manually via
+  Firestore Console (see checkpoint instructions).
+- **Retest plan:** User reserves a DIFFERENT item via the prod-pointed
+  Android app (so the just-cleaned item stays untouched as evidence),
+  records timestamp + reservation ID, waits the natural 30 minutes,
+  confirms (a) expiry email arrives, (b) re-reserve CTA fires
+  `createReservation` again, (c) new reservation has populated
+  `cloudTaskName` field. Optional in-flight check: Functions logs at
+  https://console.firebase.google.com/project/gift-registry-ro/functions/logs?functionFilter=createReservation
+  should NOT show the `Cloud Tasks enqueue failed` warning for the
+  new reservation.
+- **Scope:** Affected ALL production reservations since the original
+  Phase 5/6 deploy, but only manifested as a UAT-blocking issue once
+  end-to-end production verification (Phase 14) actually waited the
+  natural 30 minutes. Confirms the value of UAT-6's natural-30-min
+  path over the abandoned compressed-time seed-script approach.
 
 ---
 
