@@ -6,7 +6,7 @@ deploy_target: https://gift-registry-ro.web.app
 hosting_deploy_commit: 78fed8d
 appcheck_posture_at_uat: monitor-only (enforcement flip happens in Task 10)
 created: 2026-05-21
-status: in-progress (Pass 1 items 1-5 PASS; items 6-7 pending; Pass 2 pending; enforcement flip pending)
+status: in-progress (Pass 1 items 1-5 PASS; item 6 in progress via natural 30-min path; item 7 pending; Pass 2 pending; enforcement flip pending)
 ---
 
 # Phase 14 Plan 04 — UAT Results
@@ -33,8 +33,85 @@ Layered per D-08:
 | 3 | Guest localStorage persists across browser restart | Chrome (incognito → quit → relaunch) | **PASS** | Tested via `ItemReservePage` "STEP 2 OF 2" CTA. After Cmd+Q + relaunch, the page detected prior guest identity from localStorage and reserved silently (no modal re-prompt). This is by design per `web/src/pages/ItemReservePage.tsx:273-296` — the `if (identity)` branch fires `reserveMutation.mutate` directly when identity exists, bypassing the guest-identity modal. The localStorage hydration round-trip is the proof; modal-skipping is the observable evidence. | 2026-05-21 |
 | 4 | Romanian browser-locale autodetection on cold load (WEB-D-15) | Chrome (system+browser language switched to Romanian, full Cmd+Q + relaunch, fresh incognito) | **PASS** | UI rendered in Romanian on cold incognito load after switching system/Chrome to Romanian — i18next browser-detection working end-to-end against the deployed bundle. | 2026-05-21 |
 | 5 | SPA deep-link to PRIVATE registry, unauthenticated → 404 | Chrome (fresh incognito, no auth session) | **PASS** | Direct paste of private-registry URL rendered the generic 404 page. No data leak (existence not revealed, owner-only data not shown). Firestore returned `permission-denied`, caught and mapped to 404 by the client per WEB-D-13/14. | 2026-05-21 |
-| 6 | Email deep-link re-reserve end-to-end (60s-delay Cloud Task — D-09) | TBD | **PENDING** | Awaiting Task 6a seed script + Task 6b execution. | — |
+| 6 | Email deep-link re-reserve end-to-end (natural 30-min path — D-09 amendment 2026-05-21) | Android prod-pointed APK + web fallback (incognito) + user's own mailbox | **IN PROGRESS** | User reserves an item via the prod-pointed Android app on phone `WCR0219729000994`, waits the full 30-min for natural expiry, then clicks the re-reserve CTA in the inbox email. Replaces the abandoned D-09 seed-script approach (see 14-CONTEXT.md "D-09 amendment"). Awaiting user kickoff + 30-min wait + email click. | — |
 | 7 | Google OAuth popup flow on deployed build | TBD | **PENDING** | Awaiting Task 7 verification. | — |
+
+---
+
+## UAT-6 plan — Natural 30-min path (D-09 amendment 2026-05-21)
+
+The original D-09 plan was to seed a near-expiry reservation via a
+60-second-delay Cloud Task targeting the deployed `releaseReservation`
+onTaskDispatched handler, compressing the 30-min production wait to ~1 min.
+That approach was abandoned during execution (see 14-CONTEXT.md "D-09
+amendment" for the post-mortem). The replacement plan exercises the exact
+same end-state pipeline — reservation → Cloud Task release → expiry email
+→ re-reserve link click → new reservation — using the real 30-min production
+timer instead of a compressed-time helper script.
+
+**Pre-requisite check:** Confirm the prod-pointed APK
+(`com.giftregistry`, built with `-Puse_emulator=false`) is still installed
+on phone `WCR0219729000994`. If it was uninstalled:
+
+```bash
+cd /Users/victorpop/ai-projects/gift-registry
+./gradlew :app:assembleDebug -Puse_emulator=false
+~/Library/Android/sdk/platform-tools/adb -s WCR0219729000994 \
+  install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+**Execution steps:**
+
+1. Open the prod-pointed Android app, sign in.
+2. Navigate to a PUBLIC test registry where the user owns an item with
+   `status=available` and a valid `affiliateUrl`. Use a DIFFERENT item
+   than the ones consumed by Pass 1 UAT-2 / UAT-3 so the slate is clean.
+3. Tap **Reserve**. Record:
+   - Timestamp (so the 30-min mark is known)
+   - Reservation ID (visible in app, or via Firestore Console
+     `reservations` collection filtered by the test giverEmail)
+4. Wait the natural 30-min for the production Cloud Task to fire the
+   deployed `releaseReservation` handler → `releaseReservationCore`
+   transaction → expiry email + giver notification.
+5. When the expiry email arrives in the user's own mailbox
+   (the giverEmail used on the reservation):
+   - Confirm the subject line (template:
+     `functions/src/email/templates/expiry.ts`)
+   - Confirm the CTA link in the email body is clickable.
+     User-to-self mail typically does NOT trigger Gmail's
+     link-strip heuristic, but if it DOES, that's a SECOND
+     occurrence of the deferred bug
+     `2026-05-21-invite-email-cta-link-stripped-in-gmail-mobile.md`
+     — log it as an additional data point under that todo, do NOT
+     block UAT-6 closure on it.
+   - Click the re-reserve CTA.
+6. The web page should land on the registry detail page with
+   `?autoReserveItemId=<itemId>` in the URL and auto-fire a new
+   `createReservation` call (per WEB-D-11).
+7. Verify in the Android app (refresh the registry) AND/OR
+   Firebase Console > Firestore:
+   - A NEW reservation exists with `status=active` and a fresh
+     30-min `expiresAt` countdown.
+   - The ORIGINAL reservation has `status=expired`.
+   - The item's `status` was briefly `available` (between
+     release and re-reserve) and is now back to `reserved`.
+
+**Paste back into the chat:**
+
+- Original reservation ID
+- Expiry email subject line
+- New reservation ID
+- Then type `uat-6 passed` (or describe what broke if any step failed)
+
+**Why this is equivalent to the abandoned seed approach:**
+The deployed pipeline is the SAME code in both cases —
+`onTaskDispatched releaseReservation` → `releaseReservationCore` →
+`sendEmail` via Trigger Email extension → SendGrid delivery → user click
+→ `resolveReservation` callable → `createReservation` callable. The only
+difference is whether the Cloud Task was enqueued with a 60-second or
+30-minute delay. The 30-min delay is what production users will actually
+experience, so this UAT is arguably MORE faithful to the production
+behaviour than the seed-script shortcut would have been.
 
 ---
 

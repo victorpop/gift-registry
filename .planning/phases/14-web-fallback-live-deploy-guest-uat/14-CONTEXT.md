@@ -174,5 +174,26 @@ Get the redesigned web bundle (Phase 13 output) live at `https://gift-registry-r
 
 ---
 
+## D-09 amendment (2026-05-21)
+
+60s seed-script approach was abandoned during execution. Cloud Tasks API
+requires gcloud Application Default Credentials, which weren't set up on the
+dev machine. After a failed seed attempt left a phantom reservation in prod
+that had to be manually cleaned via Firestore Console, the user opted to
+verify UAT-6 via the natural 30-min path through the prod-pointed Android
+app — same end-state, no extra tooling.
+
+The replacement plan (see 14-04-UAT-RESULTS.md "UAT-6 plan — Natural 30-min
+path") exercises the exact same deployed pipeline (Cloud Task → release →
+expiry email → re-reserve link → new reservation) just with the natural
+30-min delay instead of a compressed 60s delay. Seed script
+`functions/scripts/seedNearExpiryReservation.ts` was reverted in commit
+`1c970c4`. The `must_haves.truths` entry in
+`14-04-layered-uat-and-appcheck-enforcement-PLAN.md` that referenced the
+60s Cloud Task was rewritten to point at the natural-path verification.
+
+---
+
 *Phase: 14-web-fallback-live-deploy-guest-uat*
 *Context gathered: 2026-05-20*
+*D-09 amended: 2026-05-21*
