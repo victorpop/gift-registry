@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 14-02-functions-tsconfig-cleanup-and-deploy-PLAN.md
-last_updated: "2026-05-21T10:47:15.116Z"
+stopped_at: PAUSED mid Plan 14-04 — Tasks 1-3 + UAT-1 done; pending UAT-2..5 (solo incognito), seed script (item 8), Pass 2 (item 7), App Check enforcement flips (item 9)
+last_updated: "2026-05-21T11:30:00.000Z"
 last_activity: 2026-05-21
 progress:
   total_phases: 14
@@ -25,12 +25,35 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 
 ## Current Position
 
-Phase: 14 (web-fallback-live-deploy-guest-uat) — EXECUTING
-Plan: 4 of 4
-Status: Ready to execute
+Phase: 14 (web-fallback-live-deploy-guest-uat) — EXECUTING (Wave 3 paused mid-plan)
+Plan: 14-04 of 4 — paused
+Status: PAUSED — Tasks 1, 2 (Console), 3 (code wiring) done. UAT-1 (App Check token exchange) verified 200. Awaiting user availability for UAT items 2–5 + Pass 2 + enforcement gates.
 Last activity: 2026-05-21
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████████░░] 75% (3 of 4 plans + Wave 3 partial)
+
+### Plan 14-04 resume marker
+
+**Completed this session:**
+- Task 1 — reCAPTCHA v3 site key registered in Firebase Console; OAuth origins added (user-side)
+- Task 2 — OAuth origins added to GCP console (user-side)
+- Task 3 — App Check wired in `web/src/firebase.ts`, hosting redeployed (commit `78fed8d`)
+- UAT-1 — App Check `appcheck:exchange` returns 200; verified after secret-key resave + IndexedDB clear
+
+**Side finding to address in a future quick-task (NOT a blocker):**
+- `initializeAppCheck` is called twice — once in `web/src/firebase.ts` (added in Task 3) and once in `web/src/main.tsx` (pre-existing from Phase 5). Same options, no runtime error, but redundant. Should consolidate into firebase.ts and remove the main.tsx call.
+
+**Pending Plan 14-04 tasks:**
+- UAT-2 — Retailer redirect (Chrome + Safari incognito)
+- UAT-3 — Guest localStorage persistence across browser restart
+- UAT-4 — Romanian autodetect
+- UAT-5 — Private registry 404 (already known to return 403 PERMISSION_DENIED for the test registry; legitimate denial)
+- Task 6 — Build `functions/scripts/seedNearExpiryReservation.ts` (60s Cloud Task seed for re-reserve flow / D-09)
+- UAT-6 — Google OAuth popup
+- UAT-7 — Recruited-giver Pass 2 (needs a second human)
+- Task 9 — Per-service App Check enforcement flips (Firestore / Functions / Storage) — gated on all UAT passing
+
+**Resume command:** `/gsd:execute-phase 14` will pick up Plan 14-04 since it lacks a SUMMARY.md — the executor reads STATE.md and skips completed plans.
 
 ## Performance Metrics
 
