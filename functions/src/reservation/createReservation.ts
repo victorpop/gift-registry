@@ -21,7 +21,7 @@ interface CreateReservationResponse {
 
 const RESERVATION_DURATION_MS = 30 * 60 * 1000;
 const REGION = "europe-west3";
-const QUEUE_NAME = "release-reservation";
+const QUEUE_NAME = "releaseReservation";
 
 const tasksClient = new CloudTasksClient();
 
