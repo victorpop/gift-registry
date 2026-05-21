@@ -50,7 +50,7 @@ internal fun ShareBanner(
     val scope = rememberCoroutineScope()
 
     val fullShareUrl = shareUrlOf(registryId)
-    // Display without scheme prefix: "gift-registry-ro.web.app/r/abc"
+    // Display without scheme prefix: "gift-registry-ro.web.app/registry/abc"
     val displayUrl = fullShareUrl.removePrefix("https://")
 
     Row(
