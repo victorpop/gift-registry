@@ -31,6 +31,11 @@ web/tsconfig.*.tsbuildinfo
 .env
 .env.local
 
+# Exception: functions/.env + .env.example are committed (Phase 14 Plan 02 / D-10).
+# The PUBLIC_WEB_BASE_URL value is the public Firebase Hosting domain — not a secret.
+!functions/.env
+!functions/.env.example
+
 # Firebase Extensions secrets — the extension CLI writes SMTP keys etc. to
 # .secret.local files per extension instance. Never commit these.
 extensions/*.secret.local
