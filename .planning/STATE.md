@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: PAUSED mid Plan 14-04 — Tasks 1-3 + UAT-1 done; pending UAT-2..5 (solo incognito), seed script (item 8), Pass 2 (item 7), App Check enforcement flips (item 9)
-last_updated: "2026-05-21T11:30:00.000Z"
-last_activity: 2026-05-21
+stopped_at: Completed 260521-myv-PLAN.md
+last_updated: "2026-05-21T13:39:30.190Z"
+last_activity: 2026-05-21 -- Phase 14 execution started
 progress:
   total_phases: 14
   completed_phases: 13
   total_plans: 73
   completed_plans: 72
-  percent: 0
+  percent: 75
 ---
 
 # Project State
@@ -25,25 +25,28 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 
 ## Current Position
 
-Phase: 14 (web-fallback-live-deploy-guest-uat) — EXECUTING (Wave 3 paused mid-plan)
-Plan: 14-04 of 4 — paused
-Status: PAUSED — Tasks 1, 2 (Console), 3 (code wiring) done. UAT-1 (App Check token exchange) verified 200. Awaiting user availability for UAT items 2–5 + Pass 2 + enforcement gates.
-Last activity: 2026-05-21
+Phase: 14 (web-fallback-live-deploy-guest-uat) — EXECUTING
+Plan: 1 of 4
+Status: Executing Phase 14
+Last activity: 2026-05-21 -- Phase 14 execution started
 
 Progress: [████████░░] 75% (3 of 4 plans + Wave 3 partial)
 
 ### Plan 14-04 resume marker
 
 **Completed this session:**
+
 - Task 1 — reCAPTCHA v3 site key registered in Firebase Console; OAuth origins added (user-side)
 - Task 2 — OAuth origins added to GCP console (user-side)
 - Task 3 — App Check wired in `web/src/firebase.ts`, hosting redeployed (commit `78fed8d`)
 - UAT-1 — App Check `appcheck:exchange` returns 200; verified after secret-key resave + IndexedDB clear
 
 **Side finding to address in a future quick-task (NOT a blocker):**
+
 - `initializeAppCheck` is called twice — once in `web/src/firebase.ts` (added in Task 3) and once in `web/src/main.tsx` (pre-existing from Phase 5). Same options, no runtime error, but redundant. Should consolidate into firebase.ts and remove the main.tsx call.
 
 **Pending Plan 14-04 tasks:**
+
 - UAT-2 — Retailer redirect (Chrome + Safari incognito)
 - UAT-3 — Guest localStorage persistence across browser restart
 - UAT-4 — Romanian autodetect
@@ -137,6 +140,7 @@ Progress: [████████░░] 75% (3 of 4 plans + Wave 3 partial)
 | Phase 14-web-fallback-live-deploy-guest-uat P01 | 90min | 7 tasks | 2 files |
 | Phase 14-web-fallback-live-deploy-guest-uat P03 | 10min | 2 tasks | 0 files |
 | Phase 14 P02 | 3min | 5 tasks | 5 files |
+| Phase quick/260521-myv-update-shareable-registry-link-from-r-re P01 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -337,6 +341,7 @@ Recent decisions affecting current work:
 - [Phase 14-web-fallback-live-deploy-guest-uat]: 403 on registries/heTs42jyX1XPDtBSJbR3 is NOT caused by stale rules (defensive visibility.get defaults were already deployed); root cause is registry visibility/existence — deferred to Plan 14-04 UAT inspection
 - [Phase 14]: Committed functions/.env with PUBLIC_WEB_BASE_URL (public Firebase Hosting URL — not a secret); enables firebase deploy --only functions from a fresh clone
 - [Phase 14]: healthCheck in us-central1 is a pre-existing condition — region is immutable in Cloud Run; documented not fixed
+- [Phase quick/260521-myv-update-shareable-registry-link-from-r-re]: Android share URL flipped /r/{id} → /registry/{id} to match canonical web fallback route; no redirect added (web never had /r/:id)
 
 ### Pending Todos
 
@@ -414,6 +419,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-21T10:47:15.111Z
-Stopped at: Completed 14-02-functions-tsconfig-cleanup-and-deploy-PLAN.md
+Last session: 2026-05-21T13:39:24.961Z
+Stopped at: Completed 260521-myv-PLAN.md
 Resume file: None
