@@ -3,6 +3,7 @@
     "module": "commonjs",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
+    "rootDir": "src",
     "outDir": "lib",
     "sourceMap": true,
     "strict": true,
@@ -11,5 +12,5 @@
     "skipLibCheck": true
   },
   "compileOnSave": true,
-  "include": ["src", "scripts"]
+  "include": ["src"]
 }
