@@ -299,10 +299,10 @@ Plans:
 **Goal:** Get the redesigned web fallback rendering at https://gift-registry-ro.web.app against the production gift-registry-ro Firebase project (Firebase Web app registered, real env config wired, App Check posture matched), unblock the Cloud Functions deploy pipeline, and close the 7 outstanding WEB-01..04 human-UAT items by running an end-to-end guest reservation flow against prod.
 **Requirements**: WEB-01, WEB-02, WEB-03, WEB-04 (human-UAT closure)
 **Depends on:** Phase 13
-**Plans:** 2/4 plans executed
+**Plans:** 3/4 plans executed
 
 Plans:
 - [x] 14-01-register-web-app-and-hosting-deploy-PLAN.md — Register Firebase Web app + write web/.env.local + rebuild + hosting-only deploy (fixes blank page; closes folded todo register-firebase-web-app-and-deploy-real-web-config)
-- [ ] 14-02-functions-tsconfig-cleanup-and-deploy-PLAN.md — Apply tsconfig rootDir fix + commit functions/.env + deploy functions (closes folded todo fix-functions-tsconfig-and-env-handling)
+- [x] 14-02-functions-tsconfig-cleanup-and-deploy-PLAN.md — Apply tsconfig rootDir fix + commit functions/.env + deploy functions (closes folded todo fix-functions-tsconfig-and-env-handling)
 - [x] 14-03-firestore-and-storage-rules-deploy-PLAN.md — Deploy firestore.rules + storage.rules (first-time storage deploy with cross-service grant; closes folded todo deploy-phase-12-storage-rules)
 - [ ] 14-04-layered-uat-and-appcheck-enforcement-PLAN.md — Register reCAPTCHA v3 + add OAuth origins + layered UAT (solo Pass 1 + recruited-giver Pass 2) covering all 7 manual UAT items + App Check monitor→enforce flip
