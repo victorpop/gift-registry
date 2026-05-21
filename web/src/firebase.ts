@@ -2,6 +2,7 @@ import { initializeApp, type FirebaseApp } from 'firebase/app'
 import { getFirestore, connectFirestoreEmulator, type Firestore } from 'firebase/firestore'
 import { getFunctions, connectFunctionsEmulator, type Functions } from 'firebase/functions'
 import { getAuth, connectAuthEmulator, setPersistence, browserLocalPersistence, type Auth } from 'firebase/auth'
+import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
 
 // CRITICAL: Region pin. Firebase JS SDK defaults to us-central1 if second arg is omitted.
 // Same defect was fixed in AppModule.kt on 2026-04-19. Do NOT remove this constant.
@@ -17,6 +18,17 @@ const firebaseConfig = {
 }
 
 export const app: FirebaseApp = initializeApp(firebaseConfig)
+
+// App Check — reCAPTCHA v3 in production (WEB-D-18). Site key from .env.local.
+// Skipped in emulator mode (emulators don't enforce App Check) and when the key is
+// empty (defensive guard so a missing-env build doesn't crash at module-eval time).
+if (import.meta.env.VITE_USE_EMULATORS !== 'true' && import.meta.env.VITE_RECAPTCHA_SITE_KEY) {
+  initializeAppCheck(app, {
+    provider: new ReCaptchaV3Provider(import.meta.env.VITE_RECAPTCHA_SITE_KEY),
+    isTokenAutoRefreshEnabled: true,
+  })
+}
+
 export const db: Firestore = getFirestore(app)
 export const functions: Functions = getFunctions(app, FUNCTIONS_REGION)
 export const auth: Auth = getAuth(app)
