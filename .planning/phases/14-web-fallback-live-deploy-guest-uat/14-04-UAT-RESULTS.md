@@ -6,7 +6,7 @@ deploy_target: https://gift-registry-ro.web.app
 hosting_deploy_commit: 78fed8d
 appcheck_posture_at_uat: monitor-only (enforcement flip happens in Task 10)
 created: 2026-05-21
-status: in-progress (Pass 1 items 1-6 PASS — item 6 closed on fourth attempt after the prod-bug trilogy #1 queue-name, #2 OIDC, #3 region default; item 7 pending; Pass 2 pending; enforcement flip pending)
+status: in-progress (Pass 1 items 1-6 PASS — item 6 closed on fourth attempt after the prod-bug trilogy #1 queue-name, #2 OIDC, #3 region default; item 7 first attempt failed both browsers, fix #4 deployed — switch from signInWithPopup to signInWithRedirect — awaiting retest; Pass 2 pending; enforcement flip pending)
 ---
 
 # Phase 14 Plan 04 — UAT Results
@@ -34,7 +34,7 @@ Layered per D-08:
 | 4 | Romanian browser-locale autodetection on cold load (WEB-D-15) | Chrome (system+browser language switched to Romanian, full Cmd+Q + relaunch, fresh incognito) | **PASS** | UI rendered in Romanian on cold incognito load after switching system/Chrome to Romanian — i18next browser-detection working end-to-end against the deployed bundle. | 2026-05-21 |
 | 5 | SPA deep-link to PRIVATE registry, unauthenticated → 404 | Chrome (fresh incognito, no auth session) | **PASS** | Direct paste of private-registry URL rendered the generic 404 page. No data leak (existence not revealed, owner-only data not shown). Firestore returned `permission-denied`, caught and mapped to 404 by the client per WEB-D-13/14. | 2026-05-21 |
 | 6 | Email deep-link re-reserve end-to-end (natural 30-min path — D-09 amendment 2026-05-21) | Android prod-pointed APK + web fallback (incognito) + user's own mailbox | **PASS (fourth attempt)** | Closed on attempt #4 (2026-05-22) after fixing the prod-bug trilogy `bf4ca31` (queue-name), `d0c7516` (OIDC), `7ffb380` (region) — see "Production bugs fixed during Plan 14-04" section below. The fourth attempt's Cloud Task was visible in the `releaseReservation` queue within seconds of the reserve (ETA `13:58:40`, create_time `13:28:41` — exactly the 30-min reservation timer) and the handler fired successfully at the scheduled time: item flipped to `status=available`, reservation flipped to `status=expired`, expiry email arrived in the giver's mailbox, app banner cleared. User-confirmed: "releaseReservation worked as expected." | 2026-05-22 |
-| 7 | Google OAuth popup flow on deployed build | TBD | **PENDING** | Awaiting Task 7 verification. | — |
+| 7 | Google OAuth flow on deployed build | Chrome + Safari (both incognito) | **FAILED (first attempt) → fix deployed → retest pending** | First attempt 2026-05-22: popup completed and credentials persisted to `browserLocalPersistence`, but opener tab still rendered "Sign in" until manual refresh. Failed identically in Chrome and Safari. Root cause: `signInWithPopup` cross-window `postMessage` channel restricted by modern browser policies (tracking prevention, COOP defaults). Fix: switched to `signInWithRedirect` + `getRedirectResult` on boot (commit `3218a49`, hosting deploy 2026-05-22T11:20 UTC+3). See "Production bug #4" below. Retest plan in checkpoint. | 2026-05-22 |
 
 ---
 
@@ -374,6 +374,122 @@ Plan 14-04's layered-UAT approach exercises the real production path
 with a real 30-min timer. UAT-6 closed GREEN on attempt #4 on 2026-05-22:
 scheduled task visible in queue, handler fired at the 30-min mark, item
 released, expiry email delivered, banner cleared. User-confirmed.
+
+### 2026-05-22 — Google OAuth `signInWithPopup` opener tab not updated after popup completes (fourth silent prod bug, web auth layer)
+
+- **Surfaced during:** UAT-7 first attempt against the deployed bundle
+  `78fed8d` + App Check fix `7ffb380`. User ran the Google sign-in flow
+  in fresh incognito profiles on BOTH Chrome and Safari.
+- **Symptom (identical in both browsers):** Click "Continue with Google"
+  in the top-nav → Google account picker opens in a popup → user picks an
+  account → popup closes successfully. The opener tab still renders the
+  signed-out state ("Sign in" button visible, no avatar). A manual
+  Cmd+R / Ctrl+R reload then shows the signed-in UI correctly, proving
+  the credentials WERE persisted to `browserLocalPersistence` — they
+  just never propagated to the in-memory `Auth` instance in the opener
+  tab.
+- **Root cause:** `signInWithPopup` relies on a cross-window
+  `window.opener.postMessage` channel to notify the parent tab when
+  the popup completes. Modern browser security defaults break this
+  channel:
+  - **Safari:** has restricted cross-window postMessage from third-party
+    contexts for years (Intelligent Tracking Prevention) — popup auth
+    has been intermittently broken on iOS Safari since 2020.
+  - **Chrome:** increasingly enforces `Cross-Origin-Opener-Policy` defaults
+    and tracking-prevention features (per-site isolation) that sever
+    the opener relationship between the popup (`accounts.google.com`)
+    and the opener (`gift-registry-ro.web.app`). What used to be a
+    Safari-only annoyance is now a Chrome regression too.
+  - The popup itself completes its own work: it talks to Google,
+    receives the OAuth response, and writes the credentials to the
+    Auth instance in its OWN window. Because both windows share the
+    same `browserLocalPersistence` (IndexedDB / localStorage) under
+    the same origin, the credentials DO persist — but only the
+    POPUP's in-memory state was updated, and the opener's
+    `onAuthStateChanged` listener is hooked to the opener's in-memory
+    Auth instance. A page reload re-instantiates Auth from storage
+    and shows the signed-in UI correctly.
+- **Fix:** Refactored `web/src/features/auth/authProviders.ts` to use
+  `signInWithRedirect` instead of `signInWithPopup`. The user is now
+  redirected to `accounts.google.com` as a full-page navigation; after
+  consent, Google redirects back to the app. `getRedirectResult(auth)`
+  is wired in `web/src/main.tsx` at module-load time (before React
+  mounts) and captures the returning credentials; `onAuthStateChanged`
+  via `useAuth` then propagates the user to the UI on the very next
+  React commit — no cross-window channel needed. Both call-sites
+  (`AuthScreen.tsx` `/sign-in` route and `AuthModal.tsx` in-page
+  modal) updated to drop the now-meaningless `if (u) navigate(-1)`
+  / `if (u) onOpenChange(false)` post-call branches (the page is
+  about to unload). The top-of-component `if (user) navigate('/')`
+  guards already handle the post-redirect "already signed in" case.
+  Test mock in `AuthModal.test.tsx` updated to resolve `undefined`
+  matching the new `Promise<void>` signature; all 6 tests pass.
+  Commit `3218a49`.
+- **Trade-off accepted:** Full-page redirect instead of popup. For a
+  gift-registry web fallback whose primary audience is mobile gift-givers,
+  popup auth was already broken on iOS Safari indefinitely — redirect
+  is the only flow that works on every browser the giver might use.
+  Desktop UX loses the "popup is less disruptive" property but gains
+  reliability.
+- **Deploy:** `firebase deploy --only hosting --project gift-registry-ro`,
+  completed 2026-05-22T11:20 UTC+3. Deploy log at
+  `/tmp/14-04-redirect-deploy.log`. 3 files uploaded
+  (`index.html`, `index-*.js`, `index-*.css`). No functions / rules /
+  firebase.json change.
+- **GCP OAuth client config:** No change required. The existing
+  "Authorized JavaScript origins" + "Authorized redirect URIs" for
+  `https://gift-registry-ro.web.app` cover the redirect flow — same
+  domain, same client ID.
+- **Retest plan (UAT-7 second attempt):**
+  1. Open `https://gift-registry-ro.web.app/` in a fresh Chrome
+     incognito window with DevTools → Network panel open (no filter).
+  2. Click "Sign in" in the top nav (or navigate to `/sign-in`).
+  3. Click "Continue with Google".
+  4. **Expected (different from popup):** The entire page navigates
+     to `accounts.google.com/...` — no popup. After picking an
+     account and confirming, Google redirects back to
+     `https://gift-registry-ro.web.app/...`.
+  5. **Within a beat of landing**, the top nav should show the
+     signed-in avatar / displayName / email — no manual refresh
+     required.
+  6. Verify in DevTools Application panel → Local Storage that
+     `firebase:authUser:...` is populated.
+  7. Network panel should show a clean OAuth redirect flow with no
+     4xx/5xx responses.
+  8. Repeat in Safari incognito to confirm cross-browser parity
+     (this is the test the popup flow could never pass).
+- **Why tests didn't catch this:** The test suite (`AuthModal.test.tsx`,
+  `AuthScreen` is similar) mocks `signInWithGoogle` entirely and only
+  asserts it was called — never exercises the real Firebase Auth
+  popup-vs-redirect path. Catching this would require either (a) a
+  Playwright-against-real-deploy smoke test of the Google flow
+  (impractical — Google CAPTCHA / consent blocks automation), or
+  (b) the manual UAT we just did. Confirms again that production
+  UAT remains the only safety net for browser-policy-dependent flows.
+
+### Bugs retrospective
+
+Plan 14-04's layered UAT caught FOUR sequential production bugs that
+each had identical-looking user-facing symptoms but lived in completely
+different parts of the stack:
+
+1. **Cloud Tasks queue-name mismatch** (`bf4ca31`) — reservation auto-release
+   never enqueued, NOT_FOUND silently caught.
+2. **Cloud Tasks dispatch missing OIDC token** (`d0c7516`) — tasks enqueued
+   but Cloud Run rejected them with 403.
+3. **Cloud Tasks region default mismatch** (`7ffb380`) — Firebase Admin
+   SDK probed wrong region after refactor #2.
+4. **Web auth popup-to-opener channel restricted by browser policy**
+   (`3218a49`) — popup completed but opener tab not notified, both
+   Chrome and Safari.
+
+Bugs 1-3 only manifested in the natural 30-min UAT path; bug 4 only
+manifested in real browsers (not jsdom / Playwright). All four bugs
+were caught BEFORE Pass 2 (recruited real giver), which is exactly
+what the layered-UAT approach is for. Lesson: when a release ships
+behind any browser-vendor / cloud-vendor policy boundary, production
+UAT in real browsers against real cloud services is irreplaceable.
+Unit-stub-only test coverage cannot catch this class of bug.
 
 ---
 
