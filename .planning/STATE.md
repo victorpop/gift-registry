@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: "Completed quick task 260522-iew: Firestore composite indexes for hydrateActiveReservation deployed"
-last_updated: "2026-05-22T10:21:21.949Z"
-last_activity: "2026-05-21 -- Completed quick task 260521-myv: Update shareable registry link from /r/{registryID} to /registry/{registryID} across all places"
+stopped_at: "Completed quick task 260522-iqv: useRegistryQuery + useItemsQuery queryFn no longer coerces undefined → null/[]"
+last_updated: "2026-05-22T10:37:53.838Z"
+last_activity: "2026-05-22 -- Completed quick task 260522-iew: Add missing Firestore composite indexes for hydrateActiveReservation and deploy"
 progress:
   total_phases: 14
   completed_phases: 13
@@ -142,6 +142,7 @@ Progress: [████████░░] 75% (3 of 4 plans + Wave 3 partial)
 | Phase 14 P02 | 3min | 5 tasks | 5 files |
 | Phase quick/260521-myv-update-shareable-registry-link-from-r-re P01 | 2min | 2 tasks | 3 files |
 | Phase quick/260522-iew P01 | 2min | 2 tasks | 1 files |
+| Phase quick/260522-iqv P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -424,6 +425,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-22T10:21:17.353Z
-Stopped at: Completed quick task 260522-iew: Firestore composite indexes for hydrateActiveReservation deployed
+Last session: 2026-05-22T10:37:50.378Z
+Stopped at: Completed quick task 260522-iqv: useRegistryQuery + useItemsQuery queryFn no longer coerces undefined → null/[]
 Resume file: None
