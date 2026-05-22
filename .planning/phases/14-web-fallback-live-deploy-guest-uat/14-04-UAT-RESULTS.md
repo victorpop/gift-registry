@@ -6,7 +6,7 @@ deploy_target: https://gift-registry-ro.web.app
 hosting_deploy_commit: 78fed8d
 appcheck_posture_at_uat: monitor-only (enforcement flip happens in Task 10)
 created: 2026-05-21
-status: in-progress (Pass 1 items 1-5 PASS; item 6 in progress via natural 30-min path; item 7 pending; Pass 2 pending; enforcement flip pending)
+status: in-progress (Pass 1 items 1-5 PASS; item 6 fourth attempt pending after three prod-bug fixes #1 queue-name, #2 OIDC, #3 region default; item 7 pending; Pass 2 pending; enforcement flip pending)
 ---
 
 # Phase 14 Plan 04 — UAT Results
@@ -33,7 +33,7 @@ Layered per D-08:
 | 3 | Guest localStorage persists across browser restart | Chrome (incognito → quit → relaunch) | **PASS** | Tested via `ItemReservePage` "STEP 2 OF 2" CTA. After Cmd+Q + relaunch, the page detected prior guest identity from localStorage and reserved silently (no modal re-prompt). This is by design per `web/src/pages/ItemReservePage.tsx:273-296` — the `if (identity)` branch fires `reserveMutation.mutate` directly when identity exists, bypassing the guest-identity modal. The localStorage hydration round-trip is the proof; modal-skipping is the observable evidence. | 2026-05-21 |
 | 4 | Romanian browser-locale autodetection on cold load (WEB-D-15) | Chrome (system+browser language switched to Romanian, full Cmd+Q + relaunch, fresh incognito) | **PASS** | UI rendered in Romanian on cold incognito load after switching system/Chrome to Romanian — i18next browser-detection working end-to-end against the deployed bundle. | 2026-05-21 |
 | 5 | SPA deep-link to PRIVATE registry, unauthenticated → 404 | Chrome (fresh incognito, no auth session) | **PASS** | Direct paste of private-registry URL rendered the generic 404 page. No data leak (existence not revealed, owner-only data not shown). Firestore returned `permission-denied`, caught and mapped to 404 by the client per WEB-D-13/14. | 2026-05-21 |
-| 6 | Email deep-link re-reserve end-to-end (natural 30-min path — D-09 amendment 2026-05-21) | Android prod-pointed APK + web fallback (incognito) + user's own mailbox | **IN PROGRESS (third attempt after OIDC fix)** | First attempt (17:40:44 UTC+3 reserve → 18:10:44 expected expiry) revealed prod bug #1: wrong Cloud Tasks queue name. Fix `bf4ca31` deployed `2026-05-21T15:25:26Z`. Retest revealed prod bug #2: tasks now enqueued correctly but dispatched without OIDC token → Cloud Run rejected with HTTP 403, task retried 3× then dropped. Fix `d0c7516` (refactor to Firebase Admin TaskQueue API) deployed `2026-05-22T09:31:10Z`. Two stuck reservations to clean manually. User to restart UAT-6 third attempt with a different item on the fixed deployment. | — |
+| 6 | Email deep-link re-reserve end-to-end (natural 30-min path — D-09 amendment 2026-05-21) | Android prod-pointed APK + web fallback (incognito) + user's own mailbox | **IN PROGRESS (fourth attempt after region-qualifier fix)** | First attempt (17:40:44 UTC+3 reserve → 18:10:44 expected expiry) revealed prod bug #1: wrong Cloud Tasks queue name. Fix `bf4ca31` deployed `2026-05-21T15:25:26Z`. Second attempt revealed prod bug #2: tasks now enqueued correctly but dispatched without OIDC token → Cloud Run rejected with HTTP 403, task retried 3× then dropped. Fix `d0c7516` (refactor to Firebase Admin TaskQueue API) deployed `2026-05-22T09:31:10Z`. Third attempt (reservation `Jf38gRSE5gUBVzUgzVyp`, reserved 2026-05-22 12:50:39 UTC+3) revealed prod bug #3: Admin SDK `taskQueue("name")` form defaulted to `us-central1` lookup, returning `Queue does not exist` — our function + queue are in `europe-west3`. Fix `7ffb380` (region-qualified resource path) deployed `2026-05-22T10:24:16Z`. Three stuck reservations to clean manually. User to restart UAT-6 fourth attempt with a different item on the fixed deployment. | — |
 | 7 | Google OAuth popup flow on deployed build | TBD | **PENDING** | Awaiting Task 7 verification. | — |
 
 ---
@@ -269,6 +269,101 @@ behaviour than the seed-script shortcut would have been.
   dispatched task. Emulator does not reproduce Cloud Run's auth
   ingress. Confirms that production UAT remains irreplaceable for
   exactly this class of bug.
+
+### 2026-05-22 — `createReservation` taskQueue lookup defaulted to `us-central1` (third silent prod bug)
+
+- **Surfaced during:** UAT-6 third attempt after the OIDC fix `d0c7516`
+  deployed at `2026-05-22T09:31:10Z`. User reserved a fresh item
+  (reservation `Jf38gRSE5gUBVzUgzVyp`, created `2026-05-22 12:50:39
+  UTC+3`) on prod-pointed Android app, phone `WCR0219729000994`.
+- **Symptom:** The Cloud Tasks queue
+  https://console.cloud.google.com/cloudtasks/queue/europe-west3/releaseReservation/tasks?project=gift-registry-ro
+  showed "Tasks in queue: 0" / "No rows to display" — the enqueue
+  never even landed in the queue. The reservation doc committed
+  normally, but no task was scheduled. End-user behaviour identical to
+  bugs #1 and #2: item stuck `status="reserved"` past `expiresAt`, no
+  expiry email, app banner reads "0 MIN LEFT" forever.
+- **Smoking-gun log evidence from Functions logs for `createReservation`
+  at `2026-05-22T09:50:39.480Z`:**
+  ```
+  [createReservation] taskQueue.enqueue failed (emulator?):
+    FirebaseFunctionsError: Queue does not exist. If you just created
+    the queue, wait at least a minute for the queue to initialize.
+    errorInfo: { code: 'functions/not-found', message: 'Queue does not exist...' }
+  ```
+  Caught by the same `try/catch` that was originally added for the
+  emulator fallback path — which is why the reservation still committed
+  cleanly while the queue stayed empty.
+- **Root cause:** `getFunctions().taskQueue("releaseReservation")`
+  with a bare queue-name string (no fully-qualified resource path)
+  causes the Firebase Admin SDK to default the lookup to `us-central1`.
+  Our function + auto-created queue live in `europe-west3` (see
+  `REGION = "europe-west3"` constant at the top of
+  `createReservation.ts` and the function's `{ region: REGION }`
+  option). The SDK was probing
+  `projects/gift-registry-ro/locations/us-central1/queues/releaseReservation`
+  — right project, wrong region — and getting NOT_FOUND. The Firebase
+  Admin docs only mention region defaulting in passing; the bare-name
+  form is the example most code samples show, which is how it slipped
+  through the refactor.
+- **Why bug #2 hid bug #3:** Until `d0c7516`, the raw
+  `@google-cloud/tasks` SDK with an explicit `parent` path bypassed
+  the Admin SDK's region-defaulting behaviour entirely — we were
+  constructing `projects/.../locations/europe-west3/queues/...`
+  ourselves. Switching to `getFunctions().taskQueue()` to get
+  automatic OIDC token handling also handed region resolution to the
+  Admin SDK, which defaulted incorrectly. Each fix surfaced the next
+  layer's bug.
+- **Fix:** One-line change in `createReservation.ts:85` —
+  `getFunctions().taskQueue<ReleasePayload>("releaseReservation")`
+  → `getFunctions().taskQueue<ReleasePayload>(\`locations/${REGION}/functions/releaseReservation\`)`.
+  The `REGION` constant was already in scope. Commit `7ffb380`. Built
+  cleanly with `npm run build` before deploy.
+- **Deploy:** `firebase deploy --only functions:createReservation
+  --project gift-registry-ro`, completed `2026-05-22T10:24:16Z`.
+  Deploy log at `/tmp/14-04-region-deploy.log`. No other function
+  touched; no rules / hosting / firebase.json change.
+- **Stuck reservation cleanup:** Reservation `Jf38gRSE5gUBVzUgzVyp`
+  has no Cloud Task scheduled and will not auto-release. Plus the two
+  prior stuck reservations from bug-#1 and bug-#2 attempts. User to
+  clean all three manually via Firestore Console (see checkpoint).
+- **Retest plan (fourth UAT-6 attempt):** User reserves a DIFFERENT
+  item via prod-pointed Android app on phone `WCR0219729000994`.
+  Notes timestamp + new reservation ID. Critical early signal added
+  this round: check the Cloud Tasks queue console WITHIN 30 SECONDS
+  of reserving — if a task is visible (with ETA ~30 min in the
+  future), the region-fix worked and we can wait the 30-min path. If
+  the task is NOT visible, do NOT wait — stop and grab the new error.
+- **Trilogy retrospective (for Plan 14-04 SUMMARY):** Three
+  consecutive production-only bugs (#1 queue-name mismatch, #2
+  missing OIDC token, #3 region default) all manifested with
+  identical end-user symptoms — Cloud Task never fires, reservation
+  stays "reserved" forever, no email — but each had a distinct root
+  cause in a different layer of the Cloud Tasks integration:
+  (1) queue resource resolution, (2) dispatch-time authentication,
+  (3) region-qualified resource resolution. Each fix surfaced the
+  next layer's bug because the prior bug was masking it. Lessons
+  for the SUMMARY:
+  - The same `try/catch` around enqueue (added in good faith for
+    emulator portability) silently swallowed all three bugs in prod,
+    converting a hard failure into "reservation committed but no
+    task". Consider promoting enqueue failures in prod (when
+    `FUNCTIONS_EMULATOR` is unset) to a hard error OR a
+    Firestore-logged failure record so they surface via alerting
+    instead of hiding in `console.warn`.
+  - Every bug was caught only by the natural 30-min UAT path
+    (D-09 amendment 2026-05-21). A compressed-time seed-script
+    approach would have hit the same NOT_FOUND / 403 / wrong-region
+    errors — but at least UAT-6 made them visible.
+  - Unit-level stubs for `CloudTasksClient` /
+    `getFunctions().taskQueue()` cannot catch this class of bug.
+    Future Cloud Tasks integrations should include a one-shot
+    deployed smoke-test (reserve → 60s task → assert release) before
+    the natural-flow UAT.
+- **Why tests didn't catch this either:** Same as bug #2 —
+  `getFunctions().taskQueue()` is stubbed in unit tests; region
+  resolution only happens against live Google APIs. Emulator does not
+  exercise the GCP region-resolution path at all.
 
 ---
 
