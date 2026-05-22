@@ -44,6 +44,23 @@ describe('useRegistryQuery', () => {
     snapshotHandles.unsubscribe.mockReset()
   })
 
+  it('returns data === undefined on mount before the first snapshot arrives (regression: no "Registry not available" flash)', async () => {
+    const { result } = renderHook(() => useRegistryQuery('reg-pending'), { wrapper: wrapper(client) })
+    // Wait for the useEffect to register the subscription so we know the mount completed.
+    await waitFor(() => expect(snapshotHandles.onNext).not.toBeNull())
+    // CRITICAL: data must be undefined (initial loading), NOT null (NotFoundPage trigger).
+    // Do NOT fire snapshotHandles.onNext — we are testing the pre-snapshot state.
+    expect(result.current.data).toBeUndefined()
+  })
+
+  it('transitions to data === null when setQueryData(key, null) is called externally (preserves WEB-D-13 + WEB-D-14)', async () => {
+    const { result } = renderHook(() => useRegistryQuery('reg-explicit-null'), { wrapper: wrapper(client) })
+    await waitFor(() => expect(snapshotHandles.onNext).not.toBeNull())
+    // Simulate the onError path by directly calling the error handler (which calls setQueryData(key, null)).
+    snapshotHandles.onError!({ code: 'permission-denied', message: 'Denied' })
+    await waitFor(() => expect(result.current.data).toBeNull())
+  })
+
   it('returns registry data when first snapshot arrives', async () => {
     const { result } = renderHook(() => useRegistryQuery('reg-1'), { wrapper: wrapper(client) })
 

@@ -52,8 +52,21 @@ export function useRegistryQuery(registryId: string | undefined) {
   return useQuery<Registry | null>({
     queryKey: queryKey as unknown as readonly unknown[],
     // Passive reader — the real source of truth is the onSnapshot callback above.
-    queryFn: () =>
-      queryClient.getQueryData<Registry | null>(queryKey as unknown as readonly unknown[]) ?? null,
+    // When the cache has no value yet (initial mount, before onSnapshot fires),
+    // return a never-resolving Promise so the query stays in 'pending' state
+    // (data === undefined) instead of resolving to null. The onSnapshot callback
+    // will call setQueryData(key, value), which transitions the query to 'success'
+    // with the real value. This honors the JSDoc contract above and prevents the
+    // RegistryPage NotFoundPage branch from firing during initial loading.
+    queryFn: () => {
+      const cached = queryClient.getQueryData<Registry | null>(
+        queryKey as unknown as readonly unknown[],
+      )
+      if (cached === undefined) {
+        return new Promise<Registry | null>(() => {})
+      }
+      return cached
+    },
     enabled: Boolean(registryId),
   })
 }
