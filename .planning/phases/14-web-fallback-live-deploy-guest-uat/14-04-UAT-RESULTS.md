@@ -4,9 +4,11 @@ plan: 04
 artifact: uat-results
 deploy_target: https://gift-registry-ro.web.app
 hosting_deploy_commit: 1ac9f39
-appcheck_posture_at_uat: monitor-only (enforcement flip happens in Task 10)
+appcheck_posture_at_uat: monitor-only (enforcement flip DEFERRED — Android App Check unwired; see Tasks 8+9 deferred section + .planning/todos/pending/2026-05-22-wire-android-app-check-and-flip-enforcement.md)
+appcheck_posture_at_close: monitor-only (unchanged — enforcement flip deferred)
 created: 2026-05-21
-status: in-progress (Pass 1 items 1-7 PASS — item 6 closed on fourth attempt after the prod-bug trilogy #1 queue-name, #2 OIDC, #3 region default; item 7 closed on third attempt after fix #5 authDomain alignment, then a small post-PASS polish — isReady gate on AuthScreen + TopNav auth area, commit 1ac9f39 — to remove a brief cold-boot flash of the sign-in form during the redirect return; Pass 2 pending; enforcement flip pending)
+closed: 2026-05-22
+status: closed_with_deferrals (Pass 1 items 1-7 ALL PASS — item 6 closed on fourth attempt after the prod-bug trilogy #1 queue-name, #2 OIDC, #3 region default; item 7 closed on third attempt after fix #5 authDomain alignment, then a small post-PASS polish — isReady gate on AuthScreen + TopNav auth area, commit 1ac9f39 — to remove a brief cold-boot flash of the sign-in form during the redirect return; Pass 2 items 2+3 DEFERRED to recruited-giver follow-up todo; App Check enforcement flip DEFERRED until Android App Check provider is wired)
 ---
 
 # Phase 14 Plan 04 — UAT Results
@@ -664,8 +666,8 @@ exercise the real cross-origin handshake.
 
 | # | Item | Device | Result | Evidence | Logged At |
 |---|------|--------|--------|----------|-----------|
-| 2 | Retailer redirect opens new tab + keeps registry tab alive | TBD | **PENDING** | Awaiting Task 8 (recruited-giver session). | — |
-| 3 | Guest localStorage persists across browser restart | TBD | **PENDING** | Awaiting Task 8 (recruited-giver session). | — |
+| 2 | Retailer redirect opens new tab + keeps registry tab alive | TBD | **DEFERRED** | Pass 1 PASS in user-incognito on both Chrome + Safari (see row 2 above). Pass 2 (real recruited giver on own device) deferred at Plan 14-04 close-out to unblock Phase 14 closure. Follow-up scheduling tracked in [`.planning/todos/pending/2026-05-22-uat-pass-2-recruited-giver-web-fallback-items-2-3.md`](../../todos/pending/2026-05-22-uat-pass-2-recruited-giver-web-fallback-items-2-3.md). | 2026-05-22 (deferred) |
+| 3 | Guest localStorage persists across browser restart | TBD | **DEFERRED** | Pass 1 PASS via `ItemReservePage` STEP 2 modal-skip path after browser quit + relaunch (see row 3 above). Pass 2 (real recruited giver on own device) deferred at Plan 14-04 close-out. Follow-up scheduling tracked in [`.planning/todos/pending/2026-05-22-uat-pass-2-recruited-giver-web-fallback-items-2-3.md`](../../todos/pending/2026-05-22-uat-pass-2-recruited-giver-web-fallback-items-2-3.md). | 2026-05-22 (deferred) |
 
 ---
 
@@ -673,13 +675,23 @@ exercise the real cross-origin handshake.
 
 | Service | Posture During UAT | Target Posture | Flipped At |
 |---------|--------------------|----------------|------------|
-| Cloud Firestore | Monitor-only (D-04) | Enforced | TBD (Task 10) |
-| Cloud Functions | Monitor-only (D-04) | Enforced | TBD (Task 10) |
-| Cloud Storage | Monitor-only (D-04) | Enforced | TBD (Task 10) |
+| Cloud Firestore | Monitor-only (D-04) | Enforced | **DEFERRED** — see Tasks 8+9 deferred section below |
+| Cloud Functions | Monitor-only (D-04) | Enforced | **DEFERRED** — see Tasks 8+9 deferred section below |
+| Cloud Storage | Monitor-only (D-04) | Enforced | **DEFERRED** — see Tasks 8+9 deferred section below |
+
+**Posture at Plan 14-04 close (2026-05-22):** Monitor-only on all three services.
+Web fallback IS App-Check-wired (reCAPTCHA v3 via Plan 14-04 Task 3, commit
+`78fed8d`, verified UAT-1). Android app is NOT App-Check-wired (grep returns
+zero matches in `app/src/`, `app/build.gradle.kts`, `libs.versions.toml`).
+Flipping enforcement today would 403-reject every Android request in production.
+Full flip plan + Android wiring procedure tracked in
+[`.planning/todos/pending/2026-05-22-wire-android-app-check-and-flip-enforcement.md`](../../todos/pending/2026-05-22-wire-android-app-check-and-flip-enforcement.md).
 
 Rollback procedure (per D-03): Firebase Console > App Check > APIs tab > toggle
 the affected service back to "Unenforced". Effective within ~1 minute. No code
-change required.
+change required. (Also: tell affected web users to clear site data — Firebase
+JS SDK caches 400-class App Check failures aggressively; see the user's
+`reference_appcheck_cached_failure` memory.)
 
 ---
 
@@ -722,6 +734,124 @@ logged here for traceability.
 - **Follow-up path:** Quick-task once SMTP-extension config is inspected
   (`firebase ext:list` → identify provider → either fix DNS records or migrate
   to SendGrid/Postmark/Resend with verified sender domain).
+
+---
+
+## Tasks 8 + 9 deferred (Plan 14-04 close-out 2026-05-22)
+
+Plan 14-04 was closed with Tasks 8 (recruited-giver Pass 2) and 9 (App Check
+enforcement flip) deferred. Both were originally `must_haves.truths` entries in
+the plan frontmatter; the must_haves block has been annotated in
+`14-04-layered-uat-and-appcheck-enforcement-PLAN.md` to point at the
+follow-up todos. UAT items 1-7 ALL passed Pass 1 in real Chrome + Safari, and
+five silent production bugs were caught and fixed during execution — Plan 14-04
+delivered substantial value even with these two final tasks deferred.
+
+### Task 8 (recruited-giver Pass 2 of UAT items 2 + 3) — DEFERRED
+
+- **Reason:** Requires scheduling a real giver friend on their own device.
+  User opted to close Plan 14-04 now rather than block on coordinating that
+  session. Pass 1 (user-in-incognito, Chrome + Safari) already PASSED both
+  items — see rows 2 and 3 of "Pass 1 — Solo Incognito" above.
+- **Risk assessment:** **LOW.** Pass 1 already proved retailer redirect and
+  guest localStorage work end-to-end against the deployed bundle in both
+  Chromium-family and WebKit browsers. The two items exercise generic
+  web-platform behaviour (`window.open` cross-tab semantics + `localStorage`
+  persistence across the application lifecycle) — neither depends on
+  device-specific code paths in our React bundle. Pass 2 was the
+  "works on my machine" smell-test, not the primary validation.
+- **Follow-up:** [`.planning/todos/pending/2026-05-22-uat-pass-2-recruited-giver-web-fallback-items-2-3.md`](../../todos/pending/2026-05-22-uat-pass-2-recruited-giver-web-fallback-items-2-3.md)
+  — contains a copy-paste-able tester script, an answer-collection template,
+  and a divergence-handling guide for the case where Pass 2 surfaces a
+  Pass-1-invisible bug.
+
+### Task 9 (App Check enforcement flip: Storage → Functions → Firestore) — DEFERRED
+
+- **Reason:** **The Android app has NO App Check provider wired.** Verified
+  by grep:
+
+  ```bash
+  grep -rn "installAppCheckProviderFactory|firebase-appcheck|Firebase.appCheck|PlayIntegrityAppCheck|DebugAppCheckProvider" \
+    app/src/ app/build.gradle.kts gradle/libs.versions.toml
+  # (no output — zero matches)
+  ```
+
+  No `firebase-appcheck` / `firebase-appcheck-playintegrity` Gradle deps,
+  no `Firebase.appCheck.installAppCheckProviderFactory(...)` call anywhere
+  in `app/src/`, no debug-token registration. Flipping enforcement today
+  would 403-reject every Android-originated request in production. All
+  authenticated owner flows — registry creation, item add, reservation,
+  invite — would break for every Android user immediately.
+
+- **Posture at close:** App Check remains in **monitor mode** in production
+  for Firestore + Functions + Storage (D-04 stage 1 — never flipped to
+  enforce). The web fallback IS App-Check-wired (reCAPTCHA v3, monitor mode
+  active, `appcheck:exchange` returns 200 — UAT-1 PASS).
+
+- **Risk assessment:** **MEDIUM.** Monitor mode means tokens are validated
+  and metrics are collected, but untokenized requests are accepted. The
+  backend currently accepts unprotected traffic in production. That's the
+  same posture the project has had since Plan 14-04 Task 3 deployed App
+  Check in monitor mode on the web side — no regression, but the original
+  D-04 intent (flip-to-enforce after smoke window) is unfulfilled.
+
+- **Follow-up:** [`.planning/todos/pending/2026-05-22-wire-android-app-check-and-flip-enforcement.md`](../../todos/pending/2026-05-22-wire-android-app-check-and-flip-enforcement.md)
+  — contains the full step-by-step close-out plan: (1) add Gradle deps +
+  Application-subclass init for Play Integrity (release) + Debug provider
+  (debug builds), (2) register debug token in Console for each dev device,
+  (3) let monitor mode run ≥24h to confirm verified % >95% across all
+  three services, (4) flip enforcement Storage → Functions → Firestore
+  with smoke-test between each (per D-04), (5) keep D-03 rollback ready
+  (per-service "Unenforce" in Console; tell affected web users to clear
+  site data per the user's `reference_appcheck_cached_failure` memory).
+
+---
+
+## Plan 14-04 — Final Tally
+
+**Tasks completed: 7/10** (1-7 PASS) + **2 deferred** (8, 9) + **1 close-out** (10, this turn).
+
+**Silent production bugs caught and fixed during Plan 14-04: 5**
+
+1. Cloud Tasks queue name mismatch (`release-reservation` hyphenated vs
+   `releaseReservation` camelCase) — commit `bf4ca31`. Reservation
+   auto-release never enqueued; NOT_FOUND silently caught for the entire
+   lifetime of the production deploy (since Phase 5/6).
+2. Cloud Tasks dispatch missing OIDC token — commit `d0c7516`. Tasks
+   enqueued correctly but Cloud Run rejected every dispatch with 403
+   "Empty Authorization header value" after the queue-name fix surfaced
+   this latent bug.
+3. Cloud Tasks region default mismatch — commit `7ffb380`. Firebase
+   Admin SDK `getFunctions().taskQueue("releaseReservation")` defaulted
+   to `us-central1` while the function lives in `europe-west3`. Surfaced
+   after the OIDC fix took the raw `@google-cloud/tasks` SDK out of the
+   loop (which had been bypassing the region-defaulting behaviour).
+4. `signInWithPopup` cross-origin opener channel restricted by browser
+   policy — commit `3218a49`. Both Chrome and Safari. Popup completed
+   but the opener tab's `Auth` in-memory instance never received the
+   credentials; manual refresh worked. Switched to `signInWithRedirect`.
+5. `authDomain` origin mismatch (`firebaseapp.com` default vs `web.app`
+   serving origin) — commit `47c1bfa`. `signInWithRedirect` routed
+   through `firebaseapp.com/__/auth/handler`, persisted redirect-event
+   state in `firebaseapp.com`'s storage, then redirected back to
+   `web.app/...` where `getRedirectResult` couldn't find the state
+   marker (cross-origin storage isolation). Drive-by: deduped second
+   `initializeAppCheck` call from `main.tsx`.
+
+**Additional polish:** post-redirect cold-boot flash gated on
+`useAuth.isReady` — commit `1ac9f39`. Cosmetic only; not added to the
+prod-bug tally (which stays at 5).
+
+**Deferred follow-ups (logged in `.planning/todos/pending/`):**
+
+- [`2026-05-21-invite-email-cta-link-stripped-in-gmail-mobile.md`](../../todos/pending/2026-05-21-invite-email-cta-link-stripped-in-gmail-mobile.md)
+  — SPF/DKIM/DMARC configuration for invite + expiry + purchase emails
+  (surfaced during UAT-5 invitee setup; affects all transactional email).
+- [`2026-05-22-uat-pass-2-recruited-giver-web-fallback-items-2-3.md`](../../todos/pending/2026-05-22-uat-pass-2-recruited-giver-web-fallback-items-2-3.md)
+  — recruited-giver Pass 2 follow-up (this turn, deferred from Task 8).
+- [`2026-05-22-wire-android-app-check-and-flip-enforcement.md`](../../todos/pending/2026-05-22-wire-android-app-check-and-flip-enforcement.md)
+  — Android App Check wiring + enforcement flip (this turn, deferred
+  from Task 9; was originally a must_have).
 
 ---
 
