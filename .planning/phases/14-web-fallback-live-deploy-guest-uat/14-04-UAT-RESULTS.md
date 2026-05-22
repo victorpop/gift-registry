@@ -33,7 +33,7 @@ Layered per D-08:
 | 3 | Guest localStorage persists across browser restart | Chrome (incognito → quit → relaunch) | **PASS** | Tested via `ItemReservePage` "STEP 2 OF 2" CTA. After Cmd+Q + relaunch, the page detected prior guest identity from localStorage and reserved silently (no modal re-prompt). This is by design per `web/src/pages/ItemReservePage.tsx:273-296` — the `if (identity)` branch fires `reserveMutation.mutate` directly when identity exists, bypassing the guest-identity modal. The localStorage hydration round-trip is the proof; modal-skipping is the observable evidence. | 2026-05-21 |
 | 4 | Romanian browser-locale autodetection on cold load (WEB-D-15) | Chrome (system+browser language switched to Romanian, full Cmd+Q + relaunch, fresh incognito) | **PASS** | UI rendered in Romanian on cold incognito load after switching system/Chrome to Romanian — i18next browser-detection working end-to-end against the deployed bundle. | 2026-05-21 |
 | 5 | SPA deep-link to PRIVATE registry, unauthenticated → 404 | Chrome (fresh incognito, no auth session) | **PASS** | Direct paste of private-registry URL rendered the generic 404 page. No data leak (existence not revealed, owner-only data not shown). Firestore returned `permission-denied`, caught and mapped to 404 by the client per WEB-D-13/14. | 2026-05-21 |
-| 6 | Email deep-link re-reserve end-to-end (natural 30-min path — D-09 amendment 2026-05-21) | Android prod-pointed APK + web fallback (incognito) + user's own mailbox | **IN PROGRESS (retest after queue-name fix)** | First attempt (17:40:44 UTC+3 reserve → 18:10:44 expected expiry) revealed a prod bug: `createReservation` was enqueuing into a non-existent Cloud Tasks queue, so no Cloud Task ever fired and the item never auto-released. Bug fixed and deployed at `2026-05-21T15:25:26Z` (commit `bf4ca31`). Stuck reservation will be cleaned manually in Firestore Console. User to restart UAT-6 with a different item on the fixed deployment. | — |
+| 6 | Email deep-link re-reserve end-to-end (natural 30-min path — D-09 amendment 2026-05-21) | Android prod-pointed APK + web fallback (incognito) + user's own mailbox | **IN PROGRESS (third attempt after OIDC fix)** | First attempt (17:40:44 UTC+3 reserve → 18:10:44 expected expiry) revealed prod bug #1: wrong Cloud Tasks queue name. Fix `bf4ca31` deployed `2026-05-21T15:25:26Z`. Retest revealed prod bug #2: tasks now enqueued correctly but dispatched without OIDC token → Cloud Run rejected with HTTP 403, task retried 3× then dropped. Fix `d0c7516` (refactor to Firebase Admin TaskQueue API) deployed `2026-05-22T09:31:10Z`. Two stuck reservations to clean manually. User to restart UAT-6 third attempt with a different item on the fixed deployment. | — |
 | 7 | Google OAuth popup flow on deployed build | TBD | **PENDING** | Awaiting Task 7 verification. | — |
 
 ---
@@ -115,7 +115,7 @@ behaviour than the seed-script shortcut would have been.
 
 ---
 
-## Production bug fixed during Plan 14-04
+## Production bugs fixed during Plan 14-04
 
 ### 2026-05-21 — `createReservation` Cloud Tasks queue name mismatch (auto-release silently broken since Phase 5/6 deploy)
 
@@ -176,6 +176,99 @@ behaviour than the seed-script shortcut would have been.
   end-to-end production verification (Phase 14) actually waited the
   natural 30 minutes. Confirms the value of UAT-6's natural-30-min
   path over the abandoned compressed-time seed-script approach.
+
+### 2026-05-22 — `createReservation` Cloud Tasks dispatch missing OIDC token (HTTP 403, second silent prod bug)
+
+- **Surfaced during:** UAT-6 retest after the queue-name fix `bf4ca31`.
+  User reserved a fresh item, confirmed via Firestore Console that
+  `cloudTaskName` was populated on the new reservation doc (proving the
+  task was now reaching the `releaseReservation` queue), waited the
+  natural 30 minutes — and the auto-release STILL did not fire.
+- **Symptom:** Item (`/registry/x8K9QtRAjzQYNNkoiLAx/item/kgOb1Aei8N5opWisW6jS`
+  — the VINDKAST veioză) remained `status="reserved"` past `expiresAt`
+  with intact `reservedAt`, `reservedBy`, `expiresAt` fields. No expiry
+  email. No state transition.
+- **Smoking-gun log evidence from Cloud Tasks dispatch logs in prod:**
+  ```
+  "textPayload": "The request was not authenticated. ... Empty Authorization header value."
+  "status": 403
+  "userAgent": "Google-Cloud-Tasks"
+  "requestUrl": "https://europe-west3-gift-registry-ro.cloudfunctions.net/releaseReservation"
+  ```
+  Two log entries 20s apart matching the `releaseReservation`
+  `retryConfig: { maxAttempts: 3, minBackoffSeconds: 10 }`. The task
+  was retried 3 times, each rejected by Cloud Run with 403, then
+  dropped from the queue.
+- **Root cause:** `createReservation.ts:84-132` used raw
+  `@google-cloud/tasks` `CloudTasksClient.createTask()` constructing an
+  `httpRequest` without an `oidcToken`. Firebase 2nd-gen
+  `onTaskDispatched` functions deploy on Cloud Run revisions configured
+  to require authenticated invocation; an unauthenticated POST is
+  rejected with HTTP 403 "Empty Authorization header value". The task
+  WAS enqueued correctly (so `cloudTaskName` populated, queue showed
+  the task) but every dispatch attempt was denied at the Cloud Run
+  ingress, and after the retry budget exhausted the task silently
+  dropped.
+- **Why bug #1 hid bug #2:** Until `bf4ca31`, tasks never even reached
+  the queue (NOT_FOUND on `createTask`), so the dispatch-auth failure
+  was untestable. Fixing the queue name surfaced the auth failure
+  on the very next UAT attempt.
+- **Fix:** Refactored the enqueue block in `createReservation.ts` to
+  use the documented Firebase pattern:
+  `getFunctions().taskQueue<ReleasePayload>("releaseReservation").enqueue(payload, { scheduleTime })`.
+  The Firebase Admin SDK handles OIDC token generation, audience
+  selection, and runtime service account binding automatically — these
+  are the things the raw `@google-cloud/tasks` SDK leaves to the
+  caller. `ReleasePayload` exported from `releaseReservation.ts` so the
+  generic typechecks. `@google-cloud/tasks` dependency kept in
+  `package.json` because `releaseReservationCallable.deleteTask`
+  still uses it. Commit `d0c7516`. Built cleanly with
+  `npm run build` before deploy.
+- **Schema regression (minor, intentional):** The new TaskQueue API
+  returns `Promise<void>`, so the reservation doc no longer carries
+  `cloudTaskName`. Two implications:
+  1. `releaseReservationCallable`'s `deleteTask` optimization (which
+     uses `cloudTaskName` to cancel the scheduled task on manual
+     release) is now a no-op — the `if (cloudTaskName)` guard skips it.
+  2. A late-firing Cloud Task that arrives after a manual release is
+     a harmless wasted invocation because `releaseReservationCore`
+     is idempotent (no-ops when `status !== "active"`).
+  Net effect: slightly more Cloud Run invocations on the manual-release
+  edge case, zero correctness impact.
+- **Deploy:** `firebase deploy --only functions:createReservation
+  --project gift-registry-ro`, completed `2026-05-22T09:31:10Z`. Deploy
+  log at `/tmp/14-04-oidc-deploy.log`. No other function touched; no
+  rules / hosting / firebase.json change.
+- **Stuck reservation cleanup:** The reservation from the bug-#2 UAT
+  attempt (item `kgOb1Aei8N5opWisW6jS` on registry
+  `x8K9QtRAjzQYNNkoiLAx`) has no Cloud Task scheduled (it was dropped
+  after the 3 retries) and will not auto-release. Plus the bug-#1
+  stuck reservation from the first attempt is still on file. User to
+  clean both manually via Firestore Console (see checkpoint).
+- **Retest plan (third UAT-6 attempt):** User reserves a DIFFERENT
+  item via prod-pointed Android app on phone `WCR0219729000994`. Notes
+  timestamp + new reservation ID. EXPECTED: the new reservation doc
+  will NOT have a `cloudTaskName` field (or it will be absent / empty
+  — that's the new normal post-fix). The positive signal lives
+  elsewhere:
+  - GCP Console > Cloud Tasks > `releaseReservation` queue:
+    a task is visible (until it fires + auto-purges).
+  - At expiry: Functions logs for `releaseReservation` show a 200
+    invocation with `[releaseReservation] ...` log lines from
+    `releaseReservationCore` (NOT another 403).
+  - Item flips `status=available`; reservation flips `status=expired`;
+    expiry email arrives.
+- **Operational ask:** User to enable logging on the
+  `releaseReservation` Cloud Tasks queue (GCP Console > Cloud Tasks
+  > queue ⋯ menu > Enable logging or log sampling ratio 1.0) before
+  the retest. Without it we were flying blind on the first two bugs.
+- **Why tests didn't catch this either:** Unit tests for
+  `createReservation` stub `CloudTasksClient` entirely; the integration
+  surface between Cloud Tasks dispatch and Cloud Run authentication
+  is only exercised by an actual deployed function receiving an actual
+  dispatched task. Emulator does not reproduce Cloud Run's auth
+  ingress. Confirms that production UAT remains irreplaceable for
+  exactly this class of bug.
 
 ---
 
