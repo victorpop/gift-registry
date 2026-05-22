@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
-status: executing
-stopped_at: "Completed quick task 260522-iqv: useRegistryQuery + useItemsQuery queryFn no longer coerces undefined → null/[]"
-last_updated: "2026-05-22T10:37:53.838Z"
-last_activity: "2026-05-22 -- Completed quick task 260522-iew: Add missing Firestore composite indexes for hydrateActiveReservation and deploy"
+status: verifying
+stopped_at: Closed Plan 14-04 with deferrals — UAT items 1-7 PASS in both Chrome and Safari; 5 silent prod bugs caught and fixed mid-UAT; Task 8 (recruited-giver Pass 2) + Task 9 (App Check enforcement flip) deferred to .planning/todos/pending/; Phase 14 ready for verification
+last_updated: "2026-05-22T14:56:01.473Z"
+last_activity: 2026-05-22 -- Closed Plan 14-04 with deferrals; Phase 14 ready for verification
 progress:
   total_phases: 14
   completed_phases: 13
   total_plans: 73
-  completed_plans: 72
-  percent: 75
+  completed_plans: 73
+  percent: 100
 ---
 
 # Project State
@@ -21,42 +21,61 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
-**Current focus:** Phase 14 — web-fallback-live-deploy-guest-uat
+**Current focus:** Phase 14 verification (then phase-complete / next-phase decision)
 
 ## Current Position
 
-Phase: 14 (web-fallback-live-deploy-guest-uat) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 14
-Last activity: 2026-05-22 -- Completed quick task 260522-iqv: Fix Registry not available flash on web refresh by removing undefined-to-null coercion in useRegistryQuery and useItemsQuery
+Phase: 14 (web-fallback-live-deploy-guest-uat) — ALL PLANS COMPLETE; PENDING VERIFICATION
+Plan: 4 of 4 closed (Plan 14-04 closed with deferrals 2026-05-22)
+Status: Phase 14 ready for `/gsd:verify-work` / `verify_phase_goal` workflow step
+Last activity: 2026-05-22 -- Closed Plan 14-04 with deferrals; Phase 14 ready for verification
 
-Progress: [████████░░] 75% (3 of 4 plans + Wave 3 partial)
+Progress: [██████████] 100% of plans complete (4 of 4); phase pending verification gate
 
-### Plan 14-04 resume marker
+### Plan 14-04 closed (2026-05-22, with deferrals)
 
-**Completed this session:**
+**Final tally:** 7/10 tasks PASS + 2 deferred + 1 close-out done.
 
-- Task 1 — reCAPTCHA v3 site key registered in Firebase Console; OAuth origins added (user-side)
-- Task 2 — OAuth origins added to GCP console (user-side)
-- Task 3 — App Check wired in `web/src/firebase.ts`, hosting redeployed (commit `78fed8d`)
-- UAT-1 — App Check `appcheck:exchange` returns 200; verified after secret-key resave + IndexedDB clear
+**UAT items closed:** Items 1-7 ALL PASS in both Chrome and Safari (Pass 1
+only — Pass 2 deferred). See
+`.planning/phases/14-web-fallback-live-deploy-guest-uat/14-04-UAT-RESULTS.md`
+"Plan 14-04 — Final Tally" section.
 
-**Side finding to address in a future quick-task (NOT a blocker):**
+**5 silent production bugs caught and fixed during the plan:**
 
-- `initializeAppCheck` is called twice — once in `web/src/firebase.ts` (added in Task 3) and once in `web/src/main.tsx` (pre-existing from Phase 5). Same options, no runtime error, but redundant. Should consolidate into firebase.ts and remove the main.tsx call.
+1. Cloud Tasks queue-name mismatch — `bf4ca31`
+2. Cloud Tasks dispatch missing OIDC token — `d0c7516`
+3. Cloud Tasks region default mismatch — `7ffb380`
+4. `signInWithPopup` cross-origin opener channel restricted by browser policy — `3218a49`
+5. `authDomain` origin mismatch with serving origin — `47c1bfa`
 
-**Pending Plan 14-04 tasks:**
+Plus post-PASS polish: `useAuth.isReady` gate to kill post-redirect flash — `1ac9f39`.
 
-- UAT-2 — Retailer redirect (Chrome + Safari incognito)
-- UAT-3 — Guest localStorage persistence across browser restart
-- UAT-4 — Romanian autodetect
-- UAT-5 — Private registry 404 (already known to return 403 PERMISSION_DENIED for the test registry; legitimate denial)
-- Task 6 — Build `functions/scripts/seedNearExpiryReservation.ts` (60s Cloud Task seed for re-reserve flow / D-09)
-- UAT-6 — Google OAuth popup
-- UAT-7 — Recruited-giver Pass 2 (needs a second human)
-- Task 9 — Per-service App Check enforcement flips (Firestore / Functions / Storage) — gated on all UAT passing
+**Deferred to follow-up todos in `.planning/todos/pending/`:**
 
-**Resume command:** `/gsd:execute-phase 14` will pick up Plan 14-04 since it lacks a SUMMARY.md — the executor reads STATE.md and skips completed plans.
+- `2026-05-22-uat-pass-2-recruited-giver-web-fallback-items-2-3.md` — Task 8
+  recruited-giver Pass 2 of UAT items 2+3. Risk LOW (Pass 1 PASS in both
+  browsers).
+
+- `2026-05-22-wire-android-app-check-and-flip-enforcement.md` — Task 9 App
+  Check enforcement flip (originally a must_have). Android app has NO App
+  Check provider wired (grep-verified); flipping enforcement today would
+  403-reject every Android request. Wire Android first, THEN flip
+  Storage → Functions → Firestore per D-04.
+
+**Plus pre-existing pending follow-up:**
+
+- `2026-05-21-invite-email-cta-link-stripped-in-gmail-mobile.md` — SPF/DKIM
+  for transactional emails; surfaced during UAT-5 invitee setup.
+
+**Three folded todos closed by Phase 14:** Moved `pending/` → `completed/`:
+`2026-04-20-register-firebase-web-app-and-deploy-real-web-config.md`,
+`2026-04-20-fix-functions-tsconfig-and-env-handling-to-unblock-firebase-deploy.md`,
+`2026-04-28-deploy-phase-12-storage-rules.md`.
+
+**Next orchestrator step:** Phase 14 verification (`verify_phase_goal`). Do
+NOT mark Phase 14 complete in ROADMAP until verifier passes — only Plan
+14-04 is closed.
 
 ## Performance Metrics
 
@@ -426,6 +445,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-22T10:37:50.378Z
-Stopped at: Completed quick task 260522-iqv: useRegistryQuery + useItemsQuery queryFn no longer coerces undefined → null/[]
+Last session: 2026-05-22T12:00:00.000Z
+Stopped at: Closed Plan 14-04 with deferrals — UAT items 1-7 PASS in both Chrome and Safari; 5 silent prod bugs caught and fixed mid-UAT; Task 8 (recruited-giver Pass 2) + Task 9 (App Check enforcement flip) deferred to .planning/todos/pending/; Phase 14 ready for verification
 Resume file: None
