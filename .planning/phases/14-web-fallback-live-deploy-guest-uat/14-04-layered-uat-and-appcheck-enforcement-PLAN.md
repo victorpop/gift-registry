@@ -7,25 +7,38 @@ depends_on: [14-01, 14-02, 14-03]
 files_modified:
   - web/.env.local
   - web/src/firebase.ts
-  - functions/scripts/seedNearExpiryReservation.ts
+  - web/src/main.tsx                   # added 2026-05-22: App Check init dedupe (commit 47c1bfa)
+  - web/src/features/auth/authProviders.ts  # added 2026-05-22: signInWithPopup → signInWithRedirect (commit 3218a49)
+  - web/src/features/auth/AuthScreen.tsx    # added 2026-05-22: isReady gate to kill post-redirect flash (commit 1ac9f39)
+  - web/src/components/giftmaison/TopNav.tsx # added 2026-05-22: isReady gate on auth-area slot (commit 1ac9f39)
+  - functions/src/reservation/createReservation.ts  # added 2026-05-21/22: prod-bug trilogy fixes (commits bf4ca31, d0c7516, 7ffb380)
+  # ABANDONED: functions/scripts/seedNearExpiryReservation.ts — reverted in 1c970c4 per D-09 amendment
 autonomous: false
 requirements: [WEB-01, WEB-02, WEB-03, WEB-04]
 must_haves:
   truths:
     - "All 7 manual UAT items in .planning/phases/05-web-fallback/05-VALIDATION.md 'Manual-Only Verifications' table pass against the production deploy"
     - "Solo Pass 1 (user in incognito, both Chrome + Safari + Romanian-locale profile) completes all 7 items with documented pass evidence"
-    - "Pass 2 with a recruited real giver friend on their own device passes items 2 (retailer redirect) and 3 (guest localStorage across browser restart) without 'works on my machine' bias"
+    - "DEFERRED 2026-05-22: Pass 2 with a recruited real giver friend on their own device for items 2 (retailer redirect) and 3 (guest localStorage across browser restart). Pass 1 (user-in-incognito, Chrome + Safari) PASSED both items end-to-end against the deployed bundle; Pass 2 deferred at Plan 14-04 close-out to unblock Phase 14 closure (scheduling a recruited giver requires coordination time). Follow-up scheduling tracked in .planning/todos/pending/2026-05-22-uat-pass-2-recruited-giver-web-fallback-items-2-3.md. Risk assessment LOW — Pass 2 was the 'works on my machine' smell-test, not the primary validation."
     - "Email re-reserve UAT item 6 verified end-to-end via the production 30-min expiry timer (D-09 amendment 2026-05-21 — seed-script approach abandoned, see 14-CONTEXT.md). User reserves an item via the prod-pointed Android app, waits the natural 30 min for the deployed releaseReservation Cloud Task to fire, receives the expiry email, clicks the re-reserve CTA, and confirms a NEW reservation is created end-to-end. Same deployed pipeline (Cloud Task → release → expiry email → re-reserve link → createReservation), just exercised at production timing instead of a 60s shortcut."
-    - "App Check has been flipped from monitor-only to ENFORCED for Firestore, Functions, AND Storage in Firebase Console — AFTER the monitor-mode smoke-test window shows clean appcheck:exchange traffic (D-04)"
+    - "DEFERRED 2026-05-22: App Check enforcement flip (Storage → Functions → Firestore per D-04). Android app has NO App Check provider wired (verified by grep — zero matches for installAppCheckProviderFactory / firebase-appcheck / Firebase.appCheck across app/src/, app/build.gradle.kts, gradle/libs.versions.toml). Flipping enforcement today would 403-reject every Android-originated request in production. Posture at close: monitor-only for all three services (web side IS App-Check-wired via reCAPTCHA v3 per Task 3; Android side needs Play Integrity wiring first). Full wire-Android-then-flip plan tracked in .planning/todos/pending/2026-05-22-wire-android-app-check-and-flip-enforcement.md."
     - "reCAPTCHA v3 site key has been registered in Firebase Console and added to web/.env.local as VITE_RECAPTCHA_SITE_KEY; web/src/firebase.ts now calls initializeAppCheck() with the ReCaptchaV3Provider; web bundle rebuilt + redeployed with App Check provider active"
     - "DevTools Network panel filtered to appcheck.googleapis.com shows appcheck:exchange returning 200 BEFORE the first Firestore/Functions call in real Chrome on prod (UAT item 1 closure evidence per D-05)"
   artifacts:
     - path: ".planning/phases/14-web-fallback-live-deploy-guest-uat/14-04-UAT-RESULTS.md"
       provides: "Pass/fail record for all 7 UAT items + layered-UAT Pass 1 + Pass 2 evidence"
       contains: "Manual UAT items 1-7"
-    - path: "functions/scripts/seedNearExpiryReservation.ts"
-      provides: "One-shot script that writes a reservation doc AND enqueues a Cloud Task with 60s delay targeting the deployed releaseReservation onTaskDispatched handler (D-09)"
-      contains: "expiresAt"
+    # ABANDONED 2026-05-21 (D-09 amendment in 14-CONTEXT.md): seedNearExpiryReservation.ts
+    # was reverted in commit 1c970c4 after Cloud Tasks API ADC setup failed on the dev
+    # machine and left a phantom reservation in prod. UAT-6 was instead verified via the
+    # natural 30-min production timer using the prod-pointed Android app — same deployed
+    # pipeline (Cloud Task → release → expiry email → re-reserve link → createReservation),
+    # just exercised at production timing instead of a 60s shortcut. UAT-6 closed PASS on
+    # attempt #4 after the prod-bug trilogy fixes (commits bf4ca31, d0c7516, 7ffb380).
+    # Original entry preserved here in comment form for traceability.
+    # - path: "functions/scripts/seedNearExpiryReservation.ts"
+    #   provides: "One-shot script that writes a reservation doc AND enqueues a Cloud Task with 60s delay targeting the deployed releaseReservation onTaskDispatched handler (D-09)"
+    #   contains: "expiresAt"
     - path: "web/src/firebase.ts"
       provides: "App Check init via ReCaptchaV3Provider, gated on VITE_USE_EMULATORS !== 'true' AND VITE_RECAPTCHA_SITE_KEY present"
       contains: "initializeAppCheck"
@@ -34,9 +47,16 @@ must_haves:
       to: "appcheck.googleapis.com appcheck:exchange endpoint"
       via: "reCAPTCHA v3 site key wired in web/.env.local + initializeAppCheck() call added to web/src/firebase.ts"
       pattern: "appcheck:exchange"
-    - from: "functions/scripts/seedNearExpiryReservation.ts"
+    # ABANDONED 2026-05-21 (D-09 amendment): seed-script path replaced by natural 30-min
+    # production timer via prod-pointed Android app. Original key_link preserved in comment
+    # form for traceability.
+    # - from: "functions/scripts/seedNearExpiryReservation.ts"
+    #   to: "deployed releaseReservation onTaskDispatched handler"
+    #   via: "Cloud Tasks queue scheduled 60s in the future (mirrors createReservation's enqueue pattern, just with a shorter delay)"
+    #   pattern: "createTask"
+    - from: "Android prod-pointed APK (com.giftregistry) reserving a real item"
       to: "deployed releaseReservation onTaskDispatched handler"
-      via: "Cloud Tasks queue scheduled 60s in the future (mirrors createReservation's enqueue pattern, just with a shorter delay)"
+      via: "Natural 30-min Cloud Task scheduled by createReservation in production — same pipeline as production users actually experience"
       pattern: "createTask"
 ---
 
