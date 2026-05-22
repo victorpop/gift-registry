@@ -46,8 +46,11 @@ export default function AuthModal({ open, onOpenChange, onContinueAsGuest }: Pro
   async function handleGoogle() {
     setServerError(null)
     try {
-      const u = await signInWithGoogle()
-      if (u) onOpenChange(false)
+      await signInWithGoogle()
+      // Page navigates to Google now; nothing else runs synchronously.
+      // The modal will be unmounted by the full-page navigation; on
+      // return, getRedirectResult() (wired in main.tsx) captures the
+      // credentials and onAuthStateChanged propagates to the UI.
     } catch {
       setServerError(t('common.error_generic'))
     }

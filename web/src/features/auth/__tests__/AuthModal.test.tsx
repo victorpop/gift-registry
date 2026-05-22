@@ -30,7 +30,9 @@ describe('AuthModal', () => {
     providerMocks.signInEmail.mockReset()
     providerMocks.signUpEmail.mockReset()
     providerMocks.signInWithGoogle.mockReset()
-    providerMocks.signInWithGoogle.mockResolvedValue({ uid: 'u1' })
+    // signInWithGoogle now returns Promise<void> (full-page redirect, no User).
+    // Plan 14-04 swap from signInWithPopup → signInWithRedirect, 2026-05-22.
+    providerMocks.signInWithGoogle.mockResolvedValue(undefined)
     providerMocks.signInEmail.mockResolvedValue({ uid: 'u1' })
     providerMocks.signUpEmail.mockResolvedValue({ uid: 'u1' })
   })

@@ -53,8 +53,11 @@ export default function AuthScreen() {
   async function handleGoogle() {
     setServerError(null)
     try {
-      const u = await signInWithGoogle()
-      if (u) navigate(-1)
+      await signInWithGoogle()
+      // Page navigates to Google now; nothing else runs synchronously.
+      // On return, getRedirectResult() (wired in main.tsx) captures the
+      // credentials and the top-of-component `if (user) navigate('/')`
+      // guard handles the post-redirect bounce.
     } catch {
       setServerError(t('common.error_generic'))
     }

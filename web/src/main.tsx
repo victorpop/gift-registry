@@ -1,12 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check'
+import { getRedirectResult } from 'firebase/auth'
 import { QueryClientProvider } from '@tanstack/react-query'
 import './index.css'
 import './i18n'
 import App from './App'
 import { queryClient } from './queryClient'
-import { app } from './firebase'
+import { app, auth } from './firebase'
 import { ToastProvider } from './components/ToastProvider'
 import { ActiveReservationProvider } from './features/reservation/useActiveReservation'
 
@@ -37,7 +38,16 @@ if (recaptchaSiteKey) {
   console.warn('[Phase 5] VITE_RECAPTCHA_SITE_KEY is empty. App Check disabled for this dev session.')
 }
 
-// STEP 3: Render React with providers wrapping App
+// STEP 3: Capture credentials from a returning OAuth redirect (post-signInWithRedirect).
+// Runs once at module-load time. onAuthStateChanged (via useAuth) propagates the
+// new user to the UI. Errors are logged and swallowed so the app still mounts.
+// See web/src/features/auth/authProviders.ts:signInWithGoogle for the redirect-vs-popup
+// rationale (Plan 14-04 UAT-7, 2026-05-22).
+void getRedirectResult(auth).catch((err) => {
+  console.error('[main] getRedirectResult failed:', err)
+})
+
+// STEP 4: Render React with providers wrapping App
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
