@@ -6,7 +6,7 @@ deploy_target: https://gift-registry-ro.web.app
 hosting_deploy_commit: 78fed8d
 appcheck_posture_at_uat: monitor-only (enforcement flip happens in Task 10)
 created: 2026-05-21
-status: in-progress (Pass 1 items 1-5 PASS; item 6 fourth attempt pending after three prod-bug fixes #1 queue-name, #2 OIDC, #3 region default; item 7 pending; Pass 2 pending; enforcement flip pending)
+status: in-progress (Pass 1 items 1-6 PASS — item 6 closed on fourth attempt after the prod-bug trilogy #1 queue-name, #2 OIDC, #3 region default; item 7 pending; Pass 2 pending; enforcement flip pending)
 ---
 
 # Phase 14 Plan 04 — UAT Results
@@ -33,7 +33,7 @@ Layered per D-08:
 | 3 | Guest localStorage persists across browser restart | Chrome (incognito → quit → relaunch) | **PASS** | Tested via `ItemReservePage` "STEP 2 OF 2" CTA. After Cmd+Q + relaunch, the page detected prior guest identity from localStorage and reserved silently (no modal re-prompt). This is by design per `web/src/pages/ItemReservePage.tsx:273-296` — the `if (identity)` branch fires `reserveMutation.mutate` directly when identity exists, bypassing the guest-identity modal. The localStorage hydration round-trip is the proof; modal-skipping is the observable evidence. | 2026-05-21 |
 | 4 | Romanian browser-locale autodetection on cold load (WEB-D-15) | Chrome (system+browser language switched to Romanian, full Cmd+Q + relaunch, fresh incognito) | **PASS** | UI rendered in Romanian on cold incognito load after switching system/Chrome to Romanian — i18next browser-detection working end-to-end against the deployed bundle. | 2026-05-21 |
 | 5 | SPA deep-link to PRIVATE registry, unauthenticated → 404 | Chrome (fresh incognito, no auth session) | **PASS** | Direct paste of private-registry URL rendered the generic 404 page. No data leak (existence not revealed, owner-only data not shown). Firestore returned `permission-denied`, caught and mapped to 404 by the client per WEB-D-13/14. | 2026-05-21 |
-| 6 | Email deep-link re-reserve end-to-end (natural 30-min path — D-09 amendment 2026-05-21) | Android prod-pointed APK + web fallback (incognito) + user's own mailbox | **IN PROGRESS (fourth attempt after region-qualifier fix)** | First attempt (17:40:44 UTC+3 reserve → 18:10:44 expected expiry) revealed prod bug #1: wrong Cloud Tasks queue name. Fix `bf4ca31` deployed `2026-05-21T15:25:26Z`. Second attempt revealed prod bug #2: tasks now enqueued correctly but dispatched without OIDC token → Cloud Run rejected with HTTP 403, task retried 3× then dropped. Fix `d0c7516` (refactor to Firebase Admin TaskQueue API) deployed `2026-05-22T09:31:10Z`. Third attempt (reservation `Jf38gRSE5gUBVzUgzVyp`, reserved 2026-05-22 12:50:39 UTC+3) revealed prod bug #3: Admin SDK `taskQueue("name")` form defaulted to `us-central1` lookup, returning `Queue does not exist` — our function + queue are in `europe-west3`. Fix `7ffb380` (region-qualified resource path) deployed `2026-05-22T10:24:16Z`. Three stuck reservations to clean manually. User to restart UAT-6 fourth attempt with a different item on the fixed deployment. | — |
+| 6 | Email deep-link re-reserve end-to-end (natural 30-min path — D-09 amendment 2026-05-21) | Android prod-pointed APK + web fallback (incognito) + user's own mailbox | **PASS (fourth attempt)** | Closed on attempt #4 (2026-05-22) after fixing the prod-bug trilogy `bf4ca31` (queue-name), `d0c7516` (OIDC), `7ffb380` (region) — see "Production bugs fixed during Plan 14-04" section below. The fourth attempt's Cloud Task was visible in the `releaseReservation` queue within seconds of the reserve (ETA `13:58:40`, create_time `13:28:41` — exactly the 30-min reservation timer) and the handler fired successfully at the scheduled time: item flipped to `status=available`, reservation flipped to `status=expired`, expiry email arrived in the giver's mailbox, app banner cleared. User-confirmed: "releaseReservation worked as expected." | 2026-05-22 |
 | 7 | Google OAuth popup flow on deployed build | TBD | **PENDING** | Awaiting Task 7 verification. | — |
 
 ---
@@ -364,6 +364,16 @@ behaviour than the seed-script shortcut would have been.
   `getFunctions().taskQueue()` is stubbed in unit tests; region
   resolution only happens against live Google APIs. Emulator does not
   exercise the GCP region-resolution path at all.
+
+### Trilogy closing note
+
+All three bugs manifested with the same end-user symptom (reservation
+stuck "reserved", no email, banner won't clear) but lived in three
+different layers of the Cloud Tasks integration — caught only because
+Plan 14-04's layered-UAT approach exercises the real production path
+with a real 30-min timer. UAT-6 closed GREEN on attempt #4 on 2026-05-22:
+scheduled task visible in queue, handler fired at the 30-min mark, item
+released, expiry email delivered, banner cleared. User-confirmed.
 
 ---
 
