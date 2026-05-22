@@ -170,6 +170,7 @@ NOT mark Phase 14 complete in ROADMAP until verifier passes — only Plan
 - Phase 12 added: Registry Cover Photo & Themed Placeholder
 - Phase 13 added: Web Fallback Live Deploy for guest experience (2026-04-30)
 - Phase 13 renamed → "Web Fallback Visual Refresh"; Phase 14 added: "Web Fallback Live Deploy + Guest UAT" (2026-04-30, scope split — visual refresh per upcoming web design handoff, then deploy+UAT)
+- Phase 15 added: Web Invite-Landing + Magic-Link Guest Flow (2026-05-22)
 
 ### Decisions
 

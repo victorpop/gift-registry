@@ -307,3 +307,13 @@ Plans:
 - [x] 14-02-functions-tsconfig-cleanup-and-deploy-PLAN.md — Apply tsconfig rootDir fix + commit functions/.env + deploy functions (closes folded todo fix-functions-tsconfig-and-env-handling)
 - [x] 14-03-firestore-and-storage-rules-deploy-PLAN.md — Deploy firestore.rules + storage.rules (first-time storage deploy with cross-service grant; closes folded todo deploy-phase-12-storage-rules)
 - [x] 14-04-layered-uat-and-appcheck-enforcement-PLAN.md — Register reCAPTCHA v3 + add OAuth origins + layered UAT (solo Pass 1 + recruited-giver Pass 2) covering all 7 manual UAT items + App Check monitor→enforce flip
+
+### Phase 15: Web Invite-Landing + Magic-Link Guest Flow
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 14
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 15 to break down)
