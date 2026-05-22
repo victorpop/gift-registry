@@ -107,12 +107,11 @@ fun AddItemScreen(
                 viewModel.onResetForm()
                 addAnotherMode = false
             } else {
-                // Clear before navigating: AddItemViewModel is Activity-scoped (key = registryId).
-                // Without this reset, if the user re-enters the same AddItemKey a second time,
-                // this LaunchedEffect fires immediately with the stale non-null id and triggers
-                // an unexpected navigation before the user does anything.
-                // Mirrors CreateRegistryScreen's LaunchedEffect(savedRegistryId) fix.
-                viewModel.clearSavedItemId()
+                // Reset all form fields so the Activity-scoped ViewModel (keyed under
+                // registryId) presents a blank form if the user opens AddItemKey for
+                // the same registry a second time. onResetForm() also clears
+                // _savedItemId, so clearSavedItemId() is not needed separately here.
+                viewModel.onResetForm()
                 onBack()
             }
         }

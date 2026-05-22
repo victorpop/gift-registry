@@ -206,7 +206,10 @@ class CreateRegistryViewModel @Inject constructor(
 
             if (registryId == null) {
                 createRegistryUseCase(registry).fold(
-                    onSuccess = { newId -> savedRegistryId.value = newId },
+                    onSuccess = { newId ->
+                        resetForm()
+                        savedRegistryId.value = newId
+                    },
                     onFailure = { e -> error.value = e.message ?: "Failed to create registry." }
                 )
             } else {
@@ -255,5 +258,28 @@ class CreateRegistryViewModel @Inject constructor(
      */
     fun clearSavedRegistryId() {
         savedRegistryId.value = null
+    }
+
+    /**
+     * Resets all form StateFlows back to their initial (empty) defaults.
+     *
+     * Called after a successful registry CREATE so that when the user opens
+     * CreateRegistryKey a second time the Activity-scoped ViewModel (keyed
+     * under the constant "new") presents a blank form rather than the values
+     * from the previous submission. Edit mode (registryId != null) does NOT
+     * call this — editing a specific registry re-hydrates from Firestore in
+     * the init block, so leaving fields populated is correct there.
+     */
+    private fun resetForm() {
+        title.value = ""
+        occasion.value = ""
+        eventDateMs.value = null
+        eventTimeSet.value = false
+        eventLocation.value = ""
+        description.value = ""
+        visibility.value = "public"
+        notificationsEnabled.value = true
+        coverPhotoSelection.value = CoverPhotoSelection.None
+        error.value = null
     }
 }

@@ -7,11 +7,13 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import com.giftregistry.domain.auth.AuthStateEvent
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeout
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,12 +43,22 @@ class FirebaseAuthDataSource @Inject constructor(
                     // — this drives AuthViewModel to Unauthenticated and the nav gate to
                     // AuthScreen, which is the correct recovery UX.
                     launch {
-                        val tokenResult = runCatching { user.getIdToken(true).await() }
+                        // 15-second deadline on the token refresh. Without a timeout,
+                        // getIdToken(true) will hang indefinitely when Firebase Auth is
+                        // unreachable (emulator not running, no network, firewall). This
+                        // causes AuthViewModel to stay in AuthUiState.Loading forever,
+                        // showing a permanent loading spinner. On timeout we treat it
+                        // as a failure and sign out — same recovery path as a real error.
+                        val tokenResult = runCatching {
+                            withTimeout(15_000L) { user.getIdToken(true).await() }
+                        }
                         if (tokenResult.isFailure) {
                             val e = tokenResult.exceptionOrNull()
+                            val isTimeout = e is TimeoutCancellationException
                             Log.w(
                                 TAG,
-                                "Cached user token refresh failed (${e?.message}); signing out to force re-auth",
+                                if (isTimeout) "Cached user token refresh timed out (15s); signing out to force re-auth"
+                                else "Cached user token refresh failed (${e?.message}); signing out to force re-auth",
                                 e,
                             )
                             auth.signOut()

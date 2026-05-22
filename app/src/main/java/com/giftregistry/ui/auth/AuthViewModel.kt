@@ -37,16 +37,27 @@ class AuthViewModel @Inject constructor(
             observeAuthStateUseCase().collect { event ->
                 _authState.value = when (event) {
                     is AuthStateEvent.Initial -> {
-                        // Cold-start synchronous-attach emission. If a cached user is already
-                        // available (Firebase's in-memory cache populated before listener attach),
-                        // we can settle immediately as Authenticated. If null, stay in Loading
-                        // and wait for the post-restoration Changed emission — emitting
-                        // Unauthenticated here would cause AuthScreen to flash for ~1 second
-                        // on cold start for users with a cached session (BUG-AUTH-FLASH-260512).
+                        // Cold-start synchronous-attach emission.
+                        //
+                        // user != null → Firebase found a cached session in memory and
+                        // FirebaseAuthDataSource already validated the token via getIdToken(true).
+                        // Settle immediately as Authenticated.
+                        //
+                        // user == null → no cached session at all (fresh install, clean reinstall,
+                        // or the DataSource signed out after a stale token). Settle as
+                        // Unauthenticated — Firebase will NOT fire a subsequent Changed event in
+                        // this case, so staying in Loading would hang the spinner forever.
+                        //
+                        // Note: BUG-AUTH-FLASH-260512 (AuthScreen flash on cold start for returning
+                        // users) is NOT reintroduced here. The original flash came from emitting
+                        // Initial(null) before Firebase had a chance to restore the cached user.
+                        // The current FirebaseAuthDataSource (post-c0ae973) defers the Initial
+                        // emission for the user != null path until after async token validation —
+                        // so Initial(null) is now emitted only when there genuinely is no session.
                         if (event.user != null) {
                             AuthUiState.Authenticated(uid = event.user.uid, isAnonymous = event.user.isAnonymous)
                         } else {
-                            AuthUiState.Loading
+                            AuthUiState.Unauthenticated
                         }
                     }
                     is AuthStateEvent.Changed -> {
