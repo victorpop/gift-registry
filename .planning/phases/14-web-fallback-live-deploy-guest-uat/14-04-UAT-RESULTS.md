@@ -3,10 +3,10 @@ phase: 14-web-fallback-live-deploy-guest-uat
 plan: 04
 artifact: uat-results
 deploy_target: https://gift-registry-ro.web.app
-hosting_deploy_commit: 78fed8d
+hosting_deploy_commit: 47c1bfa
 appcheck_posture_at_uat: monitor-only (enforcement flip happens in Task 10)
 created: 2026-05-21
-status: in-progress (Pass 1 items 1-6 PASS — item 6 closed on fourth attempt after the prod-bug trilogy #1 queue-name, #2 OIDC, #3 region default; item 7 first attempt failed both browsers, fix #4 deployed — switch from signInWithPopup to signInWithRedirect — awaiting retest; Pass 2 pending; enforcement flip pending)
+status: in-progress (Pass 1 items 1-6 PASS — item 6 closed on fourth attempt after the prod-bug trilogy #1 queue-name, #2 OIDC, #3 region default; item 7 first attempt failed both browsers, fix #4 deployed — switch from signInWithPopup to signInWithRedirect — second attempt also failed in both browsers, fix #5 deployed — authDomain origin alignment + App Check dedupe — awaiting third retest; Pass 2 pending; enforcement flip pending)
 ---
 
 # Phase 14 Plan 04 — UAT Results
@@ -34,7 +34,7 @@ Layered per D-08:
 | 4 | Romanian browser-locale autodetection on cold load (WEB-D-15) | Chrome (system+browser language switched to Romanian, full Cmd+Q + relaunch, fresh incognito) | **PASS** | UI rendered in Romanian on cold incognito load after switching system/Chrome to Romanian — i18next browser-detection working end-to-end against the deployed bundle. | 2026-05-21 |
 | 5 | SPA deep-link to PRIVATE registry, unauthenticated → 404 | Chrome (fresh incognito, no auth session) | **PASS** | Direct paste of private-registry URL rendered the generic 404 page. No data leak (existence not revealed, owner-only data not shown). Firestore returned `permission-denied`, caught and mapped to 404 by the client per WEB-D-13/14. | 2026-05-21 |
 | 6 | Email deep-link re-reserve end-to-end (natural 30-min path — D-09 amendment 2026-05-21) | Android prod-pointed APK + web fallback (incognito) + user's own mailbox | **PASS (fourth attempt)** | Closed on attempt #4 (2026-05-22) after fixing the prod-bug trilogy `bf4ca31` (queue-name), `d0c7516` (OIDC), `7ffb380` (region) — see "Production bugs fixed during Plan 14-04" section below. The fourth attempt's Cloud Task was visible in the `releaseReservation` queue within seconds of the reserve (ETA `13:58:40`, create_time `13:28:41` — exactly the 30-min reservation timer) and the handler fired successfully at the scheduled time: item flipped to `status=available`, reservation flipped to `status=expired`, expiry email arrived in the giver's mailbox, app banner cleared. User-confirmed: "releaseReservation worked as expected." | 2026-05-22 |
-| 7 | Google OAuth flow on deployed build | Chrome + Safari (both incognito) | **FAILED (first attempt) → fix deployed → retest pending** | First attempt 2026-05-22: popup completed and credentials persisted to `browserLocalPersistence`, but opener tab still rendered "Sign in" until manual refresh. Failed identically in Chrome and Safari. Root cause: `signInWithPopup` cross-window `postMessage` channel restricted by modern browser policies (tracking prevention, COOP defaults). Fix: switched to `signInWithRedirect` + `getRedirectResult` on boot (commit `3218a49`, hosting deploy 2026-05-22T11:20 UTC+3). See "Production bug #4" below. Retest plan in checkpoint. | 2026-05-22 |
+| 7 | Google OAuth flow on deployed build | Chrome + Safari (both incognito) | **FAILED twice (popup → redirect → authDomain mismatch) → fix #5 deployed → third retest pending** | First attempt 2026-05-22: popup completed and credentials persisted to `browserLocalPersistence`, but opener tab still rendered "Sign in" until manual refresh. Failed identically in Chrome and Safari. Root cause: `signInWithPopup` cross-window `postMessage` channel restricted by modern browser policies (tracking prevention, COOP defaults). Fix #4: switched to `signInWithRedirect` + `getRedirectResult` on boot (commit `3218a49`, hosting deploy 2026-05-22T11:20 UTC+3). Second attempt 2026-05-22 against the redirect bundle: after Google OAuth round-trip the user landed back on `/sign-in` still signed-out; `localStorage` showed `["guestIdentity","lang","_grecaptcha"]` (no `firebase:authUser:*`) and `sessionStorage` was empty in BOTH Chrome and Safari — `getRedirectResult` silently returned null. Root cause: `VITE_FIREBASE_AUTH_DOMAIN` was the default `gift-registry-ro.firebaseapp.com` but the app is served from `gift-registry-ro.web.app`; redirect-event state was saved on one origin, read from the other, no match. Fix #5: changed env to `VITE_FIREBASE_AUTH_DOMAIN=gift-registry-ro.web.app` so the auth handler runs on the same origin as the app, plus deduped the second `initializeAppCheck` call from main.tsx (commit `47c1bfa`, hosting deploy 2026-05-22 UTC+3). See "Production bug #5" below. Third retest plan in checkpoint. | 2026-05-22 |
 
 ---
 
@@ -467,9 +467,125 @@ released, expiry email delivered, banner cleared. User-confirmed.
   (b) the manual UAT we just did. Confirms again that production
   UAT remains the only safety net for browser-policy-dependent flows.
 
+### 2026-05-22 — `VITE_FIREBASE_AUTH_DOMAIN` set to default `.firebaseapp.com` host while app served from `.web.app` host — `getRedirectResult` silently returns null because redirect-event state is per-origin (fifth silent prod bug, web auth layer)
+
+- **Surfaced during:** UAT-7 second attempt against the deployed bundle
+  `3218a49` (the `signInWithPopup` → `signInWithRedirect` refactor). User
+  ran the Google sign-in flow in fresh incognito profiles on BOTH Chrome
+  and Safari.
+- **Symptom (identical in both browsers):** Click "Continue with Google"
+  in `/sign-in` → entire page navigates to `accounts.google.com` (good —
+  redirect is happening, not popup) → user picks an account and consents
+  → browser navigates back to `https://gift-registry-ro.web.app/...`.
+  The opener tab lands back on `/sign-in` rendering the signed-out UI
+  (Sign in button visible, no avatar). Manual refresh does NOT help this
+  time (unlike bug #4 where credentials had persisted). Console
+  diagnostic dump:
+  ```js
+  JSON.stringify(Object.keys(localStorage))
+  // → '["guestIdentity","lang","_grecaptcha"]'
+  JSON.stringify(Object.keys(sessionStorage))
+  // → '[]'
+  ```
+  No `firebase:authUser:*` key in either storage. Chrome had no console
+  errors at all; Safari only showed unrelated reCAPTCHA Enterprise `pat`
+  401s (left over from UAT-1 noise — not relevant here).
+- **Root cause:** `VITE_FIREBASE_AUTH_DOMAIN=gift-registry-ro.firebaseapp.com`
+  (the default value Firebase prints from `firebase apps:sdkconfig WEB`)
+  did not match the origin the app is actually served from
+  (`gift-registry-ro.web.app`). `signInWithRedirect` navigates the user
+  to `https://${authDomain}/__/auth/handler` to do the OAuth round-trip
+  — i.e. `https://gift-registry-ro.firebaseapp.com/__/auth/handler`. The
+  Firebase SDK saves redirect-event state (the in-progress
+  `signInWithRedirect` operation marker that `getRedirectResult` looks
+  for on the return leg) in `sessionStorage` and `localStorage` keyed by
+  origin. Browsers isolate Web Storage per origin — keys written under
+  `firebaseapp.com` are invisible to JavaScript running on `web.app`.
+  Result: the popup-less full-page OAuth round-trip works on Google's
+  side (the user really did pick an account and consent), the auth
+  handler at `firebaseapp.com/__/auth/handler` really did persist the
+  credentials in ITS origin's storage, then redirected back to
+  `web.app/...` — but the `getRedirectResult(auth)` call on `web.app`
+  has no redirect-event marker in its origin's storage, so it returns
+  null silently. The credentials live in `firebaseapp.com`'s storage,
+  unreachable from `web.app` code.
+- **Why bug #4 hid bug #5:** With `signInWithPopup` (pre-`3218a49`), the
+  popup window itself opened `accounts.google.com` directly without
+  routing through `firebaseapp.com/__/auth/handler` — so the
+  cross-origin storage isolation never bit us. The bug was always
+  latent; switching to `signInWithRedirect` (the canonical mobile-safe
+  flow) is exactly what surfaced it.
+- **Fix:** Single env change in `web/.env.local` —
+  `VITE_FIREBASE_AUTH_DOMAIN=gift-registry-ro.firebaseapp.com`
+  → `VITE_FIREBASE_AUTH_DOMAIN=gift-registry-ro.web.app`. With both
+  the app and the auth handler running on `gift-registry-ro.web.app`,
+  the redirect-event state stays in one origin's storage end-to-end and
+  `getRedirectResult` can read it on the return leg. `.env.local` is
+  git-ignored so this change ships in the rebuilt bundle, not in a
+  source commit.
+- **Prereqs verified by user BEFORE the fix shipped (both required for
+  the new authDomain to actually work):**
+  - Firebase Console → Authentication → Settings → Authorized domains:
+    `gift-registry-ro.web.app` confirmed present (Default).
+  - GCP Console → APIs & Services → Credentials → OAuth 2.0 Web client
+    → Authorized redirect URIs: confirmed contains
+    `https://gift-registry-ro.web.app/__/auth/handler`.
+- **Drive-by — App Check init dedupe:** Side-finding flagged way back
+  during UAT-1: `initializeAppCheck` was being called from BOTH
+  `web/src/firebase.ts` (production-gated, no debug-token branch) AND
+  `web/src/main.tsx` (debug-token branch + DEV warn). Two calls against
+  the same Firebase app instance — the second is rejected internally
+  but it's still noise. While the bundle was being rebuilt for the
+  authDomain fix anyway, consolidated to ONE init in `firebase.ts`.
+  Moved the `FIREBASE_APPCHECK_DEBUG_TOKEN` setup into `firebase.ts`
+  too (it must run BEFORE `initializeAppCheck`, and since `firebase.ts`
+  module-eval imports execute before `main.tsx`'s own body, the debug
+  token now lives where the init actually happens). `main.tsx` slimmed
+  down to imports + `getRedirectResult` + React render.
+- **Commit:** `47c1bfa` (`fix(14-04): align authDomain with web.app
+  origin + dedupe App Check init`) — only `web/src/main.tsx` and
+  `web/src/firebase.ts` changed; the env file is git-ignored.
+- **Deploy:** `firebase deploy --only hosting --project gift-registry-ro`,
+  completed 2026-05-22 UTC+3. Deploy log at
+  `/tmp/14-04-authdomain-deploy.log`. 3 files uploaded (`index.html`,
+  `index-*.js`, `index-*.css`). No functions / rules / firebase.json
+  change.
+- **Retest plan (UAT-7 third attempt):**
+  1. Open `https://gift-registry-ro.web.app/` in a fresh Chrome
+     incognito window with DevTools → Console open.
+  2. Navigate to `/sign-in` (or click "Sign in" in top nav).
+  3. Click "Continue with Google" → whole page navigates to
+     `accounts.google.com` (same as second attempt — that part already
+     worked).
+  4. Pick the account and confirm consent → browser navigates back to
+     `https://gift-registry-ro.web.app/...`.
+  5. **Within a beat of landing**, the top nav should show the
+     signed-in avatar / displayName / email — no manual refresh
+     required (this is the bit that has failed both previous attempts).
+  6. In DevTools Console, run:
+     ```js
+     JSON.stringify(Object.keys(localStorage))
+     ```
+     Expected: now contains a `firebase:authUser:[appId]` key.
+     `sessionStorage` may also briefly contain
+     `firebase:redirectEvent:[appId]` while the redirect is in flight.
+  7. If the post-redirect URL lands on `gift-registry-ro.firebaseapp.com`
+     for any reason instead of `.web.app`, that's a sign the bundle is
+     stale-cached on the user's side — Cmd+Shift+R or clear site data
+     and retry.
+  8. Repeat in Safari incognito to confirm cross-browser parity.
+- **Why tests didn't catch this:** Same as bug #4 — the test suite
+  mocks `signInWithGoogle` entirely; no test exercises the real
+  Firebase Auth redirect flow against a real two-origin deploy. Also
+  same root-cause family as the trilogy: the affected path is a
+  cross-origin handshake that simply does not exist in any local
+  emulator or in jsdom. Confirms (again) that production UAT in real
+  browsers against the real deployed origin is the only place this
+  class of bug surfaces.
+
 ### Bugs retrospective
 
-Plan 14-04's layered UAT caught FOUR sequential production bugs that
+Plan 14-04's layered UAT caught FIVE sequential production bugs that
 each had identical-looking user-facing symptoms but lived in completely
 different parts of the stack:
 
@@ -482,14 +598,22 @@ different parts of the stack:
 4. **Web auth popup-to-opener channel restricted by browser policy**
    (`3218a49`) — popup completed but opener tab not notified, both
    Chrome and Safari.
+5. **Web auth `authDomain` origin mismatch with serving origin**
+   (`47c1bfa`) — `signInWithRedirect` round-tripped through a different
+   origin than `getRedirectResult` looked in, redirect-event state
+   stranded in the wrong origin's storage, both Chrome and Safari.
 
-Bugs 1-3 only manifested in the natural 30-min UAT path; bug 4 only
-manifested in real browsers (not jsdom / Playwright). All four bugs
+Bugs 1-3 only manifested in the natural 30-min UAT path; bugs 4-5 only
+manifested in real browsers (not jsdom / Playwright). All five bugs
 were caught BEFORE Pass 2 (recruited real giver), which is exactly
 what the layered-UAT approach is for. Lesson: when a release ships
 behind any browser-vendor / cloud-vendor policy boundary, production
 UAT in real browsers against real cloud services is irreplaceable.
-Unit-stub-only test coverage cannot catch this class of bug.
+Unit-stub-only test coverage cannot catch this class of bug. Extra
+lesson from bugs 4-5: each fix in the same layer (web auth) can
+surface a deeper layer's latent bug — both browser-policy changes
+(bug 4) and storage-origin isolation (bug 5) are invisible until you
+exercise the real cross-origin handshake.
 
 ---
 
@@ -561,7 +685,7 @@ logged here for traceability.
 ## Test setup notes
 
 - **Hosting URL under test:** `https://gift-registry-ro.web.app/`
-- **Hosting bundle commit:** `78fed8d` ("feat(14-04): wire App Check reCAPTCHA v3 into firebase.ts, redeploy hosting")
+- **Hosting bundle commit:** `47c1bfa` ("fix(14-04): align authDomain with web.app origin + dedupe App Check init") — succeeds `3218a49` (signInWithRedirect refactor) and `78fed8d` (App Check reCAPTCHA v3 wiring)
 - **Functions deployed commit:** `c0b7066` ("docs(14-02): complete plan — functions deployed with tsconfig + env cleanup")
 - **Rules deployed:** firestore.rules + storage.rules per Plan 14-03 SUMMARY
 - **App Check during Pass 1 items 1-5:** monitor-only (enforcement deliberately
