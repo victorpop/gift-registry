@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 10: Onboarding + Home Redesign** - Owner-facing Onboarding/sign up (06) and Home/all-registries (07) screens match the handoff pixel-accurately with the new design system (completed 2026-04-21)
 - [x] **Phase 11: Registry Detail + Create + Add Item Redesign** - Registry detail (08), Create registry (09), and Add item via URL (10) screens match the handoff pixel-accurately (completed 2026-04-21)
 - [x] **Phase 13: Web Fallback Visual Refresh** - Restyle the existing Phase 5 web fallback to match the GiftMaison design language so the giver-facing web flow visually aligns with the redesigned Android owner flow (handoff to be provided) (completed 2026-05-12)
-- [ ] **Phase 14: Web Fallback Live Deploy + Guest UAT** - Register Firebase Web app, ship the redesigned web bundle to gift-registry-ro.web.app with backing Cloud Functions/rules deployed, and close WEB-01..04 human-UAT items via end-to-end guest flow validation (all 4 plans complete 2026-05-22; phase pending verification)
+- [x] **Phase 14: Web Fallback Live Deploy + Guest UAT** - Register Firebase Web app, ship the redesigned web bundle to gift-registry-ro.web.app with backing Cloud Functions/rules deployed, and close WEB-01..04 human-UAT items via end-to-end guest flow validation (all 4 plans complete 2026-05-22; phase pending verification) (completed 2026-05-22)
 
 ## Phase Details
 
@@ -255,7 +255,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 11. Registry Detail + Create + Add Item Redesign | 6/6 | Complete   | 2026-04-21 |
 | 12. Registry Cover Photo & Themed Placeholder | 5/5 | Complete    | 2026-04-28 |
 | 13. Web Fallback Visual Refresh | 8/8 | Complete    | 2026-05-12 |
-| 14. Web Fallback Live Deploy + Guest UAT | 4/4 | All plans complete; phase pending verification | - |
+| 14. Web Fallback Live Deploy + Guest UAT | 4/4 | Complete    | 2026-05-22 |
 
 ### Phase 12: Registry Cover Photo & Themed Placeholder
 **Goal**: Registry owners can pick a cover photo (bundled per-occasion preset OR Android Photo Picker upload to Firebase Storage) on Create, Edit, and Registry Detail surfaces; registries without a cover render the GiftMaison gradient + occasion-glyph placeholder consistently across the 180 dp hero and both registry card variants
