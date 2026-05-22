@@ -82,7 +82,9 @@ export const createReservation = onCall<CreateReservationRequest>(
     // runtime service account so the dispatched HTTP request authenticates against Cloud Run.
     // Replaces the previous raw @google-cloud/tasks CloudTasksClient pattern, which created
     // tasks without an oidcToken and was silently dropped after 3 retries (Plan 14-04 fix).
-    const queue = getFunctions().taskQueue<ReleasePayload>("releaseReservation");
+    const queue = getFunctions().taskQueue<ReleasePayload>(
+      `locations/${REGION}/functions/releaseReservation`
+    );
     try {
       await queue.enqueue(
         { reservationId },
