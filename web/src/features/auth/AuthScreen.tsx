@@ -34,7 +34,7 @@ type Mode = 'signin' | 'signup'
 export default function AuthScreen() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, isReady } = useAuth()
   const [mode, setMode] = useState<Mode>('signin')
   const [serverError, setServerError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
@@ -43,6 +43,14 @@ export default function AuthScreen() {
     resolver: zodResolver(schema),
     defaultValues: { email: '', password: '' },
   })
+
+  // Gate cold-boot render until Firebase Auth has resolved its persisted session.
+  // Without this gate, the page briefly renders the sign-in form even when the
+  // user is in the middle of returning from a signInWithRedirect flow — they
+  // then watch the form flash before navigate('/') fires (Plan 14-04 UAT-7 polish).
+  if (!isReady) {
+    return null
+  }
 
   // Already signed in? bounce back to /
   if (user) {

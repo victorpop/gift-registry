@@ -29,7 +29,7 @@ export interface TopNavProps {
  */
 export function TopNav({ onSignInClick }: TopNavProps) {
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const { user, isReady } = useAuth()
 
   const initials = user?.displayName
     ? user.displayName.trim().split(/\s+/).map(p => p[0]?.toUpperCase()).slice(0, 2).join('')
@@ -42,7 +42,14 @@ export function TopNav({ onSignInClick }: TopNavProps) {
       <Wordmark size={24} withTag />
       <div className="flex items-center gap-5">
         <LanguageSwitcher />
-        {user ? (
+        {/*
+          Gate ONLY the auth indicator on isReady — wordmark + LanguageSwitcher
+          render normally during cold-boot. Without this gate, the "Sign in"
+          button briefly flashes before getRedirectResult resolves and
+          onAuthStateChanged propagates the post-redirect user (Plan 14-04
+          UAT-7 polish).
+        */}
+        {!isReady ? null : user ? (
           <UserMenu user={user} initials={initials || 'A'} />
         ) : onSignInClick ? (
           <Btn variant="ghost" size="sm" onClick={onSignInClick}>
