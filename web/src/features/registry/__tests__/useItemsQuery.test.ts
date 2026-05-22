@@ -42,6 +42,15 @@ describe('useItemsQuery', () => {
     itemHandles.unsubscribe.mockReset()
   })
 
+  it('returns data === undefined on mount before the first snapshot arrives (parity with useRegistryQuery — distinguishes loading from empty)', async () => {
+    const { result } = renderHook(() => useItemsQuery('reg-pending'), { wrapper: wrapper(client) })
+    // Wait for useEffect to register the subscription so we know the mount completed.
+    await waitFor(() => expect(itemHandles.onNext).not.toBeNull())
+    // CRITICAL: data must be undefined (initial loading), NOT [] (which means "registry has no items").
+    // Do NOT fire itemHandles.onNext — we are testing the pre-snapshot state.
+    expect(result.current.data).toBeUndefined()
+  })
+
   it('maps items from snapshot.docs', async () => {
     const { result } = renderHook(() => useItemsQuery('reg-1'), { wrapper: wrapper(client) })
     await waitFor(() => expect(itemHandles.onNext).not.toBeNull())

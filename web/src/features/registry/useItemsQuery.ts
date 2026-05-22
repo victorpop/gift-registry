@@ -4,6 +4,20 @@ import { collection, onSnapshot, query, type FirestoreError } from 'firebase/fir
 import { db } from '../../firebase'
 import { mapItemSnapshot, type Item } from '../../lib/firestore-mapping'
 
+/**
+ * Real-time items subscription wrapped in TanStack Query cache.
+ *
+ * - onSnapshot lives in useEffect (unsubscribes on unmount; single subscription per registry).
+ * - Successful snapshots call queryClient.setQueryData — the queryFn is a passive reader.
+ * - On error (permission-denied, unavailable, etc.) data resolves to [] — clients see an empty
+ *   list rather than a partial UI; the parent useRegistryQuery owns the not-found 404 branch.
+ * - staleTime: Infinity + refetchOn*: false are inherited from the global QueryClient defaults.
+ *
+ * Returns:
+ *   - data === undefined while the first snapshot has not arrived (initial loading)
+ *   - data === [] when the snapshot is empty OR an error occurred
+ *   - data === Item[] when items load successfully
+ */
 export function useItemsQuery(registryId: string | undefined) {
   const queryClient = useQueryClient()
   const queryKey = ['registry', registryId ?? 'undefined', 'items'] as const
@@ -32,8 +46,20 @@ export function useItemsQuery(registryId: string | undefined) {
 
   return useQuery<Item[]>({
     queryKey: queryKey as unknown as readonly unknown[],
-    queryFn: () =>
-      queryClient.getQueryData<Item[]>(queryKey as unknown as readonly unknown[]) ?? [],
+    // Passive reader — the real source of truth is the onSnapshot callback above.
+    // When the cache has no value yet (initial mount, before onSnapshot fires),
+    // return a never-resolving Promise so the query stays in 'pending' state
+    // (data === undefined). Returning [] here would conflate "still loading" with
+    // "registry has no items", breaking downstream loading-state branches.
+    queryFn: () => {
+      const cached = queryClient.getQueryData<Item[]>(
+        queryKey as unknown as readonly unknown[],
+      )
+      if (cached === undefined) {
+        return new Promise<Item[]>(() => {})
+      }
+      return cached
+    },
     enabled: Boolean(registryId),
   })
 }
