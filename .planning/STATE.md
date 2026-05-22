@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 260521-myv-PLAN.md
-last_updated: "2026-05-21T13:39:30.190Z"
-last_activity: 2026-05-21 -- Phase 14 execution started
+stopped_at: "Completed quick task 260522-iew: Firestore composite indexes for hydrateActiveReservation deployed"
+last_updated: "2026-05-22T10:21:21.949Z"
+last_activity: "2026-05-21 -- Completed quick task 260521-myv: Update shareable registry link from /r/{registryID} to /registry/{registryID} across all places"
 progress:
   total_phases: 14
   completed_phases: 13
@@ -141,6 +141,7 @@ Progress: [████████░░] 75% (3 of 4 plans + Wave 3 partial)
 | Phase 14-web-fallback-live-deploy-guest-uat P03 | 10min | 2 tasks | 0 files |
 | Phase 14 P02 | 3min | 5 tasks | 5 files |
 | Phase quick/260521-myv-update-shareable-registry-link-from-r-re P01 | 2min | 2 tasks | 3 files |
+| Phase quick/260522-iew P01 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -342,6 +343,7 @@ Recent decisions affecting current work:
 - [Phase 14]: Committed functions/.env with PUBLIC_WEB_BASE_URL (public Firebase Hosting URL — not a secret); enables firebase deploy --only functions from a fresh clone
 - [Phase 14]: healthCheck in us-central1 is a pre-existing condition — region is immutable in Cloud Run; documented not fixed
 - [Phase quick/260521-myv-update-shareable-registry-link-from-r-re]: Android share URL flipped /r/{id} → /registry/{id} to match canonical web fallback route; no redirect added (web never had /r/:id)
+- [Phase quick/260522-iew]: Added both reservations composite indexes simultaneously (signed-in + guest path) — same query shape, both would have hit FAILED_PRECONDITION
 
 ### Pending Todos
 
@@ -421,6 +423,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-21T13:39:24.961Z
-Stopped at: Completed 260521-myv-PLAN.md
+Last session: 2026-05-22T10:21:17.353Z
+Stopped at: Completed quick task 260522-iew: Firestore composite indexes for hydrateActiveReservation deployed
 Resume file: None
