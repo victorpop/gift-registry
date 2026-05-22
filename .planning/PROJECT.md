@@ -20,7 +20,7 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 - Per-registry occasion theming at runtime (accent / accentSoft / accentInk / second / secondSoft switch per occasion)
 
 **Scope boundaries:**
-- Giver-facing web fallback was added to v1.1 scope on 2026-04-30 (Phases 13 + 14): visual refresh complete (Phase 13), live deploy + guest UAT pending (Phase 14)
+- Giver-facing web fallback was added to v1.1 scope on 2026-04-30 (Phases 13 + 14): visual refresh complete (Phase 13), live deploy + guest UAT closed (Phase 14, 2026-05-22 — caught 5 silent prod bugs; 2 follow-up todos: Pass 2 recruited giver + Android App Check + enforcement flip)
 - Settings / profile / notifications inbox / dark mode / empty states / store-browser WebView / email templates deferred to later milestone(s)
 
 **Key context:**
@@ -36,7 +36,7 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 - ✓ Gift givers can log in, create an account, or continue as guest — Phase 2
 - ✓ Guest-to-account conversion offered at reservation time (UI ready, trigger in Phase 4) — Phase 2
 - ✓ Multilingual support (Romanian and English) with manual override and persistence — Phase 2
-- ✓ Web fallback for gift givers — view registry, log in / sign up / guest, reserve, retailer redirect — Phase 5 (automated; 7 items pending real-browser UAT)
+- ✓ Web fallback for gift givers — view registry, log in / sign up / guest, reserve, retailer redirect — Phase 5 (automated) + Phase 14 (verified against live deploy 2026-05-22; Pass 1 UAT items 1-7 PASS in Chrome + Safari; Pass 2 recruited-giver + App Check enforcement flip deferred to follow-up todos)
 - ✓ Owners can opt in/out of purchase notifications — Phase 6 (automated; 5 items pending real-device / real-SMTP UAT)
 - ✓ Owners can invite specific users to private registries (email + in-app notification for existing users, email-only for non-users) — Phase 6
 - ✓ Expiration email sent to giver when reservation lapses, with option to re-reserve — Phase 6
@@ -50,7 +50,7 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 - ✓ URL transformer identifies merchant and appends correct affiliate tag — Phase 3
 - ✓ Owners can browse popular Romanian retailers in an in-app WebView and add products via persistent "Add to list" CTA — Phase 7 (automated; 8 items pending real-device UAT). Replaces the retired EMAG catalog API scope (no public catalog API available)
 - ✓ Registry cover photos: bundled occasion presets + gallery upload via Firebase Storage; themed gradient + glyph placeholder on cards and hero when imageUrl is null (fixes visible empty-card bug) — Phase 12 (automated; storage rules deploy + real preset curation deferred via todos)
-- ✓ Web fallback restyled to match GiftMaison design language (registry detail, reserve flow, auth two-surface, polish surfaces, shared chrome) — Phase 13 (UAT approved 2026-05-12; live deploy + guest UAT in Phase 14)
+- ✓ Web fallback restyled to match GiftMaison design language (registry detail, reserve flow, auth two-surface, polish surfaces, shared chrome) — Phase 13 (UAT approved 2026-05-12; live deploy + guest UAT closed in Phase 14, 2026-05-22)
 
 ### Active
 
@@ -116,4 +116,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-12 after Phase 13 web fallback visual refresh complete*
+*Last updated: 2026-05-22 after Phase 14 web fallback live deploy + guest UAT closed (5 silent prod bugs caught + fixed during layered UAT)*
