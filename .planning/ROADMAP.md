@@ -256,6 +256,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 12. Registry Cover Photo & Themed Placeholder | 5/5 | Complete    | 2026-04-28 |
 | 13. Web Fallback Visual Refresh | 8/8 | Complete    | 2026-05-12 |
 | 14. Web Fallback Live Deploy + Guest UAT | 4/4 | Complete    | 2026-05-22 |
+| 15. Web Invite-Landing + Magic-Link Guest Flow | 0/5 | Planning complete | - |
 
 ### Phase 12: Registry Cover Photo & Themed Placeholder
 **Goal**: Registry owners can pick a cover photo (bundled per-occasion preset OR Android Photo Picker upload to Firebase Storage) on Create, Edit, and Registry Detail surfaces; registries without a cover render the GiftMaison gradient + occasion-glyph placeholder consistently across the 180 dp hero and both registry card variants
@@ -310,10 +311,14 @@ Plans:
 
 ### Phase 15: Web Invite-Landing + Magic-Link Guest Flow
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Email-invited recipients who click the registry CTA link in their invite email see a dedicated landing modal that lets them either create an account (with inline email/password form) or continue as a magic-link guest (Firebase passwordless email-link sign-in). Both paths end with the user authenticated, their UID swapped into `registries.invitedUsers` by a 2nd-gen `beforeUserCreated` blocking Cloud Function, and landed on the shared registry page — with the modal dismissible at any point and the `?invite=1` URL signal stripped on close to keep the registry URL clean.
+**Requirements**: TBD — Phase 15 has no formal REQ-IDs in REQUIREMENTS.md; the implementation decisions in `.planning/phases/15-web-invite-landing-magic-link-guest-flow/15-CONTEXT.md` `<decisions>` block are the requirement set. Each plan's `context_decisions` frontmatter field lists the sub-sections that plan addresses.
 **Depends on:** Phase 14
-**Plans:** 0 plans
+**Plans:** 5 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 15 to break down)
+- [ ] 15-01-i18n-and-auth-providers-PLAN.md — Wave 1 foundation: extend en.json + ro.json with `invite_landing.*` namespace (18 keys × 2 locales); add `sendInviteSignInLink` + `completeInviteSignIn` + re-export `isSignInWithEmailLink` wrappers to `web/src/features/auth/authProviders.ts`
+- [ ] 15-02-backend-url-builder-and-email-PLAN.md — Wave 1 backend: extend `buildRegistryUrl(id, { invite?: boolean })` in `functions/src/config/publicUrls.ts` with TDD coverage (8 tests); update `functions/src/registry/inviteToRegistry.ts` line 95 to pass `{ invite: true }` so invite emails carry `?invite=1`
+- [ ] 15-03-invite-landing-modal-PLAN.md — Wave 2: new `web/src/features/auth/InviteLandingModal.tsx` (Radix Dialog mirroring SaveYourSpotModal style; two-state UI: initial choice → check-email confirmation; inline create-account form + sendInviteSignInLink secondary CTA + dismissible "Not now"); 6 Vitest cases
+- [ ] 15-04-magic-link-callback-and-cloud-function-PLAN.md — Wave 2: new `web/src/pages/EmailLinkCallbackPage.tsx` + `/auth/email-link` route in `App.tsx` (6 Vitest cases); new `functions/src/auth/linkInviteOnSignup.ts` 2nd-gen `beforeUserCreated` blocking function that swaps `invitedUsers["email:{email}"]` → `invitedUsers[{newUid}]` in a transaction per matching registry (4 Jest cases); register in `functions/src/index.ts`. Requires Identity Platform + email-link sign-in enabled in Firebase Console.
+- [ ] 15-05-registry-page-wiring-PLAN.md — Wave 3 integration: wire `InviteLandingModal` into `web/src/pages/RegistryPage.tsx` under the 3-gate condition (`searchParams.invite === '1'` + `useAuth().isReady` + `!user`) with `?invite=1` URL stripping on dismiss AND post-account-creation (5 Vitest cases); checkpoint:human-verify 16-step UAT against the Firebase emulator covering both create-account and magic-link paths
