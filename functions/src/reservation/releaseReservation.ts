@@ -8,7 +8,7 @@ import { sendEmail } from "../email/send";
 import { buildReReserveUrl } from "../config/publicUrls";
 import { writeNotification } from "../notifications/writeNotification";
 
-interface ReleasePayload { reservationId: string; }
+export interface ReleasePayload { reservationId: string; }
 
 const REGION = "europe-west3";
 const tasksClient = new CloudTasksClient();

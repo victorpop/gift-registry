@@ -1,9 +1,9 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import * as admin from "firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
-import { CloudTasksClient } from "@google-cloud/tasks";
+import { getFunctions } from "firebase-admin/functions";
 import { writeNotification } from "../notifications/writeNotification";
-import { releaseReservationCore } from "./releaseReservation";
+import { releaseReservationCore, ReleasePayload } from "./releaseReservation";
 
 interface CreateReservationRequest {
   registryId: string;
@@ -21,9 +21,6 @@ interface CreateReservationResponse {
 
 const RESERVATION_DURATION_MS = 30 * 60 * 1000;
 const REGION = "europe-west3";
-const QUEUE_NAME = "releaseReservation";
-
-const tasksClient = new CloudTasksClient();
 
 export const createReservation = onCall<CreateReservationRequest>(
   { region: REGION, minInstances: 1 },
@@ -77,37 +74,27 @@ export const createReservation = onCall<CreateReservationRequest>(
         status: "active",
         createdAt: FieldValue.serverTimestamp(),
         expiresAt,
-        cloudTaskName: "",
       });
     });
 
-    // CRITICAL: Enqueue Cloud Task AFTER transaction commits (Pitfall 2 — never inside runTransaction)
-    const projectId = process.env.GCLOUD_PROJECT!;
-    const queuePath = tasksClient.queuePath(projectId, REGION, QUEUE_NAME);
-    const targetUrl = `https://${REGION}-${projectId}.cloudfunctions.net/releaseReservation`;
-
-    let cloudTaskName = "";
+    // Enqueue Cloud Task AFTER transaction commits (Pitfall 2 — never inside runTransaction).
+    // Use Firebase Admin's TaskQueue API: handles OIDC token generation for the function's
+    // runtime service account so the dispatched HTTP request authenticates against Cloud Run.
+    // Replaces the previous raw @google-cloud/tasks CloudTasksClient pattern, which created
+    // tasks without an oidcToken and was silently dropped after 3 retries (Plan 14-04 fix).
+    const queue = getFunctions().taskQueue<ReleasePayload>("releaseReservation");
     try {
-      const [taskResponse] = await tasksClient.createTask({
-        parent: queuePath,
-        task: {
-          httpRequest: {
-            httpMethod: "POST" as const,
-            url: targetUrl,
-            body: Buffer.from(JSON.stringify({ data: { reservationId } })).toString("base64"),
-            headers: { "Content-Type": "application/json" },
-          },
-          scheduleTime: { seconds: Math.floor(expiresAtMs / 1000) },
-        },
-      });
-      cloudTaskName = taskResponse.name ?? "";
+      await queue.enqueue(
+        { reservationId },
+        { scheduleTime: new Date(expiresAtMs) }
+      );
     } catch (err) {
       // In emulator, Cloud Tasks may not be available. Log and proceed — releaseReservation
       // can still be invoked via direct HTTP POST to emulator endpoint in tests (Pitfall 3).
-      console.warn("[createReservation] Cloud Tasks enqueue failed (emulator?):", err);
+      console.warn("[createReservation] taskQueue.enqueue failed (emulator?):", err);
 
       // Emulator-only fallback: setTimeout to invoke release directly.
-      // Production never hits this path because Cloud Tasks enqueue succeeds when deployed.
+      // Production never hits this path because taskQueue.enqueue succeeds when deployed.
       // FUNCTIONS_EMULATOR is set automatically by `firebase emulators:start`, never in prod.
       // KNOWN LIMITATION: a Functions emulator restart loses pending timers — the
       // reservation will stay "reserved" forever in that emulator session. Production
@@ -123,13 +110,13 @@ export const createReservation = onCall<CreateReservationRequest>(
               `[createReservation] Emulator fallback release failed for ${reservationId}:`, e
             ));
         }, delayMs);
-        // .unref() lets the Functions emulator process exit cleanly without waiting for pending timers.
         timer.unref?.();
       }
     }
-
-    await db.collection("reservations").doc(reservationId)
-      .update({ cloudTaskName });
+    // Note: getFunctions().taskQueue().enqueue() returns Promise<void> — no task name available.
+    // releaseReservationCallable's deleteTask path becomes a no-op when cloudTaskName is absent;
+    // releaseReservationCore is idempotent (no-ops when status !== "active"), so a late-firing
+    // task after manual release is a harmless wasted invocation.
 
     // Write owner-side reservation_created notification.
     // Two extra reads (registry + item) happen AFTER transaction commit — best-effort;
