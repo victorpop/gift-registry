@@ -257,7 +257,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 13. Web Fallback Visual Refresh | 8/8 | Complete    | 2026-05-12 |
 | 14. Web Fallback Live Deploy + Guest UAT | 4/4 | Complete    | 2026-05-22 |
 | 15. Web Invite-Landing + Magic-Link Guest Flow | 0/5 | Planning complete | - |
-| 16. Android Notifications Inbox + Invite Accept/Decline | 3/6 | In Progress|  |
+| 16. Android Notifications Inbox + Invite Accept/Decline | 4/6 | In Progress|  |
 
 ### Phase 12: Registry Cover Photo & Themed Placeholder
 **Goal**: Registry owners can pick a cover photo (bundled per-occasion preset OR Android Photo Picker upload to Firebase Storage) on Create, Edit, and Registry Detail surfaces; registries without a cover render the GiftMaison gradient + occasion-glyph placeholder consistently across the 180 dp hero and both registry card variants
@@ -329,12 +329,12 @@ Plans:
 **Goal:** Move the Android invite flow from auto-add-to-invitedUsers to a strict accept-gate model — new invites land in `registries.pendingInvitedUsers`; invited Android users see an actionable INVITE inbox card; tapping it opens a GiftMaison-styled bottom sheet with Accept/Decline CTAs; Accept atomically promotes the uid into `invitedUsers` (granting read access); owner sees both outcomes in their own inbox. Inbox screen is re-skinned to GiftMaison design language. Phase 15's `linkInviteOnSignup` blocking function must target `pendingInvitedUsers` when Phase 15 resumes.
 **Requirements**: D-01..D-28 (CONTEXT.md decisions — Phase 16 has no formal REQ-IDs in REQUIREMENTS.md; the 28 decisions constitute the requirement set)
 **Depends on:** Phase 15
-**Plans:** 3/6 plans executed
+**Plans:** 4/6 plans executed
 
 Plans:
 - [x] 16-01-wave-0-red-tests-and-index-PLAN.md — Wave 1 RED test scaffolding (5 Android + 2 Functions test files), extend rules tests for D-18/D-19, add composite index for inbox cleanup query
 - [x] 16-02-backend-callables-and-invite-pending-PLAN.md — Wave 2 backend: acceptInvite + declineInvite 2nd-gen onCall functions (europe-west3, enforceAppCheck: true), shared helpers, modify inviteToRegistry to write pendingInvitedUsers + enriched payload + D-16 already-member branch
 - [x] 16-03-android-domain-data-layer-PLAN.md — Wave 2 Android: extend NotificationType enum (3 new wire-mappable values), extend NotificationRepository interface + impl with acceptInvite/declineInvite httpsCallable wrappers
-- [ ] 16-04-invite-response-sheet-and-viewmodel-PLAN.md — Wave 3: InviteResponseViewModel state machine, InviteResponseSheet ModalBottomSheet + DeclineConfirmDialog, shouldOpenInviteSheet predicate, wire NotificationsScreen tap-branching + sheet host
+- [x] 16-04-invite-response-sheet-and-viewmodel-PLAN.md — Wave 3: InviteResponseViewModel state machine, InviteResponseSheet ModalBottomSheet + DeclineConfirmDialog, shouldOpenInviteSheet predicate, wire NotificationsScreen tap-branching + sheet host
 - [ ] 16-05-inbox-reskin-and-strings-PLAN.md — Wave 4: NotificationsScreen + NotificationCard GiftMaison re-skin (D-09), extend localizedTitle/Body for 3 new types, add 20 new strings × 2 locales, append StyleGuidePreview sections
 - [ ] 16-06-deploy-and-uat-PLAN.md — Wave 5: wire Android App Check provider (resolves Phase 14 follow-up todo), deploy composite index + Cloud Functions, 18-scenario on-device UAT (human checkpoint)
