@@ -18,17 +18,10 @@ class GiftRegistryApp : Hilt_GiftRegistryApp() {
 
     override fun onCreate() {
         super.onCreate()
-        // ----- D-20 / Phase 14 follow-up: App Check provider wiring -----
-        // Phase 16 callables (acceptInvite, declineInvite) enforce App Check.
-        // Phase 14 web side already uses reCAPTCHA v3; Android side is wired here.
-        //
-        // Debug builds use the DebugAppCheckProvider so the Functions emulator
-        // and physical device debug builds work without Play Integrity tokens.
-        // Release builds use PlayIntegrity (Play Integrity API auto-enrolls
-        // installed builds — no Play Store presence required for sideload).
-        //
-        // MUST be installed BEFORE any other Firebase SDK call to ensure the
-        // App Check token is attached to the FIRST request.
+        // App Check provider wiring. Debug builds use the DebugAppCheckProvider;
+        // each device's auto-generated debug token must be registered in Firebase
+        // Console (App Check → Apps → Manage debug tokens). Release builds use
+        // PlayIntegrity. MUST be installed before any other Firebase SDK call.
         val appCheck = FirebaseAppCheck.getInstance()
         if (BuildConfig.DEBUG) {
             appCheck.installAppCheckProviderFactory(
