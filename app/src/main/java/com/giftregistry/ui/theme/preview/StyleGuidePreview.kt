@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -22,8 +23,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -36,6 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.giftregistry.domain.model.Item
 import com.giftregistry.domain.model.ItemStatus
+import com.giftregistry.domain.model.NotificationType
 import com.giftregistry.domain.model.Registry
 import com.giftregistry.ui.auth.AuthHeadline
 import com.giftregistry.ui.auth.GoogleBanner
@@ -681,5 +691,185 @@ private fun RegistryCardPlaceholdersPreview() {
                 onLongClick = {},
             )
         }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Phase 16 — Notifications Inbox + Invite Accept/Decline preview sections
+// D-09 re-skin + D-25 new types (InviteResponseSheet preview deferred —
+// ModalBottomSheet does not render statically in @Preview without a complex
+// harness; on-device UAT in Plan 16-06 covers the sheet visuals.)
+// ─────────────────────────────────────────────────────────────────────────
+
+@Preview(
+    name = "Phase 16 — NotificationsInbox (mixed read/unread + 3 new types)",
+    showBackground = true,
+    backgroundColor = 0xFFF7F2E9,
+    widthDp = 360,
+    heightDp = 600,
+)
+@Composable
+private fun NotificationsInboxPreview() {
+    GiftRegistryTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(GiftMaisonTheme.colors.paper),
+        ) {
+            Column {
+                PreviewNotificationRow(
+                    type = NotificationType.INVITE,
+                    title = "Maria invited you to \"Sara's birthday party\"",
+                    body = "Tap to view Sara's birthday party",
+                    timestampLabel = "3M AGO",
+                    isUnread = true,
+                )
+                PreviewNotificationRow(
+                    type = NotificationType.INVITE_ACCEPTED_SELF,
+                    title = "You joined \"Sara's birthday party\"",
+                    body = "Tap to view Sara's birthday party",
+                    timestampLabel = "30M AGO",
+                    isUnread = false,
+                )
+                PreviewNotificationRow(
+                    type = NotificationType.INVITE_ACCEPTED,
+                    title = "Andrei accepted your invite to \"Housewarming\"",
+                    body = "Housewarming",
+                    timestampLabel = "1H AGO",
+                    isUnread = true,
+                )
+                PreviewNotificationRow(
+                    type = NotificationType.RESERVATION_CREATED,
+                    title = "Andrei reserved \"Coffee maker\"",
+                    body = "Andrei reserved Coffee maker on Sara's list",
+                    timestampLabel = "1H AGO",
+                    isUnread = true,
+                )
+                PreviewNotificationRow(
+                    type = NotificationType.ITEM_PURCHASED,
+                    title = "\"Coffee maker\" was purchased",
+                    body = "Someone bought Coffee maker from Sara's list",
+                    timestampLabel = "2H AGO",
+                    isUnread = false,
+                )
+                PreviewNotificationRow(
+                    type = NotificationType.INVITE_DECLINED,
+                    title = "Alex declined your invite to \"Housewarming\"",
+                    body = "Housewarming",
+                    timestampLabel = "1D AGO",
+                    isUnread = false,
+                )
+            }
+        }
+    }
+}
+
+@Preview(
+    name = "Phase 16 — NotificationsInbox (empty state)",
+    showBackground = true,
+    backgroundColor = 0xFFF7F2E9,
+    widthDp = 360,
+    heightDp = 400,
+)
+@Composable
+private fun NotificationsInboxEmptyPreview() {
+    GiftRegistryTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(GiftMaisonTheme.colors.paper),
+            contentAlignment = Alignment.Center,
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "No notifications yet",
+                    style = GiftMaisonTheme.typography.displayS,
+                    color = GiftMaisonTheme.colors.ink,
+                )
+                Spacer(Modifier.height(GiftMaisonTheme.spacing.gap8))
+                Text(
+                    text = "When someone invites you to a registry or reserves a gift, you'll see it here.",
+                    style = GiftMaisonTheme.typography.bodyS,
+                    color = GiftMaisonTheme.colors.inkSoft,
+                    modifier = Modifier.widthIn(max = 280.dp),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Visual atom mirroring NotificationCard for offline review.
+ * Kept private + preview-only — the real card lives in NotificationsScreen.kt.
+ */
+@Composable
+private fun PreviewNotificationRow(
+    type: NotificationType,
+    title: String,
+    body: String,
+    timestampLabel: String,
+    isUnread: Boolean,
+) {
+    val colors = GiftMaisonTheme.colors
+    val typography = GiftMaisonTheme.typography
+    val spacing = GiftMaisonTheme.spacing
+    val titleColor = if (isUnread) colors.ink else colors.inkSoft
+    val iconTint = if (isUnread) colors.accent else colors.inkSoft
+
+    Column {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = spacing.gap16, vertical = spacing.gap14),
+            verticalAlignment = Alignment.Top,
+        ) {
+            Icon(
+                imageVector = when (type) {
+                    NotificationType.INVITE -> Icons.Filled.Mail
+                    NotificationType.INVITE_ACCEPTED_SELF -> Icons.Filled.CheckCircle
+                    NotificationType.INVITE_ACCEPTED -> Icons.Filled.CheckCircle
+                    NotificationType.INVITE_DECLINED -> Icons.Filled.Block
+                    NotificationType.RESERVATION_CREATED -> Icons.Filled.Bookmark
+                    NotificationType.ITEM_PURCHASED -> Icons.Filled.CheckCircle
+                    else -> Icons.Filled.Notifications
+                },
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(24.dp),
+            )
+            Spacer(Modifier.width(spacing.gap12))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = title,
+                        style = typography.bodyL,
+                        color = titleColor,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(Modifier.width(spacing.gap8))
+                    Text(
+                        text = timestampLabel,
+                        style = typography.monoCaps,
+                        color = colors.inkSoft,
+                    )
+                    if (isUnread) {
+                        Spacer(Modifier.width(spacing.gap4))
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(colors.accent),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(spacing.gap4))
+                Text(
+                    text = body,
+                    style = typography.bodyM,
+                    color = colors.inkSoft,
+                )
+            }
+        }
+        HorizontalDivider(color = colors.line, thickness = 1.dp)
     }
 }
