@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 16-01-wave-0-red-tests-and-index-PLAN.md
-last_updated: "2026-05-24T17:27:59.268Z"
+stopped_at: Completed 16-03-android-domain-data-layer-PLAN.md
+last_updated: "2026-05-24T17:35:24.171Z"
 last_activity: 2026-05-24
 progress:
   total_phases: 16
   completed_phases: 14
   total_plans: 84
-  completed_plans: 74
+  completed_plans: 75
   percent: 100
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 16 (android-notifications-inbox-invite-accept-decline) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-05-24
 
@@ -163,6 +163,7 @@ NOT mark Phase 14 complete in ROADMAP until verifier passes — only Plan
 | Phase quick/260522-iew P01 | 2min | 2 tasks | 1 files |
 | Phase quick/260522-iqv P01 | 3min | 2 tasks | 4 files |
 | Phase 16-android-notifications-inbox-invite-accept-decline P01 | 9min | 2 tasks | 10 files |
+| Phase 16-android-notifications-inbox-invite-accept-decline P03 | 3min | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -371,6 +372,9 @@ Recent decisions affecting current work:
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Wave 0 RED scaffolding: 5 Android tests + 2 Functions tests + modified inviteToRegistry + rules + composite index — production handlers/enum/VM intentionally absent so compile/module errors ARE the RED state
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Pattern 8 verified: firestore.rules need NO change for pendingInvitedUsers — isInvited() reads invitedUsers only; 4 new D-18/D-19 rules tests pass against existing rules
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: declineInvite idempotency contract: throw failed-precondition NO_PENDING_INVITE when uid is in neither pending nor invited — symmetric with acceptInvite. Plan 16-02 can flip to no-op success with a one-line test change if UX demands
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-03 reused existing AppModule.provideFirebaseFunctions Hilt binding for NotificationRepositoryImpl — no new module needed.
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-03 preserved Notification data class signature verbatim (D-26) — 4 new payload keys flow through existing Map<String, String?> with no breaking change.
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-03 Rule 3 fix: added placeholder when-branches in NotificationsScreen.kt (toIcon, localizedTitle, localizedBody) for 3 new enum values — Plan 16-05 replaces with proper UI.
 
 ### Pending Todos
 
@@ -452,6 +456,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-24T17:27:59.261Z
-Stopped at: Completed 16-01-wave-0-red-tests-and-index-PLAN.md
+Last session: 2026-05-24T17:35:14.541Z
+Stopped at: Completed 16-03-android-domain-data-layer-PLAN.md
 Resume file: None
