@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 16-04-invite-response-sheet-and-viewmodel-PLAN.md
-last_updated: "2026-05-24T17:48:22.875Z"
+stopped_at: Completed 16-05-inbox-reskin-and-strings-PLAN.md
+last_updated: "2026-05-24T18:01:36.623Z"
 last_activity: 2026-05-24
 progress:
   total_phases: 16
   completed_phases: 14
   total_plans: 84
-  completed_plans: 77
+  completed_plans: 78
   percent: 100
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 16 (android-notifications-inbox-invite-accept-decline) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-05-24
 
@@ -166,6 +166,7 @@ NOT mark Phase 14 complete in ROADMAP until verifier passes — only Plan
 | Phase 16-android-notifications-inbox-invite-accept-decline P03 | 3min | 1 tasks | 4 files |
 | Phase 16 P02 | 4min | 2 tasks | 6 files |
 | Phase 16-android-notifications-inbox-invite-accept-decline P04-invite-response-sheet-and-viewmodel | 6min | 3 tasks | 6 files |
+| Phase 16-android-notifications-inbox-invite-accept-decline P05 | 7min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -384,6 +385,8 @@ Recent decisions affecting current work:
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-04: Action-tagged Error state — State.Error(action: Action, messageKey: String) lets UI render localized copy at render time without baking strings into the VM; VM stays pure-JVM-testable (no Robolectric needed).
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-04: Stub-string + LocalizationParityTest pattern — when a UI plan ships before its strings plan, stub keys in BOTH locales with English placeholder copy. Key parity (not copy parity) is the test contract; keeps build green and preserves downstream plan's copy-ownership.
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-04: Sheet hosted OUTSIDE the Scaffold (after closing brace) so the ModalBottomSheet scrim covers the bottom nav. Chrome contract since Phase 12 — sheets ALWAYS hoist above the Scaffold.
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-05: Deferred InviteResponseSheet @Preview to on-device UAT in Plan 16-06 — ModalBottomSheet does not render statically in @Preview without a complex harness (same precedent as Phase 12 CoverPhotoPickerSheetPreview)
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-05: Removed D-02/D-08 negative-coverage comment text from production KDoc so grep-only verification (! grep -E 'Badge\(|BadgedBox|pendingCount') passes — the constraint is enforced by code shape, not by comment search
 
 ### Pending Todos
 
@@ -465,6 +468,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-24T17:48:08.755Z
-Stopped at: Completed 16-04-invite-response-sheet-and-viewmodel-PLAN.md
+Last session: 2026-05-24T18:01:23.335Z
+Stopped at: Completed 16-05-inbox-reskin-and-strings-PLAN.md
 Resume file: None
