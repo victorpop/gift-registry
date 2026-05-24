@@ -508,3 +508,61 @@ describe("Legacy registry docs (missing fields)", () => {
     await assertSucceeds(getDoc(doc(db, "registries", "priv-reg")));
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// describe("pendingInvitedUsers read scope (D-18)")
+//
+// Plan 16-01 Wave 0 — verifies that the new `pendingInvitedUsers` map added
+// by D-23 does NOT grant read access to a registry. The isInvited rule only
+// reads `invitedUsers`; `pendingInvitedUsers` is invisible to it. These tests
+// pass against the EXISTING rules — no rule edit needed (Pattern 8).
+//
+// D-19 sub-test confirms the rule still grants access AFTER the
+// acceptInvite callable promotes a pending entry into invitedUsers.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("pendingInvitedUsers read scope (D-18)", () => {
+  it("non-owner cannot read a registry doc with pendingInvitedUsers populated", async () => {
+    await seedRegistry("reg-pending", {
+      ownerId: "owner-1",
+      visibility: "private",
+      invitedUsers: {},
+      pendingInvitedUsers: { "stranger-uid": true },
+    });
+    const strangerDb = testEnv.authenticatedContext("stranger-uid").firestore();
+    await assertFails(getDoc(doc(strangerDb, "registries", "reg-pending")));
+  });
+
+  it("invitee with ONLY pending entry (no invitedUsers entry) cannot read registry", async () => {
+    await seedRegistry("reg-pending-only", {
+      ownerId: "owner-1",
+      visibility: "private",
+      invitedUsers: {},
+      pendingInvitedUsers: { "invitee-uid": true },
+    });
+    const inviteeDb = testEnv.authenticatedContext("invitee-uid").firestore();
+    await assertFails(getDoc(doc(inviteeDb, "registries", "reg-pending-only")));
+  });
+
+  it("owner CAN read registry with pendingInvitedUsers populated", async () => {
+    await seedRegistry("reg-owner-pending", {
+      ownerId: "owner-1",
+      visibility: "private",
+      invitedUsers: {},
+      pendingInvitedUsers: { "someone": true },
+    });
+    const ownerDb = testEnv.authenticatedContext("owner-1").firestore();
+    await assertSucceeds(getDoc(doc(ownerDb, "registries", "reg-owner-pending")));
+  });
+
+  it("D-19: invitee promoted to invitedUsers (post-accept) CAN read", async () => {
+    await seedRegistry("reg-accepted", {
+      ownerId: "owner-1",
+      visibility: "private",
+      invitedUsers: { "accepted-uid": true },
+      pendingInvitedUsers: {},
+    });
+    const acceptedDb = testEnv.authenticatedContext("accepted-uid").firestore();
+    await assertSucceeds(getDoc(doc(acceptedDb, "registries", "reg-accepted")));
+  });
+});

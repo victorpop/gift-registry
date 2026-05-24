@@ -17,12 +17,35 @@ const notificationsFailuresStore: unknown[] = [];
 function resetStore() {
   store = {
     registries: {
-      reg1: { ownerId: "owner1", title: "Baby Shower", invitedUsers: {} },
+      // Plan 16-01 / D-23: invites write to pendingInvitedUsers (not invitedUsers).
+      // Plan 16-02 will read occasion + imageUrl + eventAt off the registry doc
+      // to enrich the notification payload (D-15) — fixtures must include them.
+      reg1: {
+        ownerId: "owner1",
+        title: "Baby Shower",
+        occasion: "baby",
+        imageUrl: "https://cdn.example.com/cover-baby.jpg",
+        eventAt: { toMillis: () => 1_800_000_000_000 },
+        invitedUsers: {},
+        pendingInvitedUsers: {},
+      },
+      // Used for D-16 — invitee already in invitedUsers must NOT touch pending,
+      // but FCM + inbox doc MUST still fire (re-invite of existing member).
+      "reg-member": {
+        ownerId: "owner1",
+        title: "Re-invite Test",
+        occasion: "wedding",
+        imageUrl: null,
+        eventAt: null,
+        invitedUsers: { "invited-uid": true },
+        pendingInvitedUsers: {},
+      },
     },
     "users/invited-uid/fcmTokens": {
       "tok-1": { token: "tok-1", platform: "android" },
       "tok-2": { token: "tok-2", platform: "android" },
     },
+    "users/invited-uid/notifications": {},
     mail: {},
     notifications_failures: {},
   };
@@ -49,15 +72,17 @@ jest.mock("firebase-admin", () => {
       if (typeof dataOrFieldPath === "object" && dataOrFieldPath !== null && !("segments" in (dataOrFieldPath as object))) {
         store[collPath][docId] = { ...(store[collPath][docId] || {}), ...(dataOrFieldPath as Record<string, unknown>) };
       } else {
-        // FieldPath usage — we simulate invitedUsers map update
+        // FieldPath usage — route to the map named by the first segment so
+        // tests can distinguish pendingInvitedUsers writes from invitedUsers
+        // writes (Plan 16-01 / D-23).
         const existing = (store[collPath][docId] as Record<string, unknown>) || {};
-        const invitedUsersField = existing.invitedUsers as Record<string, unknown> || {};
-        store[collPath][docId] = { ...existing, invitedUsers: invitedUsersField };
-        // The key is the second segment of the FieldPath
         const fp = dataOrFieldPath as { segments?: string[] };
         if (fp.segments && fp.segments.length >= 2) {
+          const field = fp.segments[0];
           const key = fp.segments[1];
-          invitedUsersField[key] = value;
+          const mapField = ((existing[field] as Record<string, unknown>) || {}) as Record<string, unknown>;
+          mapField[key] = value;
+          store[collPath][docId] = { ...existing, [field]: mapField };
         }
       }
     },
@@ -182,7 +207,7 @@ beforeEach(() => {
 });
 
 describe("inviteToRegistry (with email + FCM)", () => {
-  it("Test A: existing user — writes mail doc, updates invitedUsers, calls FCM once with 2 tokens", async () => {
+  it("Test A: existing user — writes mail doc, updates pendingInvitedUsers (D-23), calls FCM once with 2 tokens, writes enriched inbox doc (D-15)", async () => {
     const result = await inviteToRegistry.run(
       makeCallableRequest({ registryId: "reg1", email: "invited@x.com" })
     );
@@ -196,15 +221,36 @@ describe("inviteToRegistry (with email + FCM)", () => {
     expect(mailDoc.to).toBe("invited@x.com");
     expect(mailDoc.message.subject).toContain("Ana");
 
+    // D-23: write lands in pendingInvitedUsers (NOT invitedUsers)
+    const reg = store.registries.reg1 as {
+      invitedUsers: Record<string, boolean>;
+      pendingInvitedUsers: Record<string, boolean>;
+    };
+    expect(reg.pendingInvitedUsers["invited-uid"]).toBe(true);
+    expect(reg.invitedUsers["invited-uid"]).toBeUndefined();
+
     // FCM called exactly once with 2 tokens
     expect(sendEachForMulticastMock).toHaveBeenCalledTimes(1);
     const fcmCall = sendEachForMulticastMock.mock.calls[0][0];
     expect(fcmCall.tokens).toHaveLength(2);
     expect(fcmCall.data.type).toBe("invite");
     expect(fcmCall.data.registryId).toBe("reg1");
+
+    // D-15: persistent inbox notification carries enriched payload so the
+    // accept/decline sheet can render occasion + cover + event date without
+    // a second registry read.
+    const inviteeInbox = Object.values(store["users/invited-uid/notifications"] || {});
+    const inviteNotif = inviteeInbox.find(
+      (d) => (d as { type?: string }).type === "invite"
+    ) as { payload: Record<string, unknown> } | undefined;
+    expect(inviteNotif).toBeDefined();
+    expect(inviteNotif!.payload.pendingEntryKey).toBe("invited-uid");
+    expect(inviteNotif!.payload.occasion).toBe("baby");
+    expect(inviteNotif!.payload.coverUrl).toBe("https://cdn.example.com/cover-baby.jpg");
+    expect(inviteNotif!.payload.eventDateMs).toBe(1_800_000_000_000);
   });
 
-  it("Test B: non-user — writes mail doc, FCM NOT called (D-18)", async () => {
+  it("Test B: non-user — writes mail doc, FCM NOT called (D-18), pendingInvitedUsers key uses email:<email> prefix", async () => {
     const result = await inviteToRegistry.run(
       makeCallableRequest({ registryId: "reg1", email: "newuser@x.com" })
     );
@@ -219,6 +265,12 @@ describe("inviteToRegistry (with email + FCM)", () => {
 
     // FCM NOT called for non-user
     expect(sendEachForMulticastMock).not.toHaveBeenCalled();
+
+    // D-23: non-user write lands in pendingInvitedUsers keyed by email:<addr>
+    const reg = store.registries.reg1 as {
+      pendingInvitedUsers: Record<string, boolean>;
+    };
+    expect(reg.pendingInvitedUsers["email:newuser@x.com"]).toBe(true);
   });
 
   it("Test C: if sendEmail throws, handler still returns success", async () => {
@@ -288,5 +340,34 @@ describe("inviteToRegistry (with email + FCM)", () => {
     await expect(
       inviteToRegistry.run(makeCallableRequest({ registryId: "reg1", email: "invited@x.com" }, "not-owner"))
     ).rejects.toMatchObject({ code: "permission-denied" });
+  });
+
+  it("Test H (D-16): re-invite of existing member — skips pendingInvitedUsers write but still sends FCM push + writes inbox doc", async () => {
+    // reg-member already has invited-uid in invitedUsers from resetStore().
+    const beforePending = { ...(store.registries["reg-member"] as { pendingInvitedUsers: Record<string, boolean> }).pendingInvitedUsers };
+
+    const result = await inviteToRegistry.run(
+      makeCallableRequest({ registryId: "reg-member", email: "invited@x.com" })
+    );
+
+    expect(result.success).toBe(true);
+
+    // pendingInvitedUsers must NOT have been mutated — invitee is already a member
+    const reg = store.registries["reg-member"] as {
+      invitedUsers: Record<string, boolean>;
+      pendingInvitedUsers: Record<string, boolean>;
+    };
+    expect(reg.pendingInvitedUsers).toEqual(beforePending);
+    expect(reg.invitedUsers["invited-uid"]).toBe(true); // unchanged
+
+    // FCM still fires for re-invite (D-16 — push tells the user they were re-invited)
+    expect(sendEachForMulticastMock).toHaveBeenCalledTimes(1);
+
+    // Inbox doc still written (D-16 — keeps inbox surface in sync)
+    const inviteeInbox = Object.values(store["users/invited-uid/notifications"] || {});
+    const inviteNotif = inviteeInbox.find(
+      (d) => (d as { type?: string }).type === "invite"
+    );
+    expect(inviteNotif).toBeDefined();
   });
 });
