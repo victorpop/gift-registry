@@ -171,6 +171,8 @@ NOT mark Phase 14 complete in ROADMAP until verifier passes — only Plan
 - Phase 13 added: Web Fallback Live Deploy for guest experience (2026-04-30)
 - Phase 13 renamed → "Web Fallback Visual Refresh"; Phase 14 added: "Web Fallback Live Deploy + Guest UAT" (2026-04-30, scope split — visual refresh per upcoming web design handoff, then deploy+UAT)
 - Phase 15 added: Web Invite-Landing + Magic-Link Guest Flow (2026-05-22)
+- Phase 15 parked 2026-05-24 — user pivoting to mobile work; resume with /gsd:execute-phase 15 (Identity Platform upgrade needed first)
+- Phase 16 added: Android Notifications Inbox + Invite Accept/Decline (2026-05-24) — strict accept-gate model introduces new `pendingInvitedUsers` field; coupling note: when Phase 15 resumes, `linkInviteOnSignup` must target `pendingInvitedUsers` instead of `invitedUsers`
 
 ### Decisions
 

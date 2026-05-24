@@ -322,3 +322,13 @@ Plans:
 - [ ] 15-03-invite-landing-modal-PLAN.md — Wave 2: new `web/src/features/auth/InviteLandingModal.tsx` (Radix Dialog mirroring SaveYourSpotModal style; two-state UI: initial choice → check-email confirmation; inline create-account form + sendInviteSignInLink secondary CTA + dismissible "Not now"); 6 Vitest cases
 - [ ] 15-04-magic-link-callback-and-cloud-function-PLAN.md — Wave 2: new `web/src/pages/EmailLinkCallbackPage.tsx` + `/auth/email-link` route in `App.tsx` (6 Vitest cases); new `functions/src/auth/linkInviteOnSignup.ts` 2nd-gen `beforeUserCreated` blocking function that swaps `invitedUsers["email:{email}"]` → `invitedUsers[{newUid}]` in a transaction per matching registry (4 Jest cases); register in `functions/src/index.ts`. Requires Identity Platform + email-link sign-in enabled in Firebase Console.
 - [ ] 15-05-registry-page-wiring-PLAN.md — Wave 3 integration: wire `InviteLandingModal` into `web/src/pages/RegistryPage.tsx` under the 3-gate condition (`searchParams.invite === '1'` + `useAuth().isReady` + `!user`) with `?invite=1` URL stripping on dismiss AND post-account-creation (5 Vitest cases); checkpoint:human-verify 16-step UAT against the Firebase emulator covering both create-account and magic-link paths
+
+### Phase 16: Android Notifications Inbox + Invite Accept/Decline
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 15
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 16 to break down)
