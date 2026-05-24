@@ -19,6 +19,9 @@ import { FieldValue } from "firebase-admin/firestore";
 
 export type NotificationType =
   | "invite"
+  | "invite_accepted_self"
+  | "invite_accepted"
+  | "invite_declined"
   | "reservation_created"
   | "item_purchased"
   | "reservation_expired"

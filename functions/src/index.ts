@@ -20,6 +20,8 @@ export { getReservationForItem } from "./reservation/getReservationForItem";
 export { resolveReservation } from "./reservation/resolveReservation";
 export { confirmPurchase } from "./reservation/confirmPurchase";
 export { onPurchaseNotification } from "./notifications/onPurchaseNotification";
+export { acceptInvite } from "./registry/acceptInvite";
+export { declineInvite } from "./registry/declineInvite";
 
 // Dev-only listener: logs rendered mail docs to console in emulator (D-08).
 // In production, the Trigger Email extension consumes mail/ docs instead.
