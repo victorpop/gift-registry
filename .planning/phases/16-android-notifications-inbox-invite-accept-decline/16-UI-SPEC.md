@@ -1,10 +1,11 @@
 ---
 phase: 16
 slug: android-notifications-inbox-invite-accept-decline
-status: draft
+status: approved
 shadcn_initialized: false
 preset: not applicable (Android Compose project)
 created: 2026-05-24
+reviewed_at: 2026-05-24
 ---
 
 # Phase 16 — UI Design Contract
@@ -315,11 +316,11 @@ Reduced-motion: Material3 components respect system reduced-motion settings auto
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS — every visible string has both EN and RO copy locked
-- [ ] Dimension 2 Visuals: PASS — every visual element maps to a GiftMaison token or M3 default
-- [ ] Dimension 3 Color: PASS — 60/30/10 verified; accent reserved-for list explicit; warn at 0.15 alpha for soft-banner; no new colors introduced
-- [ ] Dimension 4 Typography: PASS — only existing GiftMaison roles used; 2 weights (Normal + Medium)
-- [ ] Dimension 5 Spacing: PASS — only existing GiftMaison spacing tokens used; all multiples of 2
-- [ ] Dimension 6 Registry Safety: PASS — no third-party UI registries; only Compose Material3 + in-house GiftMaison
+- [x] Dimension 1 Copywriting: PASS — every visible string has both EN and RO copy locked
+- [x] Dimension 2 Visuals: PASS — every visual element maps to a GiftMaison token or M3 default
+- [x] Dimension 3 Color: PASS — 60/30/10 verified; accent reserved-for list explicit (5 elements); warn at 0.15 alpha for soft-banner; no new colors introduced
+- [x] Dimension 4 Typography: FLAG (non-blocking) — 6 distinct sizes (24/18/15/13.5/12.5/9.5 sp) exceeds 4-size guardrail; Phase 16 introduces no new sizes — these are inherited GiftMaison roles locked at Phase 8 and consumed across Phases 8–12. Weights within limit (Normal + Medium for Inter)
+- [x] Dimension 5 Spacing: FLAG (non-blocking) — `gap14` (14 dp, used for NotificationCard vertical padding) is a multiple of 2, not 4. UI-SPEC explicitly justifies as non-negotiable handoff inheritance from GiftMaison Phase 8; Phase 16 only reuses the existing token
+- [x] Dimension 6 Registry Safety: PASS — no third-party UI registries; Compose Material3 (Google first-party, pinned via Compose BoM 2026.03.00) + in-house GiftMaison only
 
-**Approval:** pending
+**Approval:** APPROVED — 2026-05-24 (2 non-blocking FLAGs on Dim 4 + Dim 5 — both inherited from the locked GiftMaison design system, no Phase 16 action required)
