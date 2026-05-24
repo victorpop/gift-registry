@@ -189,6 +189,18 @@
     <string name="notification_re_reserve_window_title">\"%1$s\" este disponibil din nou</string>
     <string name="notification_re_reserve_window_body">Rezervarea ta a expirat \u2014 \"%1$s\" poate fi re-rezervat \u00een \"%2$s\"</string>
 
+    <!-- Phase 16 Plan 05: 3 new NotificationType keys (D-25) — invite accept/decline confirmations (RO) -->
+    <string name="notification_invite_accepted_self_title">Te-ai alăturat la „%1$s”</string>
+    <string name="notification_invite_accepted_self_body">Apasă pentru a vedea %1$s</string>
+    <string name="notification_invite_accepted_title">%1$s a acceptat invitația la „%2$s”</string>
+    <string name="notification_invite_accepted_body">%1$s</string>
+    <string name="notification_invite_declined_title">%1$s a refuzat invitația la „%2$s”</string>
+    <string name="notification_invite_declined_body">%1$s</string>
+
+    <!-- Phase 16 Plan 05: Notifications inbox empty state (D-09 re-skin) — RO -->
+    <string name="notifications_empty_heading">Nicio notificare încă</string>
+    <string name="notifications_empty_body">Când cineva te invită la o listă sau rezervă un cadou, vei vedea aici.</string>
+
     <!-- Phase 11: Create Registry (SCR-09) — Romanian -->
     <string name="registry_create_step_indicator">PASUL 1 DIN 2</string>
     <string name="registry_create_skip">Omite</string>
@@ -324,16 +336,16 @@
     <string name="cover_photo_processing_failed">Fotografia selectat\u0103 nu a putut fi procesat\u0103</string>
     <string name="cover_photo_owner_only_desc">Schimb\u0103 fotografia de copert\u0103</string>
 
-    <!-- Invite response sheet (Phase 16 Plan 04 stubs \u2014 Plan 16-05 overwrites with locked RO copy) -->
-    <string name="invite_sheet_default_actor">Someone</string>
-    <string name="invite_sheet_default_registry">this registry</string>
-    <string name="invite_sheet_title_template">%1$s invited you to</string>
-    <string name="invite_sheet_accept_cta">Accept</string>
-    <string name="invite_sheet_decline_cta">Decline</string>
-    <string name="invite_sheet_decline_confirm_title">Decline invite to \"%1$s\"?</string>
-    <string name="invite_sheet_decline_confirm_cancel">Cancel</string>
-    <string name="invite_sheet_decline_confirm_decline">Decline</string>
-    <string name="invite_sheet_error_accept">Couldn\'t accept invite. Please try again.</string>
-    <string name="invite_sheet_error_decline">Couldn\'t decline invite. Please try again.</string>
-    <string name="invite_sheet_error_retry">Retry</string>
+    <!-- Phase 16 Plan 05: Invite response sheet \u2014 locked Romanian copy from UI-SPEC -->
+    <string name="invite_sheet_default_actor">Cineva</string>
+    <string name="invite_sheet_default_registry">aceast\u0103 list\u0103</string>
+    <string name="invite_sheet_title_template">%1$s te-a invitat la</string>
+    <string name="invite_sheet_accept_cta">Accept\u0103</string>
+    <string name="invite_sheet_decline_cta">Refuz\u0103</string>
+    <string name="invite_sheet_decline_confirm_title">Refuzi invita\u021bia la \u201e%1$s\u201d?</string>
+    <string name="invite_sheet_decline_confirm_cancel">Anuleaz\u0103</string>
+    <string name="invite_sheet_decline_confirm_decline">Refuz\u0103</string>
+    <string name="invite_sheet_error_accept">Nu am putut accepta invita\u021bia. \u00cencearc\u0103 din nou.</string>
+    <string name="invite_sheet_error_decline">Nu am putut refuza invita\u021bia. \u00cencearc\u0103 din nou.</string>
+    <string name="invite_sheet_error_retry">Re\u00eencearc\u0103</string>
 </resources>
