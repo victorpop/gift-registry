@@ -6,6 +6,7 @@ import { sendEmail } from "../email/send";
 import { sendInvitePush } from "../notifications/invitePush";
 import { writeNotification } from "../notifications/writeNotification";
 import { buildRegistryUrl } from "../config/publicUrls";
+import { buildEnrichedInvitePayload } from "./inviteNotificationHelpers";
 
 interface InviteRequest {
   registryId: string;
@@ -72,24 +73,40 @@ export const inviteToRegistry = onCall(
         isExistingUser = false;
       }
 
-      // Update invitedUsers map on registry document.
-      // If the user has an account, use their UID as the key (for security rule matching).
-      // If not, store the email as key, prefixed to avoid collision with UIDs.
-      //
-      // IMPORTANT: pass the two path components via FieldPath instead of a single
-      // dotted string key. String keys to update() are parsed by the admin SDK,
-      // which splits on '.' — and real email addresses almost always contain dots
-      // (e.g. "jane.doe@example.com"), which would cause the dots inside the key
-      // to be interpreted as nested-field separators. That would create a tree of
-      // nested maps under invitedUsers instead of a single boolean, breaking both
-      // the security rules and client deserialization.
+      // Determine inviteKey (uid for existing users, email:xxx for non-users).
       const inviteKey = invitedUid ?? `email:${email}`;
-      // Import FieldPath from the "firebase-admin/firestore" subpath rather than
-      // reaching through `admin.firestore.FieldPath`: the namespace-style access
-      // is not reliably populated when using `import * as admin from "firebase-admin"`
-      // with the v13 package exports, causing a runtime
-      // "admin.firestore.FieldPath is not a constructor" error.
-      await registryRef.update(new FieldPath("invitedUsers", inviteKey), true);
+
+      // D-16: If the invitee is ALREADY a member (in invitedUsers), no-op the
+      // membership write (don't touch invitedUsers, don't write pendingInvitedUsers)
+      // but still send email + FCM push + inbox notification (without
+      // pendingEntryKey, so the inbox card falls back to legacy "tap → navigate"
+      // behaviour per D-11). This treats the re-invite as a soft reminder.
+      const existingInvitedUsers = (registryData.invitedUsers ?? {}) as Record<string, boolean>;
+      const isAlreadyMember = existingInvitedUsers[inviteKey] === true;
+
+      if (!isAlreadyMember) {
+        // D-23: NEW invites write to pendingInvitedUsers (accept-gate model).
+        // The invitee must explicitly tap Accept in the Android inbox before
+        // becoming a real member (handled by the acceptInvite callable).
+        //
+        // IMPORTANT: pass the two path components via FieldPath instead of a single
+        // dotted string key. String keys to update() are parsed by the admin SDK,
+        // which splits on '.' — and real email addresses almost always contain dots
+        // (e.g. "jane.doe@example.com"), which would cause the dots inside the key
+        // to be interpreted as nested-field separators. That would create a tree of
+        // nested maps under pendingInvitedUsers instead of a single boolean, breaking
+        // both the security rules and client deserialization.
+        //
+        // Import FieldPath from "firebase-admin/firestore" subpath rather than
+        // reaching through `admin.firestore.FieldPath`: the namespace-style access
+        // is not reliably populated when using `import * as admin from "firebase-admin"`
+        // with the v13 package exports, causing a runtime
+        // "admin.firestore.FieldPath is not a constructor" error.
+        await registryRef.update(
+          new FieldPath("pendingInvitedUsers", inviteKey),
+          true,
+        );
+      }
 
       // D-16/D-18: Write invite email to mail collection (Trigger Email extension delivers)
       const registryUrl = buildRegistryUrl(registryId);
@@ -114,7 +131,14 @@ export const inviteToRegistry = onCall(
       }
 
       // D-17: existing-user invite ALSO delivers an FCM push to every token on
-      // the invited user's account. D-18: non-user invite stays email-only.
+      // the invited user's account. D-18: non-user invite stays email-only
+      // (no inbox doc until Phase 15's signup blocking function creates the uid).
+      //
+      // Pitfall 6: FCM data payload stays MINIMAL ({ type, registryId }) per
+      // sendInvitePush's existing shape — extending with coverUrl could exceed
+      // the 4096-byte cap for long emails + long Storage URLs. The enriched
+      // payload lives on the inbox doc only (no size limit beyond Firestore's
+      // 1MB doc cap).
       if (isExistingUser && invitedUid) {
         await sendInvitePush({
           invitedUid,
@@ -123,8 +147,18 @@ export const inviteToRegistry = onCall(
           locale,
         });
 
-        // Write persistent in-app notification for the invited user (existing users only;
-        // non-user invites have no account to write to — email-only per CONTEXT D-18).
+        // D-10 + D-23: inbox notification payload includes enriched fields
+        // (pendingEntryKey, occasion, coverUrl, eventDateMs) so the Android
+        // InviteResponseSheet can render the registry hero without a
+        // registry-doc read (which would be denied pre-accept).
+        //
+        // D-16 already-member branch: when re-inviting an existing member,
+        // OMIT pendingEntryKey so the inbox card falls back to legacy
+        // "tap → navigate to registry" behaviour (D-11).
+        const enriched = isAlreadyMember
+          ? {} // no pendingEntryKey → legacy behaviour
+          : buildEnrichedInvitePayload(registryData, inviteKey);
+
         await writeNotification({
           userId: invitedUid,
           type: "invite",
@@ -137,6 +171,7 @@ export const inviteToRegistry = onCall(
             registryName,
             actorName: ownerName,
             actorUid: request.auth.uid,
+            ...enriched,
           },
         });
       }

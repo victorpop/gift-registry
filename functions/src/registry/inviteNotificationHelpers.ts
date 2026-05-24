@@ -49,17 +49,20 @@ export async function lookupDisplayName(uid: string): Promise<string> {
  * The Android InviteResponseSheet renders the registry hero from these fields
  * with zero registry-doc read on the client (which would be denied pre-accept).
  *
- * All values coerced to string (or null) for Map<String, String?> client compat.
+ * eventDateMs is returned as a number (Firestore stores it natively); the
+ * Android client coerces to String when reading from the payload Map. The
+ * writeNotification signature accepts string|number|boolean|null payload
+ * values, so this round-trips cleanly to Firestore.
  */
 export function buildEnrichedInvitePayload(
   registryData: FirebaseFirestore.DocumentData,
   inviteKey: string,
-): Record<string, string | null> {
+): Record<string, string | number | null> {
   const eventAt = registryData.eventAt as FirebaseFirestore.Timestamp | undefined;
   return {
     pendingEntryKey: inviteKey,
     occasion: (registryData.occasion as string | undefined) ?? null,
     coverUrl: (registryData.imageUrl as string | undefined) ?? null,
-    eventDateMs: eventAt ? String(eventAt.toMillis()) : null,
+    eventDateMs: eventAt ? eventAt.toMillis() : null,
   };
 }
