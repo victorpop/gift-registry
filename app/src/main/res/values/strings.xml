@@ -326,4 +326,17 @@
     <string name="cover_photo_change_hint">Tap to change cover</string>
     <string name="cover_photo_processing_failed">Could not process the selected photo</string>
     <string name="cover_photo_owner_only_desc">Change registry cover photo</string>
+
+    <!-- Invite response sheet (Phase 16 Plan 04 stubs — Plan 16-05 overwrites with locked copy) -->
+    <string name="invite_sheet_default_actor">Someone</string>
+    <string name="invite_sheet_default_registry">this registry</string>
+    <string name="invite_sheet_title_template">%1$s invited you to</string>
+    <string name="invite_sheet_accept_cta">Accept</string>
+    <string name="invite_sheet_decline_cta">Decline</string>
+    <string name="invite_sheet_decline_confirm_title">Decline invite to \"%1$s\"?</string>
+    <string name="invite_sheet_decline_confirm_cancel">Cancel</string>
+    <string name="invite_sheet_decline_confirm_decline">Decline</string>
+    <string name="invite_sheet_error_accept">Couldn\'t accept invite. Please try again.</string>
+    <string name="invite_sheet_error_decline">Couldn\'t decline invite. Please try again.</string>
+    <string name="invite_sheet_error_retry">Retry</string>
 </resources>

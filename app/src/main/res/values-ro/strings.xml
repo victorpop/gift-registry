@@ -323,4 +323,17 @@
     <string name="cover_photo_change_hint">Atinge pentru a schimba coperta</string>
     <string name="cover_photo_processing_failed">Fotografia selectat\u0103 nu a putut fi procesat\u0103</string>
     <string name="cover_photo_owner_only_desc">Schimb\u0103 fotografia de copert\u0103</string>
+
+    <!-- Invite response sheet (Phase 16 Plan 04 stubs \u2014 Plan 16-05 overwrites with locked RO copy) -->
+    <string name="invite_sheet_default_actor">Someone</string>
+    <string name="invite_sheet_default_registry">this registry</string>
+    <string name="invite_sheet_title_template">%1$s invited you to</string>
+    <string name="invite_sheet_accept_cta">Accept</string>
+    <string name="invite_sheet_decline_cta">Decline</string>
+    <string name="invite_sheet_decline_confirm_title">Decline invite to \"%1$s\"?</string>
+    <string name="invite_sheet_decline_confirm_cancel">Cancel</string>
+    <string name="invite_sheet_decline_confirm_decline">Decline</string>
+    <string name="invite_sheet_error_accept">Couldn\'t accept invite. Please try again.</string>
+    <string name="invite_sheet_error_decline">Couldn\'t decline invite. Please try again.</string>
+    <string name="invite_sheet_error_retry">Retry</string>
 </resources>
