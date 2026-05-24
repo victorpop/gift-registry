@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-05-24T22:31:28.531Z",
+  "phase": "16",
+  "phase_name": "android-notifications-inbox-invite-accept-decline",
+  "phase_dir": ".planning/phases/16-android-notifications-inbox-invite-accept-decline",
+  "plan": 6,
+  "task": 3,
+  "total_tasks": 5,
+  "status": "paused",
+  "completed_tasks": [
+    { "id": 1, "name": "Wire Android App Check + close Phase 14 follow-up + D-14 stanza", "status": "done", "commit": "f7a5a32" },
+    { "id": 2, "name": "Deploy composite index + 3 callables to gift-registry-ro", "status": "done", "commit": "7ff9b5e" },
+    { "id": 4, "name": "Restore notifications bell entry point in HomeTopBar (UAT-surfaced gap fix)", "status": "done", "commit": "8e901fc" },
+    { "id": 5, "name": "Register FCM token on auth state change (UAT-surfaced gap fix)", "status": "done", "commit": "cf79b51" },
+    { "id": 3, "name": "On-device UAT (20 scenarios)", "status": "in_progress", "progress": "Section A 10/10 PASS (A5 flagged for minor visual polish, no blocker). Sections B+C+D pending." }
+  ],
+  "remaining_tasks": [
+    { "id": "3-B", "name": "Section B — Decline flow (6 items B1–B6)", "status": "not_started" },
+    { "id": "3-C", "name": "Section C — Legacy + edge cases (2 items C1–C2)", "status": "not_started" },
+    { "id": "3-D", "name": "Section D — Visual + locale (2 items D1–D2)", "status": "not_started" },
+    { "id": "3-post", "name": "Write 16-06-SUMMARY.md, mark plan complete, update STATE+ROADMAP", "status": "not_started" }
+  ],
+  "blockers": [
+    { "description": "Section B requires manually clearing invitedUsers[B-uid] in Firestore Console to set up a fresh pending invite (B is already a member from A8). Cannot test decline flow otherwise — re-inviting hits D-16 already-member branch and skips pendingInvitedUsers.", "type": "human_action", "workaround": "Firebase Console → Firestore → registries/{id} → edit invitedUsers map → delete entry for dioPXtGkGcNw7xSX4DYsll5xiIn1 → save → re-invite B's email from emulator" }
+  ],
+  "human_actions_pending": [
+    { "action": "Clear invitedUsers[dioPXtGkGcNw7xSX4DYsll5xiIn1] from registries/{test-id} in Firestore Console, then re-invite B's email from emulator", "context": "Required to set up B1 (fresh invite in pending state) so B2–B6 decline flow can be tested", "blocking": true },
+    { "action": "Walk through UAT items B1–B6 on emulator (A) + Huawei (B)", "context": "Decline flow validation per Plan 16-06 Task 3", "blocking": true },
+    { "action": "Walk through UAT items C1, C2 (legacy invite + re-invite already-member)", "context": "Edge case validation per Plan 16-06 Task 3", "blocking": true },
+    { "action": "Walk through UAT items D1, D2 (visual contract + Romanian locale)", "context": "Visual + i18n validation per Plan 16-06 Task 3", "blocking": true },
+    { "action": "Address task #10 (file Huawei sign-in follow-up todo), #12 (document -Puse_emulator=false in CLAUDE.md), #15 (foreground invite push polish), #16 (A5 visual polish flags)", "context": "Post-UAT cleanup of deferred items surfaced during this session", "blocking": false }
+  ],
+  "decisions": [
+    { "decision": "Added Plan 16-06 Tasks 4 + 5 as inline deviations during UAT instead of routing through /gsd:plan-phase --gaps", "rationale": "Both fixes were small (~30 lines total), well-scoped, and necessary for Phase 16 inbox UX to work at all. Committed atomically with clear deviation notes in commit messages.", "phase": "16" },
+    { "decision": "Use emulator (Account A) + Huawei physical device (Account B) for UAT, both pointing at production backend via -Puse_emulator=false", "rationale": "Original plan was emulator-only but having a real device validates push delivery + actual GMS-flavored FCM. Production backend is the same target as deployed Cloud Functions, so no integration mismatch.", "phase": "16" },
+    { "decision": "Treat A3 (FCM push) as PASS once verified push arrives when app is backgrounded", "rationale": "Initial confusion was Android-standard foreground behavior (push routed to onMessageReceived instead of tray when app on-screen). Push delivery server-side + token registration both verified working. Foreground in-app banner is a v1.1 polish, filed as task #15.", "phase": "16" }
+  ],
+  "uncommitted_files": [],
+  "next_action": "On resume: ask user to confirm UAT setup state (devices still signed in? invitedUsers entry still present?). Then have them clear invitedUsers[B-uid] in Firestore Console + re-invite from emulator. Then walk through B1–B6 using the table in the last assistant message before pause.",
+  "context_notes": "Long session — burned several hours diagnosing two ghost issues before reaching UAT: (1) emulator launch crash was actually INSTALL_FAILED_INSUFFICIENT_STORAGE (App Check was a red herring; original code is fine), (2) Huawei sign-in hang was -Puse_emulator default true (commit 8523217, April 2026) pointing all Firebase calls at 10.0.2.2 (AVD-only). Fix: build with -Puse_emulator=false for physical devices. Memory entries saved: reference-android-emulator-flag, reference-appcheck-android-debug-tokens, feedback-fcm-token-signin. UAT-RESULTS.md is authoritative for per-item status. Account B uid: dioPXtGkGcNw7xSX4DYsll5xiIn1. Recent commits on main branch (43 ahead of origin/main). Phase 16 plans 1–5 all completed and committed; only 16-06 in flight."
+}
