@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
-status: verifying
-stopped_at: Phase 16 context gathered — strict accept-gate invite model + full inbox re-skin (4 areas discussed, 28 decisions captured)
-last_updated: "2026-05-24T15:53:49.770Z"
-last_activity: 2026-05-22
+status: executing
+stopped_at: Completed 16-01-wave-0-red-tests-and-index-PLAN.md
+last_updated: "2026-05-24T17:27:59.268Z"
+last_activity: 2026-05-24
 progress:
   total_phases: 16
   completed_phases: 14
-  total_plans: 78
-  completed_plans: 73
+  total_plans: 84
+  completed_plans: 74
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
-**Current focus:** Phase 14 verification (then phase-complete / next-phase decision)
+**Current focus:** Phase 16 — android-notifications-inbox-invite-accept-decline
 
 ## Current Position
 
-Phase: 14
-Plan: Not started
-Status: Phase 14 ready for `/gsd:verify-work` / `verify_phase_goal` workflow step
-Last activity: 2026-05-22
+Phase: 16 (android-notifications-inbox-invite-accept-decline) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
+Last activity: 2026-05-24
 
 Progress: [██████████] 100% of plans complete (4 of 4); phase pending verification gate
 
@@ -162,6 +162,7 @@ NOT mark Phase 14 complete in ROADMAP until verifier passes — only Plan
 | Phase quick/260521-myv-update-shareable-registry-link-from-r-re P01 | 2min | 2 tasks | 3 files |
 | Phase quick/260522-iew P01 | 2min | 2 tasks | 1 files |
 | Phase quick/260522-iqv P01 | 3min | 2 tasks | 4 files |
+| Phase 16-android-notifications-inbox-invite-accept-decline P01 | 9min | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -367,6 +368,9 @@ Recent decisions affecting current work:
 - [Phase 14]: healthCheck in us-central1 is a pre-existing condition — region is immutable in Cloud Run; documented not fixed
 - [Phase quick/260521-myv-update-shareable-registry-link-from-r-re]: Android share URL flipped /r/{id} → /registry/{id} to match canonical web fallback route; no redirect added (web never had /r/:id)
 - [Phase quick/260522-iew]: Added both reservations composite indexes simultaneously (signed-in + guest path) — same query shape, both would have hit FAILED_PRECONDITION
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Wave 0 RED scaffolding: 5 Android tests + 2 Functions tests + modified inviteToRegistry + rules + composite index — production handlers/enum/VM intentionally absent so compile/module errors ARE the RED state
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Pattern 8 verified: firestore.rules need NO change for pendingInvitedUsers — isInvited() reads invitedUsers only; 4 new D-18/D-19 rules tests pass against existing rules
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: declineInvite idempotency contract: throw failed-precondition NO_PENDING_INVITE when uid is in neither pending nor invited — symmetric with acceptInvite. Plan 16-02 can flip to no-op success with a one-line test change if UX demands
 
 ### Pending Todos
 
@@ -448,6 +452,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-24T15:53:49.758Z
-Stopped at: Phase 16 context gathered — strict accept-gate invite model + full inbox re-skin (4 areas discussed, 28 decisions captured)
-Resume file: .planning/phases/16-android-notifications-inbox-invite-accept-decline/16-CONTEXT.md
+Last session: 2026-05-24T17:27:59.261Z
+Stopped at: Completed 16-01-wave-0-red-tests-and-index-PLAN.md
+Resume file: None
