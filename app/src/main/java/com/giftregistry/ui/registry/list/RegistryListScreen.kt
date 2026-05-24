@@ -91,6 +91,7 @@ fun RegistryListScreen(
                     email = currentUser?.email,
                 ),
                 onAvatarClick = onNavigateToSettings,
+                onNotificationsClick = onNavigateToNotifications,
             )
 
             when (val state = uiState) {

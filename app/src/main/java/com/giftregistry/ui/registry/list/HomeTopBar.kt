@@ -8,19 +8,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.giftregistry.ui.common.AvatarButton
+import com.giftregistry.ui.notifications.NotificationsInboxBell
 import com.giftregistry.ui.theme.GiftMaisonTheme
 import com.giftregistry.ui.theme.GiftMaisonWordmark
 
 /**
- * SCR-07: Home top bar — wordmark left, avatar right, inline Row (NOT Material3
- * TopAppBar). Replaces the TopAppBar + NotificationsInboxBell combo from the
- * pre-Phase-10 RegistryListScreen. Bell placement in v1.1 is deferred per
- * CONTEXT.md (likely Settings row or AddActionSheet entry in Phase 11).
+ * SCR-07: Home top bar — wordmark left, bell + avatar right, inline Row (NOT
+ * Material3 TopAppBar). Bell entry point added in Phase 16 (was removed in the
+ * Phase 10 reskin with placement deferred).
  */
 @Composable
 fun HomeTopBar(
     initials: String,
     onAvatarClick: () -> Unit,
+    onNotificationsClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val spacing = GiftMaisonTheme.spacing
@@ -32,6 +33,7 @@ fun HomeTopBar(
     ) {
         GiftMaisonWordmark()
         Spacer(modifier = Modifier.weight(1f))
+        NotificationsInboxBell(onClick = onNotificationsClick)
         AvatarButton(initials = initials, onClick = onAvatarClick)
     }
 }
