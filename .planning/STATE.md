@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 16-03-android-domain-data-layer-PLAN.md
-last_updated: "2026-05-24T17:35:24.171Z"
+stopped_at: Completed 16-02-backend-callables-and-invite-pending-PLAN.md
+last_updated: "2026-05-24T17:36:27.985Z"
 last_activity: 2026-05-24
 progress:
   total_phases: 16
   completed_phases: 14
   total_plans: 84
-  completed_plans: 75
+  completed_plans: 76
   percent: 100
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 16 (android-notifications-inbox-invite-accept-decline) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-05-24
 
@@ -164,6 +164,7 @@ NOT mark Phase 14 complete in ROADMAP until verifier passes — only Plan
 | Phase quick/260522-iqv P01 | 3min | 2 tasks | 4 files |
 | Phase 16-android-notifications-inbox-invite-accept-decline P01 | 9min | 2 tasks | 10 files |
 | Phase 16-android-notifications-inbox-invite-accept-decline P03 | 3min | 1 tasks | 4 files |
+| Phase 16 P02 | 4min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -375,6 +376,9 @@ Recent decisions affecting current work:
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-03 reused existing AppModule.provideFirebaseFunctions Hilt binding for NotificationRepositoryImpl — no new module needed.
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-03 preserved Notification data class signature verbatim (D-26) — 4 new payload keys flow through existing Map<String, String?> with no breaking change.
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-03 Rule 3 fix: added placeholder when-branches in NotificationsScreen.kt (toIcon, localizedTitle, localizedBody) for 3 new enum values — Plan 16-05 replaces with proper UI.
+- [Phase 16]: buildEnrichedInvitePayload returns eventDateMs as number (not String) to match Wave 0 test contract; writeNotification payload accepts number
+- [Phase 16]: NotificationType union in writeNotification.ts extended with invite_accepted_self/invite_accepted/invite_declined as a Rule 3 blocking type-level fix
+- [Phase 16]: FieldPath used consistently for all pendingInvitedUsers/invitedUsers writes — belt-and-suspenders that survives future email-keyed entries
 
 ### Pending Todos
 
@@ -456,6 +460,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-24T17:35:14.541Z
-Stopped at: Completed 16-03-android-domain-data-layer-PLAN.md
+Last session: 2026-05-24T17:36:27.979Z
+Stopped at: Completed 16-02-backend-callables-and-invite-pending-PLAN.md
 Resume file: None
