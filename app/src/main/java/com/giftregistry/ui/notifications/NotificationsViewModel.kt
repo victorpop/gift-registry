@@ -9,8 +9,10 @@ import com.giftregistry.domain.usecase.MarkNotificationsReadUseCase
 import com.giftregistry.domain.usecase.ObserveNotificationsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -81,5 +83,20 @@ class NotificationsViewModel @Inject constructor(
         viewModelScope.launch {
             markNotificationsRead(uid, ids)
         }
+    }
+
+    // ----- D-01 invite-sheet state (host-in-screen pattern) -----
+
+    private val _inviteSheetState = MutableStateFlow<Notification?>(null)
+    val inviteSheetState: StateFlow<Notification?> = _inviteSheetState.asStateFlow()
+
+    /** Open the InviteResponseSheet over [notification]. */
+    fun openInviteSheet(notification: Notification) {
+        _inviteSheetState.value = notification
+    }
+
+    /** Close the InviteResponseSheet. */
+    fun dismissInviteSheet() {
+        _inviteSheetState.value = null
     }
 }

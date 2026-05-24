@@ -124,13 +124,39 @@ fun NotificationsScreen(
                             NotificationCard(
                                 notification = notification,
                                 onClick = {
-                                    notification.payload["registryId"]?.let { onNavigateToRegistry(it) }
+                                    if (shouldOpenInviteSheet(notification)) {
+                                        viewModel.openInviteSheet(notification)
+                                    } else {
+                                        notification.payload["registryId"]?.let { onNavigateToRegistry(it) }
+                                    }
                                 },
                             )
                         }
                     }
                 }
             }
+        }
+    }
+
+    // D-01 — InviteResponseSheet host (over the inbox scaffold). NotificationsScreen
+    // reuses onNavigateToRegistry for both legacy invite navigate and D-05 post-accept
+    // auto-nav; AppNavigation passes the same RegistryDetailKey backStack.add for both.
+    val inviteNotif by viewModel.inviteSheetState.collectAsStateWithLifecycle()
+    inviteNotif?.let { n ->
+        val registryId = n.payload["registryId"]
+        if (registryId != null) {
+            InviteResponseSheet(
+                registryId = registryId,
+                payload = n.payload,
+                onAcceptSuccess = { rid ->
+                    viewModel.dismissInviteSheet()
+                    onNavigateToRegistry(rid)
+                },
+                onDismiss = { viewModel.dismissInviteSheet() },
+            )
+        } else {
+            // Defensive: malformed payload — close sheet silently
+            LaunchedEffect(Unit) { viewModel.dismissInviteSheet() }
         }
     }
 }
