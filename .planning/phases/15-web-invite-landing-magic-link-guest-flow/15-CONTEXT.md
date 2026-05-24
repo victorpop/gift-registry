@@ -174,3 +174,28 @@ Both paths converge on: authenticated user with their UID in `registries.invited
 
 *Phase: 15-web-invite-landing-magic-link-guest-flow*
 *Context gathered: 2026-05-22 from in-chat discussion (in lieu of `/gsd:discuss-phase`); user explicitly opted to skip formal discuss-phase given the scope was nailed down conversationally*
+
+---
+
+## Phase 16 update (appended 2026-05-24)
+
+> **Source:** Phase 16 CONTEXT D-14 + Phase 16 plan 16-06 Task 1 (closure step).
+> **Authoritative record:** `.planning/STATE.md` entry "Phase 16 added 2026-05-24" — this stanza is a convenience pointer next to Phase 15's own decisions.
+
+**Coupling contract — `linkInviteOnSignup` MUST target `pendingInvitedUsers` (not `invitedUsers`):**
+
+Phase 16 shipped a strict accept-gate invite model on 2026-05-24. The new behavior is:
+- `inviteToRegistry` writes new invites to `registries.{id}.pendingInvitedUsers[key] = true` (was: `invitedUsers`).
+- The invitee taps Accept in the Android inbox (sheet → `acceptInvite` callable) to atomically promote the key into `invitedUsers`. Only then does the existing `isInvited()` rule grant read access.
+- Decline removes the pending entry without promoting.
+
+**What this means for Phase 15 when it resumes:**
+- The `linkInviteOnSignup` blocking function (Phase 15's planned Cloud Function that swaps `email:{email}` → `{newUid}` at signup time) MUST read and write to `pendingInvitedUsers`, NOT `invitedUsers`.
+- Signup does NOT imply acceptance. After signup + email→UID swap, the newly-signed-up user MUST still go through the Android accept-gate flow (open inbox → tap INVITE card → Accept in sheet) to gain read access to the private registry.
+- Web-only invitees (who never install Android) effectively cannot accept the invite in v1; the private registry will Firestore-deny → 404 until they install Android. This is documented as an acceptable v1 limitation per Phase 16 D-17.
+
+**Existing Phase 15 plan implication:**
+- Plan `15-04-magic-link-callback-and-cloud-function-PLAN.md` (when Phase 15 resumes) must reference `pendingInvitedUsers` wherever it currently references `invitedUsers` in the `linkInviteOnSignup` design.
+- No other Phase 15 plans (15-01, 15-02, 15-03, 15-05) are affected by this coupling.
+
+**No backfill / migration needed:** Pre-Phase-16 `invitedUsers` entries are grandfathered (Phase 16 D-12). Only NEW invites flow through `pendingInvitedUsers`.

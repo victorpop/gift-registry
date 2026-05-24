@@ -299,3 +299,21 @@ smokes from BOTH Android and web pass:
   call (added in Plan 14-04 Task 3, commit `78fed8d`).
 - Firebase docs: https://firebase.google.com/docs/app-check/android/play-integrity-provider
 - Firebase docs: https://firebase.google.com/docs/app-check/android/debug-provider
+
+---
+
+## Completion note (Phase 16 plan 16-06, 2026-05-24)
+
+**Phase 1 (Android App Check wiring) completed by Phase 16 Plan 16-06 Task 1.**
+
+- `firebase-appcheck-playintegrity` (release) and `firebase-appcheck-debug` (debug) Gradle deps added to `gradle/libs.versions.toml` + `app/build.gradle.kts`.
+- `FirebaseAppCheck.getInstance().installAppCheckProviderFactory(...)` wired in `GiftRegistryApp.onCreate()` right after `super.onCreate()` (Hilt injection completes there) and before the existing locale-restore block. Debug builds get `DebugAppCheckProviderFactory`; release builds get `PlayIntegrityAppCheckProviderFactory`. Gated by `BuildConfig.DEBUG`.
+- `./gradlew :app:assembleDebug` exits 0 — wiring compiles clean.
+- Reason this work was folded into Phase 16: Phase 16's `acceptInvite` + `declineInvite` Cloud Functions (Plan 16-02) enforce App Check (`enforceAppCheck: true`). Without an Android App Check provider, those callables would 403-reject every Android invocation. Wiring here is a hard prerequisite for Phase 16 UAT.
+
+**Phase 2 (flip enforcement Storage → Functions → Firestore) — STILL DEFERRED.**
+
+- The enforcement-flip work documented above in Phases 2.1 / 2.2 / 2.3 is NOT in scope of Phase 16. Phase 16 only wires the Android provider so that `enforceAppCheck: true` on the new callables works as designed.
+- A new follow-up todo will need to track the org-wide monitor → enforce flip (24h verified-rate observation period, then per-service flips with smoke between each). Re-open with a fresh dated todo when ready to flip enforcement.
+
+**Closed by:** Phase 16 Plan 16-06 Task 1.
