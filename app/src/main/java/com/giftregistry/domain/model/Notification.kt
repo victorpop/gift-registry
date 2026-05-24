@@ -8,6 +8,9 @@ enum class NotificationType {
     ITEM_PURCHASED,
     RESERVATION_EXPIRED,
     RE_RESERVE_WINDOW,
+    INVITE_ACCEPTED_SELF, // D-25 — invitee-side "You joined" confirmation
+    INVITE_ACCEPTED,       // D-25 — owner-side "{actor} accepted your invite"
+    INVITE_DECLINED,       // D-25 — owner-side "{actor} declined your invite"
     UNKNOWN; // forward-compat: any future server type reads as UNKNOWN
 
     companion object {
@@ -17,6 +20,9 @@ enum class NotificationType {
             "item_purchased" -> ITEM_PURCHASED
             "reservation_expired" -> RESERVATION_EXPIRED
             "re_reserve_window" -> RE_RESERVE_WINDOW
+            "invite_accepted_self" -> INVITE_ACCEPTED_SELF
+            "invite_accepted" -> INVITE_ACCEPTED
+            "invite_declined" -> INVITE_DECLINED
             else -> UNKNOWN
         }
     }

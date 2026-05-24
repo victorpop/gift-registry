@@ -193,6 +193,10 @@ private fun NotificationType.toIcon(): ImageVector = when (this) {
     NotificationType.ITEM_PURCHASED -> Icons.Filled.CheckCircle
     NotificationType.RESERVATION_EXPIRED -> Icons.Filled.Schedule
     NotificationType.RE_RESERVE_WINDOW -> Icons.Filled.Refresh
+    // Plan 16-03 placeholder — Plan 16-05 (inbox reskin) will replace with proper icons.
+    NotificationType.INVITE_ACCEPTED_SELF -> Icons.Filled.Notifications
+    NotificationType.INVITE_ACCEPTED -> Icons.Filled.Notifications
+    NotificationType.INVITE_DECLINED -> Icons.Filled.Notifications
     NotificationType.UNKNOWN -> Icons.Filled.Notifications
 }
 
@@ -233,6 +237,11 @@ private fun Notification.localizedTitle(): String {
                 R.string.notification_re_reserve_window_title,
                 p["itemName"] ?: "an item",
             )
+        // Plan 16-03 placeholder — Plan 16-05 (inbox reskin + strings) will replace
+        // these with properly localized titles. For now fall back to server-provided text.
+        NotificationType.INVITE_ACCEPTED_SELF -> titleFallback
+        NotificationType.INVITE_ACCEPTED -> titleFallback
+        NotificationType.INVITE_DECLINED -> titleFallback
         NotificationType.UNKNOWN -> titleFallback
     }
 }
@@ -268,6 +277,11 @@ private fun Notification.localizedBody(): String {
                 p["itemName"] ?: "an item",
                 p["registryName"] ?: "a registry",
             )
+        // Plan 16-03 placeholder — Plan 16-05 (inbox reskin + strings) will replace
+        // these with properly localized bodies. For now fall back to server-provided text.
+        NotificationType.INVITE_ACCEPTED_SELF -> bodyFallback
+        NotificationType.INVITE_ACCEPTED -> bodyFallback
+        NotificationType.INVITE_DECLINED -> bodyFallback
         NotificationType.UNKNOWN -> bodyFallback
     }
 }

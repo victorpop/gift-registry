@@ -6,6 +6,7 @@ import com.giftregistry.domain.notifications.NotificationRepository
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.functions.FirebaseFunctions
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -16,6 +17,7 @@ import javax.inject.Singleton
 @Singleton
 class NotificationRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
+    private val functions: FirebaseFunctions, // D-27 — required for accept/declineInvite callables
 ) : NotificationRepository {
 
     /**
@@ -80,6 +82,33 @@ class NotificationRepositoryImpl @Inject constructor(
             batch.commit().await()
             Unit
         }
+
+    /**
+     * D-27 — accept the current user's pending invite for [registryId].
+     *
+     * Verbatim shape of ReservationRepositoryImpl.confirmPurchase — onCall callable
+     * via httpsCallable, runCatching wraps to Result<Unit>. Server-side enforces
+     * App Check + auth; client only needs to be signed in and have App Check wired.
+     */
+    override suspend fun acceptInvite(registryId: String): Result<Unit> = runCatching {
+        functions
+            .getHttpsCallable("acceptInvite")
+            .call(mapOf("registryId" to registryId))
+            .await()
+        Unit
+    }
+
+    /**
+     * D-27 — decline the current user's pending invite for [registryId].
+     * Symmetric to acceptInvite on the wire; server-side handles the divergence.
+     */
+    override suspend fun declineInvite(registryId: String): Result<Unit> = runCatching {
+        functions
+            .getHttpsCallable("declineInvite")
+            .call(mapOf("registryId" to registryId))
+            .await()
+        Unit
+    }
 
     // ----- DTO → domain mapper -----
 
