@@ -80,6 +80,8 @@ must_haves:
 <objective>
 Ship the backend half of Phase 16's accept-gate model: two new 2nd-gen Cloud Function callables (`acceptInvite`, `declineInvite`) implementing the D-21/D-22 transaction semantics; modify `inviteToRegistry` to write to `pendingInvitedUsers` with the enriched payload (D-23) and to no-op the membership write for already-members while still writing inbox+push (D-16). Flip the Wave 0 RED Jest tests GREEN.
 
+D-15 negative-coverage: re-invite is always allowed (no decline blacklist). This plan introduces NO blacklist / declinedUsers / declinedSet logic in any of the 4 new/modified functions files — verified via grep-only negative acceptance criteria on Task 2.
+
 Purpose: All membership state transitions become explicit and atomic. Decouples the wire-level invite "delivery" from the user's consent act.
 Output: 3 new TS files + modified inviteToRegistry.ts + modified index.ts.
 </objective>
@@ -644,7 +646,7 @@ We extend this payload with { pendingEntryKey, occasion, coverUrl, eventDateMs }
     Preserve the return statement, the catch block, and all surrounding code verbatim.
   </action>
   <verify>
-    <automated>cd functions && npm test -- inviteToRegistry 2>&1 | tail -30</automated>
+    <automated>cd functions && npm test -- inviteToRegistry 2>&1 | tail -30 && (! grep -rE "blacklist|declinedUsers|declinedSet" functions/src/registry/acceptInvite.ts functions/src/registry/declineInvite.ts functions/src/registry/inviteToRegistry.ts functions/src/registry/inviteNotificationHelpers.ts) && echo "D-15 negative-coverage OK (no blacklist logic)"</automated>
   </verify>
   <acceptance_criteria>
     - functions/src/registry/inviteToRegistry.ts contains string "new FieldPath(\"pendingInvitedUsers\""
@@ -657,11 +659,18 @@ We extend this payload with { pendingEntryKey, occasion, coverUrl, eventDateMs }
     - inviteToRegistry.ts contains comment substring "D-23"
     - inviteToRegistry.ts contains comment substring "Pitfall 6"
     - inviteToRegistry.ts contains string "sendInvitePush" (existing call preserved)
+    - D-15 negative-coverage: grep -E "blacklist|declinedUsers|declinedSet" functions/src/registry/ returns 0 hits across acceptInvite.ts, declineInvite.ts, inviteToRegistry.ts, inviteNotificationHelpers.ts (re-invite is always allowed after decline; no blacklist or declined-set logic introduced)
+    - acceptInvite.ts does NOT contain string "blacklist"
+    - declineInvite.ts does NOT contain string "blacklist"
+    - inviteToRegistry.ts does NOT contain string "blacklist"
+    - acceptInvite.ts does NOT contain string "declinedUsers"
+    - declineInvite.ts does NOT contain string "declinedUsers"
+    - inviteToRegistry.ts does NOT contain string "declinedUsers"
     - cd functions && npx tsc --noEmit exits 0
     - cd functions && npm test -- inviteToRegistry exits 0 (flips Plan 16-01 RED tests GREEN)
     - cd functions && npm test exits 0 (no regressions in other suites)
   </acceptance_criteria>
-  <done>inviteToRegistry writes pending entries + enriched payload + handles already-member re-invites; full Jest suite green; no regressions.</done>
+  <done>inviteToRegistry writes pending entries + enriched payload + handles already-member re-invites; D-15 negative-coverage verified (no blacklist/declinedUsers logic in any of the 4 new/modified files); full Jest suite green; no regressions.</done>
 </task>
 
 </tasks>

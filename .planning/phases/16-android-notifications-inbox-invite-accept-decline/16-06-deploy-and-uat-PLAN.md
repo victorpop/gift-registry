@@ -8,15 +8,17 @@ depends_on:
   - 16-05-inbox-reskin-and-strings
 files_modified:
   - app/src/main/java/com/giftregistry/GiftRegistryApp.kt
+  - .planning/phases/15-web-invite-landing-magic-link-guest-flow/15-CONTEXT.md
 autonomous: false
 requirements:
-  - D-20
-  - D-23
-  - D-09
   - D-01
   - D-03
   - D-05
   - D-07
+  - D-09
+  - D-14
+  - D-20
+  - D-23
 user_setup:
   - service: firebase-app-check
     why: "New Phase 16 callables enforce App Check (D-20). Without an Android App Check provider, callables return unauthenticated from the device."
@@ -37,6 +39,7 @@ must_haves:
     - "On-device UAT confirms inbox visual re-skin matches UI-SPEC contract (D-09)"
     - "On-device UAT confirms locale parity: full sheet + dialog + owner notifications render correctly in both EN and RO"
     - "On-device UAT confirms re-invite to already-member writes inbox+push but NOT pendingInvitedUsers (D-16) and inbox card falls back to legacy navigate (no sheet open)"
+    - "D-14 coupling contract recorded: 15-CONTEXT.md has a Phase 16 update stanza (dated 2026-05-24) documenting that linkInviteOnSignup MUST target pendingInvitedUsers when Phase 15 resumes (convenience pointer; STATE.md remains authoritative)"
   artifacts:
     - path: "app/src/main/java/com/giftregistry/GiftRegistryApp.kt"
       provides: "App Check provider initialization in Application.onCreate"
@@ -47,6 +50,9 @@ must_haves:
     - path: ".planning/todos/completed/2026-05-22-wire-android-app-check-and-flip-enforcement.md"
       provides: "Pending todo from Phase 14 marked completed by this plan's App Check wiring"
       contains: "Phase 16"
+    - path: ".planning/phases/15-web-invite-landing-magic-link-guest-flow/15-CONTEXT.md"
+      provides: "D-14 coupling stanza appended (Phase 16 update, dated 2026-05-24) — convenience pointer for the Phase 15 resume team documenting that linkInviteOnSignup MUST target pendingInvitedUsers"
+      contains: "Phase 16 update (appended 2026-05-24)"
   key_links:
     - from: "Android FirebaseAppCheck initialization"
       to: "Cloud Functions enforceAppCheck: true callables (acceptInvite, declineInvite)"
@@ -159,9 +165,42 @@ firebase-appcheck-debug (for debug builds)
     Preserve all existing onCreate body verbatim AFTER this insertion.
 
     3. After confirming build green, move .planning/todos/pending/2026-05-22-wire-android-app-check-and-flip-enforcement.md to .planning/todos/completed/. Update the file to note completion via Phase 16 in a final note section.
+
+    4. D-14 coupling contract addendum — append a "Phase 16 update" stanza to .planning/phases/15-web-invite-landing-magic-link-guest-flow/15-CONTEXT.md. This is the convenience pointer for the Phase 15 resume team (the STATE.md note from 2026-05-24 is authoritative; this duplicates it next to Phase 15's own decisions for discoverability).
+
+    Append exactly this block at the END of the file (after the existing `<deferred>` block or trailing content — preserve all existing content verbatim):
+    ```markdown
+
+    ---
+
+    ## Phase 16 update (appended 2026-05-24)
+
+    > **Source:** Phase 16 CONTEXT D-14 + Phase 16 plan 16-06 Task 1 (closure step).
+    > **Authoritative record:** `.planning/STATE.md` entry "Phase 16 added 2026-05-24" — this stanza is a convenience pointer next to Phase 15's own decisions.
+
+    **Coupling contract — `linkInviteOnSignup` MUST target `pendingInvitedUsers` (not `invitedUsers`):**
+
+    Phase 16 shipped a strict accept-gate invite model on 2026-05-24. The new behavior is:
+    - `inviteToRegistry` writes new invites to `registries.{id}.pendingInvitedUsers[key] = true` (was: `invitedUsers`).
+    - The invitee taps Accept in the Android inbox (sheet → `acceptInvite` callable) to atomically promote the key into `invitedUsers`. Only then does the existing `isInvited()` rule grant read access.
+    - Decline removes the pending entry without promoting.
+
+    **What this means for Phase 15 when it resumes:**
+    - The `linkInviteOnSignup` blocking function (Phase 15's planned Cloud Function that swaps `email:{email}` → `{newUid}` at signup time) MUST read and write to `pendingInvitedUsers`, NOT `invitedUsers`.
+    - Signup does NOT imply acceptance. After signup + email→UID swap, the newly-signed-up user MUST still go through the Android accept-gate flow (open inbox → tap INVITE card → Accept in sheet) to gain read access to the private registry.
+    - Web-only invitees (who never install Android) effectively cannot accept the invite in v1; the private registry will Firestore-deny → 404 until they install Android. This is documented as an acceptable v1 limitation per Phase 16 D-17.
+
+    **Existing Phase 15 plan implication:**
+    - Plan `15-04-magic-link-callback-and-cloud-function-PLAN.md` (when Phase 15 resumes) must reference `pendingInvitedUsers` wherever it currently references `invitedUsers` in the `linkInviteOnSignup` design.
+    - No other Phase 15 plans (15-01, 15-02, 15-03, 15-05) are affected by this coupling.
+
+    **No backfill / migration needed:** Pre-Phase-16 `invitedUsers` entries are grandfathered (Phase 16 D-12). Only NEW invites flow through `pendingInvitedUsers`.
+    ```
+
+    After the append, verify the file is well-formed Markdown and the LocalizationParityTest still passes (it does not touch this file, so no regression risk).
   </action>
   <verify>
-    <automated>./gradlew :app:assembleDebug 2>&1 | tail -10 && grep -q "FirebaseAppCheck" app/src/main/java/com/giftregistry/GiftRegistryApp.kt && echo "App Check wiring present" && ls .planning/todos/completed/2026-05-22-wire-android-app-check-and-flip-enforcement.md 2>&1</automated>
+    <automated>./gradlew :app:assembleDebug 2>&1 | tail -10 && grep -q "FirebaseAppCheck" app/src/main/java/com/giftregistry/GiftRegistryApp.kt && echo "App Check wiring present" && ls .planning/todos/completed/2026-05-22-wire-android-app-check-and-flip-enforcement.md && grep -q "Phase 16 update (appended 2026-05-24)" .planning/phases/15-web-invite-landing-magic-link-guest-flow/15-CONTEXT.md && grep -q "linkInviteOnSignup MUST target" .planning/phases/15-web-invite-landing-magic-link-guest-flow/15-CONTEXT.md && echo "D-14 coupling stanza present in 15-CONTEXT.md"</automated>
   </verify>
   <acceptance_criteria>
     - app/src/main/java/com/giftregistry/GiftRegistryApp.kt contains string "FirebaseAppCheck.getInstance()"
@@ -174,8 +213,13 @@ firebase-appcheck-debug (for debug builds)
     - ./gradlew :app:assembleDebug exits 0
     - File .planning/todos/pending/2026-05-22-wire-android-app-check-and-flip-enforcement.md no longer exists at pending path
     - File .planning/todos/completed/2026-05-22-wire-android-app-check-and-flip-enforcement.md exists
+    - File .planning/phases/15-web-invite-landing-magic-link-guest-flow/15-CONTEXT.md contains string "Phase 16 update (appended 2026-05-24)" (D-14 coupling stanza appended)
+    - 15-CONTEXT.md contains string "linkInviteOnSignup MUST target" (D-14 contract recorded)
+    - 15-CONTEXT.md contains string "pendingInvitedUsers" (the target field name documented)
+    - 15-CONTEXT.md contains string "2026-05-24" (the dated note as required by CONTEXT.md Specifics)
+    - 15-CONTEXT.md still contains string "# Phase 15:" (existing file content preserved — append-only edit)
   </acceptance_criteria>
-  <done>Android App Check provider wired; debug build green; folded todo closed.</done>
+  <done>Android App Check provider wired; debug build green; folded todo closed; D-14 Phase 16 update stanza appended to 15-CONTEXT.md (convenience pointer for Phase 15 resume team, dated 2026-05-24).</done>
 </task>
 
 <task type="auto">

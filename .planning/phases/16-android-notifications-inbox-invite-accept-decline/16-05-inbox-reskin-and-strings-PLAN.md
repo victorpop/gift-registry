@@ -12,7 +12,9 @@ files_modified:
   - app/src/main/java/com/giftregistry/ui/theme/preview/StyleGuidePreview.kt
 autonomous: true
 requirements:
+  - D-02
   - D-04
+  - D-08
   - D-09
   - D-25
   - D-28
@@ -26,6 +28,8 @@ must_haves:
     - "NotificationCard renders unread accent dot (6dp circle, color = accent) at trailing edge of title row when readAtMs == null (D-09)"
     - "NotificationCard timestamp renders as MonoCaps (e.g. '5M AGO') (D-09)"
     - "NotificationCard title uses typography.bodyL (Inter Medium), body uses typography.bodyM (Inter Normal) — replaces M3 bodyMedium/bodySmall (D-09)"
+    - "NotificationCard does NOT render a separate PENDING badge — pending INVITE cards keep the existing payload-driven layout (D-02)"
+    - "Pending invites contribute to the existing unread bell count via observeUnreadCount — no new pendingCount path introduced (D-08)"
     - "localizedTitle/Body when blocks handle 3 new NotificationType values: INVITE_ACCEPTED_SELF, INVITE_ACCEPTED, INVITE_DECLINED (D-25)"
     - "Empty state uses typography.displayS heading + typography.bodyS body with new strings notifications_empty_heading and notifications_empty_body (D-09 + D-28)"
     - "20 new string keys added to BOTH values/strings.xml and values-ro/strings.xml with locked EN + RO copy per UI-SPEC Copywriting Contract"
@@ -66,6 +70,8 @@ must_haves:
 
 <objective>
 Complete the inbox visual story: re-skin NotificationsScreen + NotificationCard to GiftMaison design language (D-09), extend localizedTitle/Body to handle the 3 new NotificationType values from Plan 16-03 (D-25), add 20 new string keys × 2 locales with the locked copy from UI-SPEC, replace Plan 16-04's stub Romanian strings with proper translations, and append a StyleGuidePreview section so designers can verify the new visuals offline.
+
+D-02 / D-08 negative-coverage: this plan also explicitly preserves the existing "no separate PENDING badge" + "no separate pending-invites count" contracts. Pending INVITE cards keep the homogeneous payload-driven card layout (visual richness lives in the sheet, not the card); pending invites contribute to the existing unread bell count via observeUnreadCount with NO new pendingCount path introduced. Both are verified via grep-only negative acceptance criteria on Task 2.
 
 Purpose: Visual richness is the second half of Phase 16's user-facing change (the first half being the accept/decline flow). Plan 16-04 made the inbox functional; Plan 16-05 makes it beautiful.
 Output: 1 modified screen + 2 modified strings files + 1 modified StyleGuidePreview.
@@ -235,6 +241,10 @@ GiftMaisonTheme.spacing.{gap4, gap8, gap12, gap14, gap16, edge}
        - Accessibility: semantics { contentDescription = "Unread notification" if readAtMs == null }; on the icon, contentDescription = null (decorative).
        - Icon color: when unread = colors.accent; when read = colors.inkSoft.
 
+    D-02 / D-08 negative-coverage (do NOT introduce):
+    - Do NOT add a PENDING-style badge or BadgedBox over the inbox card for pending invites (D-02). Pending INVITE cards keep the same payload-driven layout as every other notification type; visual differentiation already comes from the unread accent dot.
+    - Do NOT introduce a separate `pendingCount` field, flow, or path on NotificationsViewModel / NotificationRepository (D-08). Pending invites already contribute to the existing `observeUnreadCount` flow surfaced via `InboxBellViewModel`; nothing new is needed.
+
     Extend localizedTitle/Body (D-25 — new types):
     - In `Notification.localizedTitle()` `when (type)` block, add 3 new cases:
       - INVITE_ACCEPTED_SELF → stringResource(R.string.notification_invite_accepted_self_title, p["registryName"] ?: "a registry")
@@ -318,6 +328,11 @@ GiftMaisonTheme.spacing.{gap4, gap8, gap12, gap14, gap16, edge}
      * Behaviour preserved from prior phase: 500ms batched mark-as-read; tap-branching
      * via shouldOpenInviteSheet (D-11) — pending invites open InviteResponseSheet,
      * everything else navigates to RegistryDetail.
+     *
+     * D-02 / D-08 negative-coverage: no Badge / BadgedBox / pendingCount path is
+     * introduced. Pending INVITE cards keep the homogeneous payload-driven layout
+     * (visual richness lives in the sheet, not the card); pending invites
+     * contribute to the existing unread count via observeUnreadCount.
      */
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -611,7 +626,7 @@ GiftMaisonTheme.spacing.{gap4, gap8, gap12, gap14, gap16, edge}
     Verify GiftMaisonWordmark import path. If it's at a different path (e.g., `com.giftregistry.ui.theme.GiftMaisonWordmark`), adjust the import. Use `grep -rn "fun GiftMaisonWordmark\|class GiftMaisonWordmark" app/src/main/` to confirm.
   </action>
   <verify>
-    <automated>./gradlew :app:compileDebugKotlin 2>&1 | tail -20 && ./gradlew :app:testDebugUnitTest --tests "com.giftregistry.ui.notifications.*" --tests "com.giftregistry.domain.model.NotificationTypeFromWireTest" --tests "com.giftregistry.LocalizationParityTest" 2>&1 | tail -30</automated>
+    <automated>./gradlew :app:compileDebugKotlin 2>&1 | tail -20 && ./gradlew :app:testDebugUnitTest --tests "com.giftregistry.ui.notifications.*" --tests "com.giftregistry.domain.model.NotificationTypeFromWireTest" --tests "com.giftregistry.LocalizationParityTest" 2>&1 | tail -30 && (! grep -E "Badge\(|BadgedBox|pendingCount" app/src/main/java/com/giftregistry/ui/notifications/NotificationsScreen.kt) && echo "D-02/D-08 negative-coverage OK"</automated>
   </verify>
   <acceptance_criteria>
     - app/src/main/java/com/giftregistry/ui/notifications/NotificationsScreen.kt contains string "GiftMaisonWordmark()"
@@ -635,13 +650,17 @@ GiftMaisonTheme.spacing.{gap4, gap8, gap12, gap14, gap16, edge}
     - NotificationsScreen.kt contains string "R.string.notification_invite_declined_title"
     - NotificationsScreen.kt does NOT contain string "MaterialTheme.colorScheme" (re-skin replaces all M3 theme refs with GiftMaisonTheme)
     - NotificationsScreen.kt does NOT contain string "androidx.compose.material3.Card" (Card elevation dropped per D-09)
+    - NotificationsScreen.kt does NOT contain string "Badge(" (D-02 negative-coverage — no PENDING badge on card; visual richness lives in the sheet, not the card)
+    - NotificationsScreen.kt does NOT contain string "BadgedBox" (D-02 negative-coverage — no badge decoration on the inbox card)
+    - NotificationsScreen.kt does NOT contain string "pendingCount" (D-08 negative-coverage — no separate pending-invites count path; pending invites contribute to the existing observeUnreadCount flow)
+    - NotificationsViewModel.kt does NOT contain string "pendingCount" (D-08 negative-coverage — verified via grep on the VM file too; no new flow field introduced)
     - NotificationsScreen.kt contains string "shouldOpenInviteSheet(notification)" (Plan 16-04 branching preserved)
     - NotificationsScreen.kt contains string "InviteResponseSheet(" (Plan 16-04 sheet host preserved)
     - ./gradlew :app:compileDebugKotlin exits 0
     - ./gradlew :app:testDebugUnitTest --tests "com.giftregistry.ui.notifications.*" exits 0
     - ./gradlew :app:testDebugUnitTest --tests "com.giftregistry.LocalizationParityTest" exits 0
   </acceptance_criteria>
-  <done>NotificationsScreen + NotificationCard re-skinned to GiftMaison; localizedTitle/Body extended for 3 new types; build green; all unit tests green.</done>
+  <done>NotificationsScreen + NotificationCard re-skinned to GiftMaison; localizedTitle/Body extended for 3 new types; D-02/D-08 negative-coverage verified via grep (no Badge/BadgedBox/pendingCount introduced); build green; all unit tests green.</done>
 </task>
 
 <task type="auto">
@@ -851,6 +870,7 @@ GiftMaisonTheme.spacing.{gap4, gap8, gap12, gap14, gap16, edge}
 - ./gradlew :app:testDebugUnitTest exits 0 (entire suite; key tests: notifications.*, NotificationTypeFromWireTest, LocalizationParityTest).
 - grep for "MaterialTheme.colorScheme" in NotificationsScreen.kt returns 0 hits (full re-skin verified).
 - grep for "androidx.compose.material3.Card" import in NotificationsScreen.kt returns 0 hits (D-09 elevation dropped).
+- grep for "Badge(\|BadgedBox\|pendingCount" in NotificationsScreen.kt + NotificationsViewModel.kt returns 0 hits (D-02 + D-08 negative-coverage verified).
 - Empty state, loaded state, and the 3 new NotificationType values all preview correctly when opening the @Preview in Android Studio.
 </verification>
 
@@ -858,6 +878,7 @@ GiftMaisonTheme.spacing.{gap4, gap8, gap12, gap14, gap16, edge}
 - 4 files modified.
 - D-09 visual re-skin complete (wordmark, paper bg, line dividers, MonoCaps timestamp, accent unread dot, GiftMaison typography throughout).
 - D-25 localizedTitle/Body extended for 3 new types — confirmation messages render with proper EN + RO copy.
+- D-02 + D-08 negative-coverage preserved: no Badge/BadgedBox/pendingCount introduced; grep-only verification.
 - LocalizationParityTest preserves key parity across the new 20 keys × 2 locales.
 - StyleGuidePreview previewable in Android Studio for offline visual review.
 </success_criteria>

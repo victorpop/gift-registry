@@ -21,6 +21,7 @@ must_haves:
     - "NotificationType enum contains 3 new values: INVITE_ACCEPTED_SELF, INVITE_ACCEPTED, INVITE_DECLINED"
     - "NotificationType.fromWire maps invite_accepted_self / invite_accepted / invite_declined to the corresponding enum values"
     - "NotificationType.fromWire returns UNKNOWN for any unrecognized wire string (forward-compat preserved)"
+    - "D-26 — Notification data class payload field remains Map<String, String?> (NO data class signature change); the 4 new optional payload keys (pendingEntryKey, occasion, coverUrl, eventDateMs) are read transparently via the existing payload map — no new top-level fields, no breaking change"
     - "NotificationRepository interface declares acceptInvite(registryId): Result<Unit> and declineInvite(registryId): Result<Unit>"
     - "NotificationRepositoryImpl constructor accepts FirebaseFunctions in addition to FirebaseFirestore"
     - "NotificationRepositoryImpl.acceptInvite calls functions.getHttpsCallable(\"acceptInvite\") with mapOf(\"registryId\" to registryId) and wraps in runCatching"
@@ -251,6 +252,9 @@ override suspend fun confirmPurchase(reservationId: String): Result<Unit> = runC
     - Notification.kt contains string "\"invite_accepted\" -> INVITE_ACCEPTED"
     - Notification.kt contains string "\"invite_declined\" -> INVITE_DECLINED"
     - Notification.kt contains string "UNKNOWN;" (UNKNOWN remains last)
+    - D-26 payload shape preserved: app/src/main/java/com/giftregistry/domain/model/Notification.kt contains string "val payload: Map<String, String?>" (data class signature unchanged — Map<String, String?> accepts new optional keys pendingEntryKey, occasion, coverUrl, eventDateMs without a domain model change)
+    - D-26 no breaking change: Notification.kt does NOT introduce any new required fields on the data class (no new constructor params beyond the existing ones; the 4 new payload keys live INSIDE the existing payload map, not as top-level fields)
+    - D-26 fromWire backward-compat: NotificationType.fromWire("unknown_future_type") returns UNKNOWN — verified by Plan 16-01's NotificationTypeFromWireTest "fromWire maps unknown future type to UNKNOWN" case (forward-compat preserved; new keys arriving via wire from server are read transparently into the existing Map<String, String?>)
     - app/src/main/java/com/giftregistry/domain/notifications/NotificationRepository.kt contains string "suspend fun acceptInvite(registryId: String): Result<Unit>"
     - NotificationRepository.kt contains string "suspend fun declineInvite(registryId: String): Result<Unit>"
     - NotificationRepository.kt contains string "fun observe(" (existing method preserved)
