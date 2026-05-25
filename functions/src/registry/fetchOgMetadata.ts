@@ -87,7 +87,7 @@ function parsePriceString(raw: string): PriceCandidate | null {
 
   // Pull out anything that's *not* digits/separators/whitespace and try to
   // normalize it as a currency token. This catches "lei", "€", "RON", "EUR", etc.
-  const remainder = raw.replace(amount, "").replace(/[\s\u00A0]+/g, " ").trim();
+  const remainder = raw.replace(amount, "").replace(/[\s ]+/g, " ").trim();
   let currency: string | null = null;
   if (remainder) {
     // Try the whole remainder first, then each whitespace-separated piece.
@@ -242,43 +242,81 @@ function resolvePrice(root: HTMLElement): PriceCandidate | null {
   return null;
 }
 
-export const fetchOgMetadata = onCall(
-  { region: "europe-west3" },
-  async (request): Promise<OgMetadataResponse> => {
-    const url: string | undefined = request.data?.url;
-    if (!url || typeof url !== "string") {
-      throw new HttpsError("invalid-argument", "url is required and must be a string");
-    }
+/**
+ * Extracts the target URL from an HTML <meta http-equiv="refresh" content="...">
+ * tag, if present. EMAG and other retailers issue these as soft redirects when
+ * a product slug becomes stale (e.g. SKU title updated). Node's fetch follows
+ * HTTP 301/302 automatically but NOT meta-refresh — without this we silently
+ * return null for every stale-slug URL.
+ *
+ * Returns the raw (possibly relative) URL string, or null if no meta-refresh
+ * tag is present or its content attribute does not match the expected shape.
+ */
+function extractMetaRefreshTarget(root: HTMLElement): string | null {
+  for (const meta of root.querySelectorAll("meta")) {
+    const httpEquiv = meta.getAttribute("http-equiv")?.toLowerCase();
+    if (httpEquiv !== "refresh") continue;
+    const content = meta.getAttribute("content");
+    if (!content) continue;
+    // Match: digits ; [optional whitespace] (u|U)rl [optional whitespace] = [optional quote] <url> [optional matching quote]
+    // Accepts: "0;url=/x", "0; url='/x'", "0; URL=\"/x\"", "5; url=/x?y=1"
+    const match = content.match(/^\s*\d+\s*;\s*url\s*=\s*['"]?([^'"\s>]+)['"]?\s*$/i);
+    if (match) return match[1];
+  }
+  return null;
+}
 
-    // Basic URL validation
-    try {
-      new URL(url);
-    } catch {
-      throw new HttpsError("invalid-argument", "url must be a valid URL");
-    }
+/**
+ * Core handler for the fetchOgMetadata callable.
+ *
+ * Exported separately from the onCall wrapper so tests can invoke it directly
+ * without going through the Firebase Functions runtime. The onCall export
+ * delegates here — no production behavior change.
+ */
+export async function fetchOgMetadataHandler(
+  request: { data?: { url?: unknown } }
+): Promise<OgMetadataResponse> {
+  const url: string | undefined = request.data?.url as string | undefined;
+  if (!url || typeof url !== "string") {
+    throw new HttpsError("invalid-argument", "url is required and must be a string");
+  }
 
-    const empty: OgMetadataResponse = {
-      title: null,
-      imageUrl: null,
-      price: null,
-      priceAmount: null,
-      priceCurrency: null,
-      siteName: null,
+  // Basic URL validation
+  try {
+    new URL(url);
+  } catch {
+    throw new HttpsError("invalid-argument", "url must be a valid URL");
+  }
+
+  const empty: OgMetadataResponse = {
+    title: null,
+    imageUrl: null,
+    price: null,
+    priceAmount: null,
+    priceCurrency: null,
+    siteName: null,
+  };
+
+  try {
+    const headers = {
+      // Use a browser-like User-Agent — some sites (IKEA, retailer CDNs) reject
+      // custom bot UAs with 403 or serve a bot-detection interstitial instead
+      // of the real product page. A realistic UA increases the success rate
+      // without misrepresenting the request type.
+      "User-Agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+      "Accept-Language": "ro-RO,ro;q=0.9,en;q=0.8",
     };
 
-    try {
-      const response = await fetch(url, {
-        headers: {
-          // Use a browser-like User-Agent — some sites (IKEA, retailer CDNs) reject
-          // custom bot UAs with 403 or serve a bot-detection interstitial instead
-          // of the real product page. A realistic UA increases the success rate
-          // without misrepresenting the request type.
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-          "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-          "Accept-Language": "ro-RO,ro;q=0.9,en;q=0.8",
-        },
+    const MAX_HOPS = 3;
+    let currentUrl = url;
+    let finalRoot: HTMLElement | null = null;
+
+    for (let hop = 1; hop <= MAX_HOPS; hop++) {
+      const response = await fetch(currentUrl, {
+        headers,
         // 10 s — Cloudflare-fronted pages (IKEA, major retailers) can take 5–8 s on
         // first request (cold cache, geoIP lookup). The original 5 s limit fired too
         // early, causing a silent all-null response on the first paste.
@@ -288,45 +326,80 @@ export const fetchOgMetadata = onCall(
       if (!response.ok) {
         // HTTP error (403, 429, 5xx, etc.) — log for emulator diagnostics and
         // return nulls so the client falls back to manual entry (D-11).
-        console.warn(`[fetchOgMetadata] HTTP ${response.status} for ${url}`);
+        console.warn(`[fetchOgMetadata] HTTP ${response.status} for ${currentUrl} (hop ${hop})`);
         return empty;
       }
 
       const html = await response.text();
       const root = parse(html);
 
-      const og = (property: string): string | null =>
-        root.querySelector(`meta[property="og:${property}"]`)?.getAttribute("content") ?? null;
+      const metaRefreshTarget = extractMetaRefreshTarget(root);
+      if (metaRefreshTarget) {
+        let resolved: URL;
+        try {
+          resolved = new URL(metaRefreshTarget, currentUrl);
+        } catch {
+          console.warn(`[fetchOgMetadata] meta-refresh bad URL "${metaRefreshTarget}" at ${currentUrl}, returning empty`);
+          return empty;
+        }
 
-      const priceCandidate = resolvePrice(root);
+        if (new URL(currentUrl).origin !== resolved.origin) {
+          console.warn(`[fetchOgMetadata] meta-refresh cross-origin rejected: ${new URL(currentUrl).origin} -> ${resolved.origin}`);
+          return empty;
+        }
 
-      const result: OgMetadataResponse = {
-        title: og("title") ?? root.querySelector("title")?.text?.trim() ?? null,
-        imageUrl: normalizeImageUrl(og("image")),
-        price: priceCandidate
-          ? formatPriceForDisplay(priceCandidate.amount, priceCandidate.currency)
-          : null,
-        priceAmount: priceCandidate?.amount ?? null,
-        priceCurrency: priceCandidate?.currency ?? null,
-        siteName: og("site_name"),
-      };
+        if (hop === MAX_HOPS) {
+          console.warn(`[fetchOgMetadata] meta-refresh max hops (${MAX_HOPS}) reached at ${currentUrl}, returning empty`);
+          return empty;
+        }
 
-      // Log outcome so emulator console shows what was (or wasn't) extracted,
-      // making it easy to distinguish "blocked by site" from "no OG tags".
-      if (result.title || result.imageUrl || result.price) {
-        console.log(`[fetchOgMetadata] OK — title="${result.title}" price="${result.price}" url=${url}`);
-      } else {
-        console.warn(`[fetchOgMetadata] Fetched ${url} but found no OG metadata (JS-rendered or no tags).`);
+        console.log(`[fetchOgMetadata] meta-refresh hop ${hop} -> ${resolved.toString()}`);
+        currentUrl = resolved.toString();
+        continue;
       }
 
-      return result;
-    } catch (err) {
-      // Network timeout, DNS failure, parse error, etc.
-      // Log the reason so emulator console reveals the actual failure mode.
-      const reason = err instanceof Error ? err.message : String(err);
-      console.error(`[fetchOgMetadata] Fetch failed for ${url}: ${reason}`);
-      // Return nulls — client falls back to manual entry (D-11).
-      return empty;
+      finalRoot = root;
+      break;
     }
+
+    if (!finalRoot) return empty;
+
+    const og = (property: string): string | null =>
+      finalRoot!.querySelector(`meta[property="og:${property}"]`)?.getAttribute("content") ?? null;
+
+    const priceCandidate = resolvePrice(finalRoot);
+
+    const result: OgMetadataResponse = {
+      title: og("title") ?? finalRoot.querySelector("title")?.text?.trim() ?? null,
+      imageUrl: normalizeImageUrl(og("image")),
+      price: priceCandidate
+        ? formatPriceForDisplay(priceCandidate.amount, priceCandidate.currency)
+        : null,
+      priceAmount: priceCandidate?.amount ?? null,
+      priceCurrency: priceCandidate?.currency ?? null,
+      siteName: og("site_name"),
+    };
+
+    // Log outcome so emulator console shows what was (or wasn't) extracted,
+    // making it easy to distinguish "blocked by site" from "no OG tags".
+    if (result.title || result.imageUrl || result.price) {
+      console.log(`[fetchOgMetadata] OK — title="${result.title}" price="${result.price}" url=${currentUrl}`);
+    } else {
+      console.warn(`[fetchOgMetadata] Fetched ${currentUrl} but found no OG metadata (JS-rendered or no tags).`);
+    }
+
+    return result;
+  } catch (err) {
+    // Network timeout, DNS failure, parse error, etc.
+    // Log the reason so emulator console reveals the actual failure mode.
+    const reason = err instanceof Error ? err.message : String(err);
+    console.error(`[fetchOgMetadata] Fetch failed for ${url}: ${reason}`);
+    // Return nulls — client falls back to manual entry (D-11).
+    return empty;
   }
+}
+
+export const fetchOgMetadata = onCall(
+  { region: "europe-west3" },
+  async (request): Promise<OgMetadataResponse> => fetchOgMetadataHandler(request)
 );

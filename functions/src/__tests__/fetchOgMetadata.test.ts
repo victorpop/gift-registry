@@ -30,6 +30,13 @@ function metaRefreshHtml(
   const q = opts?.quote ?? "'";
   const k = opts?.key ?? "url";
   const sep = opts?.sep ?? ";";
+  // When the URL quote is a double-quote, the content attribute itself must use
+  // single-quote delimiters to avoid producing malformed HTML (which node-html-parser
+  // would truncate). Real-world pages that use double-quoted URLs in meta-refresh
+  // do the same. For single- or no-quote variants, double-quote delimiters work fine.
+  if (q === '"') {
+    return htmlWith(`<meta http-equiv='refresh' content='0${sep}${k}=${q}${target}${q}' />`);
+  }
   return htmlWith(`<meta http-equiv="refresh" content="0${sep}${k}=${q}${target}${q}" />`);
 }
 
