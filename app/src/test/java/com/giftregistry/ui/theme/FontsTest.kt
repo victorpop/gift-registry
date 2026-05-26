@@ -5,7 +5,9 @@ import org.junit.Assert.assertNotNull
 import org.junit.Test
 
 /**
- * DES-01: Instrument Serif, Inter, JetBrains Mono available as Compose FontFamily via Google Fonts.
+ * DES-01: Instrument Serif (bundled), Inter (Google Fonts), JetBrains Mono (bundled) all
+ * available as Compose FontFamily. Only Inter still loads via the Google Fonts provider —
+ * Instrument Serif (260427-lnq) and JetBrains Mono (16-06 Task 8) are bundled TTFs.
  *
  * GoogleFont.Provider's `providerAuthority` / `providerPackage` properties are `internal` in
  * androidx.compose.ui:ui-text-google-fonts 1.10.5, so tests assert against the module-level

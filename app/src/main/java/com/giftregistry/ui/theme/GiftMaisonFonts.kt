@@ -30,11 +30,9 @@ val giftMaisonFontProvider: GoogleFont.Provider = GoogleFont.Provider(
 
 // Google Fonts catalog names — must match fonts.google.com URLs exactly (Pitfall 7).
 // See: https://fonts.google.com/specimen/Inter
-//      https://fonts.google.com/specimen/JetBrains+Mono
-// Note: Instrument Serif was removed from Google Fonts entries (260427-lnq) — bundled TTFs
-// ship synchronously in the APK; see InstrumentSerifFamily KDoc for rationale.
+// Note: Instrument Serif (260427-lnq) and JetBrains Mono (16-06 Task 8) were removed from
+// Google Fonts entries — bundled TTFs ship synchronously in the APK; see family KDocs.
 private val inter = GoogleFont("Inter")
-private val jetBrainsMono = GoogleFont("JetBrains Mono")
 
 /**
  * Instrument Serif — display headings (h1..card title) and the GiftMaison wordmark.
@@ -62,8 +60,15 @@ val InterFamily: FontFamily = FontFamily(
 /**
  * JetBrains Mono — mono caps labels (nav, stats, timestamps).
  * Handoff uses W500 and W600.
+ *
+ * Bundled as `res/font/jetbrains_mono_{medium,semibold}.ttf` (v2.304, OFL-licensed —
+ * see `assets/licenses/OFL_jetbrains_mono.txt`) so rendering is synchronous and works
+ * on devices without Google Play Services. Replaces the original Google Fonts runtime
+ * download — same precedent as InstrumentSerifFamily (260427-lnq): GMS async loading
+ * caused inconsistent per-glyph fallback rendering across cards on the same screen
+ * (NotificationsScreen timestamps surfaced this during Plan 16-06 UAT Section D1).
  */
 val JetBrainsMonoFamily: FontFamily = FontFamily(
-    Font(googleFont = jetBrainsMono, fontProvider = giftMaisonFontProvider, weight = FontWeight.Medium),
-    Font(googleFont = jetBrainsMono, fontProvider = giftMaisonFontProvider, weight = FontWeight.SemiBold),
+    Font(resId = R.font.jetbrains_mono_medium, weight = FontWeight.Medium),
+    Font(resId = R.font.jetbrains_mono_semibold, weight = FontWeight.SemiBold),
 )
