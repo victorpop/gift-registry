@@ -2,7 +2,7 @@
 phase: quick-260525-gqs
 plan: "01"
 subsystem: functions
-status: partial — awaiting Task 3 on-device verification
+status: complete
 tags:
   - functions
   - url-metadata
@@ -24,29 +24,32 @@ tech_stack:
 key_files:
   created:
     - functions/src/__tests__/fetchOgMetadata.test.ts
+    - .planning/quick/260525-gqs-fix-url-metadata-fetch-error-in-add-item/260525-gqs-DEPLOY-LOG.md
   modified:
     - functions/src/registry/fetchOgMetadata.ts
+    - app/src/main/res/values/strings.xml
+    - app/src/main/res/values-ro/strings.xml
 decisions:
   - "Used fetchOgMetadataHandler named export (not .run()) — cleaner test isolation without firebase-functions-test harness; no production impact"
   - "Double-quote HTML attribute test uses single-quote outer delimiter to avoid malformed HTML that node-html-parser truncates at inner quote boundary"
   - "MAX_HOPS=3: caps wall-time at 3x10s=30s, well under 60s callable default; covers all real-world EMAG redirect chains observed"
   - "Same-origin guard uses URL.origin comparison (scheme+host+port) — prevents open-redirect exploitation of the hop follower"
 metrics:
-  duration: "~6 minutes"
-  completed_date: "2026-05-25"
-  tasks_completed: 2
-  tasks_total: 3
+  duration: "~6 min code + ~24h pause for on-device verification"
+  completed_date: "2026-05-26"
+  tasks_completed: 4
+  tasks_total: 4
   files_created: 2
-  files_modified: 1
+  files_modified: 3
 ---
 
 # Quick 260525-gqs: Fix URL Metadata Fetch Error in Add Item — Summary
 
 **One-liner:** Added HTML meta-refresh follow (3 hops, same-origin) to fetchOgMetadata so EMAG stale-slug product URLs auto-fill title+image instead of returning the empty "No details found" fallback.
 
-## Status: PARTIAL — Awaiting Task 3 On-Device Verification
+## Status: COMPLETE
 
-Tasks 1 (TDD + implementation) and 2 (deploy) are complete. Task 3 requires human on-device verification.
+All 4 tasks done. EMAG meta-refresh fix verified on device (2026-05-26). Broader bot-protection problem (Answear/Altex/Akamai) filed as separate phase-sized follow-up — see Out of Scope.
 
 ## Root Cause
 
@@ -128,7 +131,9 @@ TypeScript: `tsc --noEmit` exits 0. Build: `npm run build` exits 0.
 
 ## Out of Scope
 
-**EMAG price extraction** — EMAG ships price via JS globals (`EM.used_offers`), not OG tags. The `priceAmount`/`priceCurrency` fields will remain null for EMAG even with this fix. This is explicitly out of scope for this quick. File as a separate todo if desired.
+**EMAG price extraction** — EMAG ships price via JS globals (`EM.used_offers`), not OG tags. The `priceAmount`/`priceCurrency` fields will remain null for EMAG even with this fix. Separate todo if needed.
+
+**Bot-protected retailers (Akamai/Cloudflare)** — Answear, Altex, and likely many other RO retailers sit behind WAF bot detection that rejects all server-side fetches by TLS/JA3 fingerprint, regardless of User-Agent. No code change in fetchOgMetadata can bypass this. Possible future paths: (a) headless browser via Cloud Run + Puppeteer (cold-start cost + memory), (b) third-party scraping API (~$50-200/mo subscription), (c) client-side fetch from the user's device (uses real browser fingerprint). Filed as a phase-sized follow-up todo.
 
 ## Commits
 
@@ -137,10 +142,21 @@ TypeScript: `tsc --noEmit` exits 0. Build: `npm run build` exits 0.
 | f3c1ce4 | test | RED — pin meta-refresh follow contract |
 | f041eee | feat | Follow HTML meta-refresh in fetchOgMetadata (up to 3 hops, same-origin only) |
 | 10e086a | chore | Deploy fetchOgMetadata to gift-registry-ro |
+| 8e7a0de | docs | Partial SUMMARY (pre-verification snapshot) |
+| d835a06 | feat | Task 4 — clarify fallback message for bot-protected retailers (EN + RO) |
 
-## Task 3 On-Device Verification (PENDING)
+## Task 3 On-Device Verification — PASS
 
-See PLAN.md Task 3 for full verification steps. Key check: paste `https://www.emag.ro/iphone-16-pro-max-256gb-5g-cosmic-orange-rnfyn4zd-a/pd/DC99FV3BM/` into Add Item → Paste URL. Expected: title and image auto-fill. "No details found" should NOT appear.
+User verified on 2026-05-26 that the stale-slug EMAG URL (iPhone 16 → renamed to 17 Pro Max SKU) auto-fills title + image as expected. The "No details found" string no longer appears for that URL.
+
+## Task 4 — UX String Improvement (added during checkpoint)
+
+During Task 3 verification, the user tested other retailers (Answear, Altex) and found the same "No details found" message. Investigation showed these retailers sit behind Akamai/Cloudflare bot protection that rejects all server-side fetches by TLS/JA3 fingerprint — a fundamentally different problem from EMAG's meta-refresh, and out of quick-task scope. To avoid misleading users into thinking the URL is invalid, the fallback string was rewritten:
+
+- **EN**: "No details found for that URL — fill in below." → "Couldn't auto-fill from this site — enter details manually below."
+- **RO**: "Nu am găsit detalii pentru acel URL — completează mai jos." → "Nu am putut completa automat pentru acest site — introdu detaliile manual mai jos."
+
+LocalizationParityTest still passes (EN/RO key parity preserved). Commit: `d835a06`.
 
 ## Deviations from Plan
 
