@@ -25,6 +25,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 11: Registry Detail + Create + Add Item Redesign** - Registry detail (08), Create registry (09), and Add item via URL (10) screens match the handoff pixel-accurately (completed 2026-04-21)
 - [x] **Phase 13: Web Fallback Visual Refresh** - Restyle the existing Phase 5 web fallback to match the GiftMaison design language so the giver-facing web flow visually aligns with the redesigned Android owner flow (handoff to be provided) (completed 2026-05-12)
 - [x] **Phase 14: Web Fallback Live Deploy + Guest UAT** - Register Firebase Web app, ship the redesigned web bundle to gift-registry-ro.web.app with backing Cloud Functions/rules deployed, and close WEB-01..04 human-UAT items via end-to-end guest flow validation (all 4 plans complete 2026-05-22; phase pending verification) (completed 2026-05-22)
+- [ ] **Phase 15: Web Invite-Landing + Magic-Link Guest Flow** - Web-side invite-landing modal with create-account upsell + email magic-link sign-in option; Cloud Function blocking-trigger swaps email-keyed invitedUsers entries to real uids on signup (parked 2026-05-24 — requires Identity Platform upgrade; resume after Phase 16; linkInviteOnSignup must target pendingInvitedUsers per Phase 16 D-14 coupling)
+- [x] **Phase 16: Android Notifications Inbox + Invite Accept/Decline** - Strict accept-gate Android invite flow: new invites land in pendingInvitedUsers; invitees see an actionable inbox card; tap opens a GiftMaison bottom sheet with Accept/Decline; Accept atomically promotes uid to invitedUsers; inbox re-skinned to GiftMaison (28/28 D-XX decisions verified, 20/20 on-device UAT PASS) (completed 2026-05-26)
 
 ## Phase Details
 
@@ -324,12 +326,13 @@ Plans:
 - [ ] 15-04-magic-link-callback-and-cloud-function-PLAN.md — Wave 2: new `web/src/pages/EmailLinkCallbackPage.tsx` + `/auth/email-link` route in `App.tsx` (6 Vitest cases); new `functions/src/auth/linkInviteOnSignup.ts` 2nd-gen `beforeUserCreated` blocking function that swaps `invitedUsers["email:{email}"]` → `invitedUsers[{newUid}]` in a transaction per matching registry (4 Jest cases); register in `functions/src/index.ts`. Requires Identity Platform + email-link sign-in enabled in Firebase Console.
 - [ ] 15-05-registry-page-wiring-PLAN.md — Wave 3 integration: wire `InviteLandingModal` into `web/src/pages/RegistryPage.tsx` under the 3-gate condition (`searchParams.invite === '1'` + `useAuth().isReady` + `!user`) with `?invite=1` URL stripping on dismiss AND post-account-creation (5 Vitest cases); checkpoint:human-verify 16-step UAT against the Firebase emulator covering both create-account and magic-link paths
 
-### Phase 16: Android Notifications Inbox + Invite Accept/Decline
+### Phase 16: Android Notifications Inbox + Invite Accept/Decline (completed 2026-05-26)
 
 **Goal:** Move the Android invite flow from auto-add-to-invitedUsers to a strict accept-gate model — new invites land in `registries.pendingInvitedUsers`; invited Android users see an actionable INVITE inbox card; tapping it opens a GiftMaison-styled bottom sheet with Accept/Decline CTAs; Accept atomically promotes the uid into `invitedUsers` (granting read access); owner sees both outcomes in their own inbox. Inbox screen is re-skinned to GiftMaison design language. Phase 15's `linkInviteOnSignup` blocking function must target `pendingInvitedUsers` when Phase 15 resumes.
 **Requirements**: D-01..D-28 (CONTEXT.md decisions — Phase 16 has no formal REQ-IDs in REQUIREMENTS.md; the 28 decisions constitute the requirement set)
 **Depends on:** Phase 15
 **Plans:** 6/6 plans complete
+**Verification:** PASS — 28/28 must-haves verified (see 16-VERIFICATION.md, 2026-05-26)
 
 Plans:
 - [x] 16-01-wave-0-red-tests-and-index-PLAN.md — Wave 1 RED test scaffolding (5 Android + 2 Functions test files), extend rules tests for D-18/D-19, add composite index for inbox cleanup query

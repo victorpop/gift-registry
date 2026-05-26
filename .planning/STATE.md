@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 16-06-deploy-and-uat-PLAN.md (20/20 UAT PASS + 4 deviation fixes)
-last_updated: "2026-05-26T22:30:00.000Z"
+stopped_at: Phase 16 VERIFIED — 28/28 must-haves PASS, 20/20 UAT PASS
+last_updated: "2026-05-26T23:00:00.000Z"
 last_activity: 2026-05-26
 progress:
   total_phases: 16
-  completed_phases: 14
+  completed_phases: 15
   total_plans: 84
   completed_plans: 79
   percent: 100
@@ -25,12 +25,16 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 
 ## Current Position
 
-Phase: 16 (android-notifications-inbox-invite-accept-decline) — PENDING VERIFICATION
+Phase: 16 (android-notifications-inbox-invite-accept-decline) — COMPLETE
 Plan: 6 of 6 — COMPLETE (20/20 UAT PASS, 4 deviation fixes shipped)
-Status: All plans complete; phase-level verification gate next
-Last activity: 2026-05-26 - Plan 16-06 closed with full on-device UAT + Tasks 7+8 polish fixes (PESTE→ACUM clamp, JetBrains Mono bundling)
+Status: Phase 16 VERIFIED — 28/28 must-haves PASS (see 16-VERIFICATION.md, 2026-05-26)
+Last activity: 2026-05-26 - gsd-verifier signed off Phase 16; ROADMAP marked complete
 
-Progress: [██████████] 100% of plans complete (6 of 6); phase pending verification gate
+Progress: [██████████] 100% of plans complete (6 of 6); phase VERIFIED + closed.
+
+**Phase 15 (web invite-landing) remains parked** — resume blocked on Identity Platform upgrade. linkInviteOnSignup must target pendingInvitedUsers per Phase 16 D-14 coupling (15-CONTEXT.md stanza appended 2026-05-24).
+
+**v1.1 milestone:** all 14 phases that were planned for execution are now complete + verified. Phase 15 is the only outstanding phase, parked deliberately.
 
 ### Plan 14-04 closed (2026-05-22, with deferrals)
 
@@ -475,7 +479,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-26T22:30:00.000Z
-Stopped at: Plan 16-06 closed — 20/20 UAT PASS + Tasks 7+8 device-verified (PESTE→ACUM Romanian clamp, JetBrains Mono bundling). Phase 16 pending verification gate.
-Resume file: None — HANDOFF.json + .continue-here.md deleted (one-shot artifacts consumed)
-Next action: Run /gsd:next to advance — phase-level verification via gsd-verifier, then phase completion + ROADMAP update.
+Last session: 2026-05-26T23:00:00.000Z
+Stopped at: Phase 16 VERIFIED + closed. gsd-verifier signed off 28/28 must-haves; ROADMAP master checklist updated with Phase 15 (parked) + Phase 16 (completed 2026-05-26); Phase 16 section header carries verification PASS marker.
+Resume file: None
+Next action: v1.1 milestone is functionally complete (15/16 phases done; Phase 15 deliberately parked). Recommended next steps: (a) /gsd:audit-milestone to formally close v1.1, OR (b) /gsd:execute-phase 15 to unpark Phase 15 (requires Identity Platform upgrade), OR (c) /gsd:check-todos to review the 5 pending follow-ups (incl. Task #10 Huawei sign-in todo, Task #12 -Puse_emulator=false doc, Task #15 foreground push polish, Task #16 sheet visual polish, retrofitting App Check on inviteToRegistry).
