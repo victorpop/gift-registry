@@ -1,9 +1,9 @@
 ---
-status: in_progress
+status: complete
 phase: 16-android-notifications-inbox-invite-accept-decline
 source: [16-06-PLAN.md, 16-VERIFICATION.md]
 started: 2026-05-24T20:00:00Z
-updated: 2026-05-26T00:00:00Z
+updated: 2026-05-26T22:00:00Z
 devices:
   account_a_owner: emulator (Pixel 36.1 AVD, USE_FIREBASE_EMULATOR=false)
   account_b_invitee: Huawei (USE_FIREBASE_EMULATOR=false)
@@ -94,22 +94,21 @@ result: PASS — restored `invitedUsers[B-uid] = true` in Firestore Console, the
 
 #### D1. Inbox visual contract
 expected: GiftMaisonWordmark in TopAppBar, gm.paper background, 1dp gm.line dividers between cards (no Card elevation), MonoCaps timestamp like "5M AGO", 6dp accent dot for unread cards. Capture screenshot.
-result: PASS-with-flag — wordmark, paper bg, dividers, accent dot all correct. **Flag:** timestamp font size renders inconsistently between cards. Filed for fix.
+result: PASS — wordmark, paper bg, dividers, accent dot all correct. Initial flag (timestamp size inconsistency) traced to GoogleFont async loading with inconsistent per-glyph fallback; fixed in Task 8 by bundling JetBrains Mono TTFs (commit `8d43425`). User-confirmed on device after fix.
 
 #### D2. Romanian locale parity
 expected: Switch device language to Romanian via Settings screen. Re-trigger an invite. Verify sheet title is "Account A te-a invitat la", Accept = "Acceptă", Decline = "Refuză", confirmation dialog = "Refuzi invitația la „{registry}"?", owner notifications display proper Romanian translations.
-result: PASS-with-flag — sheet, buttons, confirmation dialog, owner notifications all translated correctly. **Flag:** for invites received less than 1 minute ago, timestamp renders "PESTE 0 MINUTE" (future tense — "in 0 minutes") instead of "ACUM 0 MINUTE" (past tense — "0 minutes ago"). Root cause: `DateUtils.getRelativeTimeSpanString` interprets `createdAtMs > now` as future when Firestore server clock is microseconds ahead of device clock. Filed for fix.
+result: PASS — sheet, buttons, confirmation dialog, owner notifications all translated correctly. Initial flag ("PESTE 0 MINUTE" future-tense rendering) fixed in Task 7 by clamping `createdAtMs` to `minOf(createdAtMs, now)` (commit `c59fc6f`). User-confirmed on device: "ACUM 0 MINUTE" now renders correctly for just-arrived invites.
 
 ## Summary
 
 total: 20
 passed: 20
-issues: 2
+issues: 0
 pending: 0
 skipped: 0
 blocked: 0
 
 ## Gaps
 
-- **D1 timestamp font size inconsistency:** MonoCaps timestamp renders different visual sizes across NotificationCards. Filed for fix.
-- **D2 "PESTE 0 MINUTE" instead of "ACUM 0 MINUTE":** clock-skew bug where Firestore server-stamped `createdAt` is microseconds ahead of device `System.currentTimeMillis()`, causing `DateUtils.getRelativeTimeSpanString` to render future tense for just-arrived notifications. Fix: clamp `createdAtMs = min(createdAtMs, now)` at render time. Filed for fix.
+(all resolved — see Task 7 commit `c59fc6f` and Task 8 commit `8d43425`)

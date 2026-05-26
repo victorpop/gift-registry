@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 16-05-inbox-reskin-and-strings-PLAN.md
-last_updated: "2026-05-24T18:01:36.623Z"
-last_activity: 2026-05-24
+stopped_at: Completed 16-06-deploy-and-uat-PLAN.md (20/20 UAT PASS + 4 deviation fixes)
+last_updated: "2026-05-26T22:30:00.000Z"
+last_activity: 2026-05-26
 progress:
   total_phases: 16
   completed_phases: 14
   total_plans: 84
-  completed_plans: 78
+  completed_plans: 79
   percent: 100
 ---
 
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 
 ## Current Position
 
-Phase: 16 (android-notifications-inbox-invite-accept-decline) — EXECUTING
-Plan: 6 of 6
-Status: Ready to execute
-Last activity: 2026-05-26 - Completed quick task 260525-gqs: Fix URL metadata fetch error in Add Item
+Phase: 16 (android-notifications-inbox-invite-accept-decline) — PENDING VERIFICATION
+Plan: 6 of 6 — COMPLETE (20/20 UAT PASS, 4 deviation fixes shipped)
+Status: All plans complete; phase-level verification gate next
+Last activity: 2026-05-26 - Plan 16-06 closed with full on-device UAT + Tasks 7+8 polish fixes (PESTE→ACUM clamp, JetBrains Mono bundling)
 
-Progress: [██████████] 100% of plans complete (4 of 4); phase pending verification gate
+Progress: [██████████] 100% of plans complete (6 of 6); phase pending verification gate
 
 ### Plan 14-04 closed (2026-05-22, with deferrals)
 
@@ -387,6 +387,12 @@ Recent decisions affecting current work:
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-04: Sheet hosted OUTSIDE the Scaffold (after closing brace) so the ModalBottomSheet scrim covers the bottom nav. Chrome contract since Phase 12 — sheets ALWAYS hoist above the Scaffold.
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-05: Deferred InviteResponseSheet @Preview to on-device UAT in Plan 16-06 — ModalBottomSheet does not render statically in @Preview without a complex harness (same precedent as Phase 12 CoverPhotoPickerSheetPreview)
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-05: Removed D-02/D-08 negative-coverage comment text from production KDoc so grep-only verification (! grep -E 'Badge\(|BadgedBox|pendingCount') passes — the constraint is enforced by code shape, not by comment search
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-06: App Check init order at Application.onCreate — FirebaseApp.initializeApp → installAppCheckProviderFactory (debug for emulator, PlayIntegrity for release) → THEN any Firebase product reads; reusable pattern for v1.0+ phases shipping App Check-enforced callables
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-06: FCM token registration via FirebaseAuth.addAuthStateListener in Application.onCreate (NOT onNewToken-only) — onNewToken fires only on install + token rotation; post-install sign-ins leave users/{uid}/fcmTokens empty. Canonical pattern for any future phase depending on FCM push for signed-in users
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-06 Task 7: clamp createdAtMs to minOf(createdAtMs, now) at every DateUtils.getRelativeTimeSpanString call site reading Firestore-serverTimestamp Longs — prevents Romanian future-tense ("peste 0 minute") rendering when server clock is microseconds ahead of device clock. EN-CLDR is symmetric so bug only manifests in locales with distinct past/future prepositions
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-06 Task 8: JetBrainsMonoFamily switched from GoogleFont async to bundled TTFs (v2.304 Medium + SemiBold, OFL-licensed) — third application of the 260427-lnq cutover pattern after InstrumentSerifFamily; resolved per-glyph fallback inconsistency on NotificationsScreen timestamps. Future font families should ship bundled from day one
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-06: Mid-UAT deviation fix workflow — small UAT-surfaced bugs (Tasks 4, 5, 7, 8 — bell entry point, FCM-token-on-signin, PESTE clamp, JetBrains Mono bundle) committed atomically with deviation notes in commit messages rather than routing through /gsd:plan-phase --gaps. Each ~30-100 LoC, single root cause. Pattern reusable for future polish that emerges mid-execution
+- [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-06: UAT runs against PRODUCTION backend on both emulator + physical (-Puse_emulator=false) — production parity outweighs emulator friction because deployed callables + Cloud Tasks behavior only match reality with real backend. Documented as task #12 to add -Puse_emulator=false flag note to CLAUDE.md
 
 ### Pending Todos
 
@@ -469,6 +475,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-24T18:01:23.335Z
-Stopped at: Completed 16-05-inbox-reskin-and-strings-PLAN.md
-Resume file: None
+Last session: 2026-05-26T22:30:00.000Z
+Stopped at: Plan 16-06 closed — 20/20 UAT PASS + Tasks 7+8 device-verified (PESTE→ACUM Romanian clamp, JetBrains Mono bundling). Phase 16 pending verification gate.
+Resume file: None — HANDOFF.json + .continue-here.md deleted (one-shot artifacts consumed)
+Next action: Run /gsd:next to advance — phase-level verification via gsd-verifier, then phase completion + ROADMAP update.
