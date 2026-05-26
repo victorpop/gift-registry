@@ -214,11 +214,18 @@ private fun NotificationCard(
 
     val timestamp = remember(notification.createdAtMs) {
         if (notification.createdAtMs <= 0L) ""
-        else DateUtils.getRelativeTimeSpanString(
-            notification.createdAtMs,
-            System.currentTimeMillis(),
-            DateUtils.MINUTE_IN_MILLIS,
-        ).toString().uppercase()
+        else {
+            val now = System.currentTimeMillis()
+            // Clamp to now: Firestore serverTimestamp() can be microseconds ahead of the
+            // device clock, which makes DateUtils render Romanian future-tense ("peste 0
+            // minute") instead of past-tense ("acum 0 minute") for just-arrived notifications.
+            val createdAt = minOf(notification.createdAtMs, now)
+            DateUtils.getRelativeTimeSpanString(
+                createdAt,
+                now,
+                DateUtils.MINUTE_IN_MILLIS,
+            ).toString().uppercase()
+        }
     }
 
     Row(
