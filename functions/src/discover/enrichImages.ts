@@ -1,18 +1,30 @@
 /**
- * Phase 17 UAT-6 follow-up: enrich Gemini search results with og:image
- * fetched directly from each product page.
+ * Phase 17 UAT-6 follow-up: enrich Gemini search results with REAL page
+ * metadata (og:title, og:description, og:image) fetched directly from each
+ * retailer URL.
  *
- * Why: Gemini with `google_search` grounding has access to search snippets
- * only — NOT the full page DOM — so it cannot reliably produce og:image
- * URLs. Asking the model for image_url either yields an empty string or a
- * hallucinated/expired URL. Reliable images require a server-side fetch
- * of each retailer URL and direct og:image parsing.
+ * Why this is no longer just "enrich images":
+ *   During UAT we discovered Gemini hallucinates product slugs onto real
+ *   product IDs. Example: it returned a URL with slug
+ *   "/jucarie-educativa-montessori-camion-de-ferma-.../pd/DKT00YMBM/" with
+ *   title "Jucarie educativa Montessori, camion de ferma, sortare forme".
+ *   Fetching that URL with the product ID resolves to an Esprit T-shirt —
+ *   og:title is "Esprit, Tricou din bumbac organic cu imprimeu logo".
+ *   Gemini invented a query-appropriate title for a product ID it knew
+ *   existed but had not actually inspected.
+ *
+ *   The URL is real (resolves to a real product). The title is fabricated.
+ *   The image_url Gemini sometimes returns is empty or a placeholder.
+ *   We can only trust the URL + whatever the page itself declares.
  *
  * Strategy:
- *   - Only enrich items where image_url is empty or missing.
- *   - One parallel HTTP fetch per URL, 4s timeout each.
- *   - Failures swallowed: empty image_url remains empty, client falls
- *     back to discover_card_placeholder.
+ *   - Fetch each retailer_url in parallel (4s timeout each).
+ *   - Extract og:title, og:description, og:image from the response.
+ *   - Override the Gemini-supplied title/description/image_url with the
+ *     fetched values when present.
+ *   - Drop items where the fetch failed entirely OR where neither og:title
+ *     nor og:image could be extracted — better to surface 4 verifiable
+ *     products than 12 fabrications.
  *   - http:// image URLs rewritten to https:// (Android cleartext block).
  */
 import { parse } from "node-html-parser";
@@ -26,7 +38,13 @@ function rewriteToHttps(raw: string): string {
   return raw.startsWith("http://") ? "https://" + raw.slice(7) : raw;
 }
 
-async function fetchOgImage(url: string): Promise<string> {
+interface FetchedMetadata {
+  title: string;
+  description: string;
+  image: string;
+}
+
+async function fetchOgMetadata(url: string): Promise<FetchedMetadata | null> {
   try {
     const response = await fetch(url, {
       method: "GET",
@@ -37,47 +55,70 @@ async function fetchOgImage(url: string): Promise<string> {
       redirect: "follow",
       signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
-    if (!response.ok) return "";
+    if (!response.ok) return null;
     const html = await response.text();
     const root = parse(html);
-    const candidates = [
-      root
-        .querySelector('meta[property="og:image"]')
-        ?.getAttribute("content"),
-      root
-        .querySelector('meta[name="og:image"]')
-        ?.getAttribute("content"),
-      root
-        .querySelector('meta[property="twitter:image"]')
-        ?.getAttribute("content"),
-      root
-        .querySelector('meta[name="twitter:image"]')
-        ?.getAttribute("content"),
-    ];
-    for (const c of candidates) {
-      if (c && c.trim().length > 0) return rewriteToHttps(c.trim());
-    }
-    return "";
+
+    const pick = (selectors: string[]): string => {
+      for (const sel of selectors) {
+        const v = root.querySelector(sel)?.getAttribute("content");
+        if (v && v.trim().length > 0) return v.trim();
+      }
+      return "";
+    };
+
+    const title = pick([
+      'meta[property="og:title"]',
+      'meta[name="og:title"]',
+      'meta[property="twitter:title"]',
+      'meta[name="twitter:title"]',
+    ]);
+    const description = pick([
+      'meta[property="og:description"]',
+      'meta[name="og:description"]',
+      'meta[property="twitter:description"]',
+      'meta[name="twitter:description"]',
+      'meta[name="description"]',
+    ]);
+    const imageRaw = pick([
+      'meta[property="og:image"]',
+      'meta[name="og:image"]',
+      'meta[property="twitter:image"]',
+      'meta[name="twitter:image"]',
+    ]);
+    const image = imageRaw ? rewriteToHttps(imageRaw) : "";
+
+    if (!title && !image) return null;
+    return { title, description, image };
   } catch {
-    return "";
+    return null;
   }
 }
 
 /**
- * Enrich a list of products with og:image URLs fetched from each
- * retailer_url, in parallel. Items that already have an image_url are
- * left untouched. Returns the same array shape; never throws.
+ * Replace Gemini's potentially-fabricated title/description/image_url with
+ * real OG metadata fetched from the retailer URL. Drops items where the
+ * fetch failed entirely — Gemini may have hallucinated the URL itself, or
+ * the URL may point to a product different from what Gemini described, so
+ * we lean on the live page as the source of truth.
+ *
+ * Never throws. Returns the filtered+enriched array.
  */
 export async function enrichWithOgImages(
   products: DiscoverProduct[],
 ): Promise<DiscoverProduct[]> {
   const enriched = await Promise.all(
     products.map(async (p) => {
-      if (p.image_url && p.image_url.length > 0) return p;
-      if (!p.retailer_url) return p;
-      const ogImage = await fetchOgImage(p.retailer_url);
-      return ogImage ? { ...p, image_url: ogImage } : p;
+      if (!p.retailer_url) return null;
+      const meta = await fetchOgMetadata(p.retailer_url);
+      if (!meta) return null;
+      return {
+        ...p,
+        title: meta.title || p.title,
+        description: meta.description || p.description,
+        image_url: meta.image || "",
+      };
     }),
   );
-  return enriched;
+  return enriched.filter((p): p is DiscoverProduct => p !== null);
 }

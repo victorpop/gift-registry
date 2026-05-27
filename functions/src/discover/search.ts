@@ -114,15 +114,13 @@ export async function discoverSearchHandler(
     `[discoverSearch] query="${query}" gemini_chars=${rawResponse.length} parsed_count=${parsed.length}`,
   );
 
-  // Enrich items missing image_url with og:image scraped from the retailer page.
-  // Gemini google_search grounding has snippets only, not page DOM, so it
-  // cannot reliably produce image URLs — we fetch them server-side.
+  // Enrich items with REAL page metadata fetched from each retailer URL.
+  // Gemini hallucinates product titles onto real product IDs (UAT-6 finding),
+  // so OG data is the only trustworthy source — items whose URLs cannot be
+  // fetched are dropped entirely rather than display fabricated data.
   const products = await enrichWithOgImages(parsed);
-  const enrichedCount = products.filter(
-    (p, i) => !parsed[i].image_url && p.image_url,
-  ).length;
   console.log(
-    `[discoverSearch] og_enrichment query="${query}" enriched=${enrichedCount}/${parsed.length}`,
+    `[discoverSearch] og_enrichment query="${query}" parsed=${parsed.length} kept_after_enrichment=${products.length}`,
   );
 
   // Claude's Discretion ("only cache successful non-empty results")
