@@ -33,6 +33,7 @@ import { buildPrompt } from "./promptTemplate";
 import { callGemini } from "./geminiClient";
 import { parseGeminiResponse, DiscoverProduct } from "./parseGeminiResponse";
 import { checkAndIncrementRateLimit } from "./rateLimit";
+import { enrichWithOgImages } from "./enrichImages";
 
 // D-45 TTL semantics: cachedAt is stored as the DEADLINE (now + 30 days),
 // NOT creation time. Firestore TTL deletes a doc when field_value < now;
@@ -108,7 +109,21 @@ export async function discoverSearchHandler(
     return { products: [], cached_at: new Date().toISOString() };
   }
 
-  const products = parseGeminiResponse(rawResponse, query);
+  const parsed = parseGeminiResponse(rawResponse, query);
+  console.log(
+    `[discoverSearch] query="${query}" gemini_chars=${rawResponse.length} parsed_count=${parsed.length}`,
+  );
+
+  // Enrich items missing image_url with og:image scraped from the retailer page.
+  // Gemini google_search grounding has snippets only, not page DOM, so it
+  // cannot reliably produce image URLs — we fetch them server-side.
+  const products = await enrichWithOgImages(parsed);
+  const enrichedCount = products.filter(
+    (p, i) => !parsed[i].image_url && p.image_url,
+  ).length;
+  console.log(
+    `[discoverSearch] og_enrichment query="${query}" enriched=${enrichedCount}/${parsed.length}`,
+  );
 
   // Claude's Discretion ("only cache successful non-empty results")
   const now = new Date();
@@ -132,6 +147,8 @@ export const discoverSearch = onCall(
     region: REGION,
     enforceAppCheck: true,
     secrets: [GEMINI_API_KEY],
+    // 20s Gemini + up to 4s OG fetch per product in parallel + overhead.
+    timeoutSeconds: 90,
   },
   discoverSearchHandler,
 );

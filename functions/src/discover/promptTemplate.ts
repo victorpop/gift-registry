@@ -21,8 +21,8 @@ export function buildPrompt(query: string, sites: string[]): BuiltPrompt {
     "Return prices in RON (Romanian lei). " +
     "Return ONLY a strict JSON array — no prose, no markdown code fences, no explanation. " +
     "Schema per item: {title, description, image_url, price, currency, retailer_url, retailer_name}. " +
-    "Return between 5 and 15 items. Aim for at least 5 — broaden your search across additional Romanian retailers as needed to reach the floor. " +
-    "For image_url: use the product's main image URL from its retailer page (the og:image meta tag or the primary product photo). If you cannot find a direct image URL, leave image_url as an empty string rather than guessing. " +
+    "Return between 5 and 15 items. The 5-item floor is a hard requirement, not a suggestion — if the prioritized retailers do not have enough exact matches, broaden the search to ANY reputable Romanian retailer (or international retailer shipping to Romania) and include closely-related products in the same category. Returning fewer than 5 items is only acceptable when the query is so specific that fewer than 5 real products exist in Romania. " +
+    "For image_url: leave it as an empty string — the server will fetch og:image from each retailer URL separately. Do not guess image URLs. " +
     "For retailer_name: use the retailer's public brand name (e.g., 'eMAG', 'Altex', 'Carrefour'), not the domain. " +
     "Drop items missing title, price, or retailer_url.";
   const userPrompt = query;
