@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
-status: verifying
-stopped_at: Phase 17 context gathered
-last_updated: "2026-05-27T12:55:15.670Z"
-last_activity: 2026-05-26 - gsd-verifier signed off Phase 16; ROADMAP marked complete
+status: executing
+stopped_at: Completed 17-01-stores-decommission-PLAN.md
+last_updated: "2026-05-27T14:31:30.344Z"
+last_activity: 2026-05-27
 progress:
   total_phases: 17
   completed_phases: 15
-  total_plans: 84
-  completed_plans: 79
+  total_plans: 90
+  completed_plans: 80
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-20)
 
 **Core value:** Gift givers can reliably reserve and purchase gifts without duplicates — the reservation-to-purchase flow must be seamless and trustworthy.
-**Current focus:** Phase 16 — android-notifications-inbox-invite-accept-decline
+**Current focus:** Phase 17 — discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini
 
 ## Current Position
 
-Phase: 16 (android-notifications-inbox-invite-accept-decline) — COMPLETE
-Plan: 6 of 6 — COMPLETE (20/20 UAT PASS, 4 deviation fixes shipped)
-Status: Phase 16 VERIFIED — 28/28 must-haves PASS (see 16-VERIFICATION.md, 2026-05-26)
-Last activity: 2026-05-26 - gsd-verifier signed off Phase 16; ROADMAP marked complete
+Phase: 17 (discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini) — EXECUTING
+Plan: 2 of 6
+Status: Ready to execute
+Last activity: 2026-05-27
 
 Progress: [██████████] 100% of plans complete (6 of 6); phase VERIFIED + closed.
 
@@ -171,6 +171,7 @@ NOT mark Phase 14 complete in ROADMAP until verifier passes — only Plan
 | Phase 16 P02 | 4min | 2 tasks | 6 files |
 | Phase 16-android-notifications-inbox-invite-accept-decline P04-invite-response-sheet-and-viewmodel | 6min | 3 tasks | 6 files |
 | Phase 16-android-notifications-inbox-invite-accept-decline P05 | 7min | 3 tasks | 4 files |
+| Phase 17 P01 | 12min | 3 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -398,6 +399,8 @@ Recent decisions affecting current work:
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-06 Task 8: JetBrainsMonoFamily switched from GoogleFont async to bundled TTFs (v2.304 Medium + SemiBold, OFL-licensed) — third application of the 260427-lnq cutover pattern after InstrumentSerifFamily; resolved per-glyph fallback inconsistency on NotificationsScreen timestamps. Future font families should ship bundled from day one
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-06: Mid-UAT deviation fix workflow — small UAT-surfaced bugs (Tasks 4, 5, 7, 8 — bell entry point, FCM-token-on-signin, PESTE clamp, JetBrains Mono bundle) committed atomically with deviation notes in commit messages rather than routing through /gsd:plan-phase --gaps. Each ~30-100 LoC, single root cause. Pattern reusable for future polish that emerges mid-execution
 - [Phase 16-android-notifications-inbox-invite-accept-decline]: Plan 16-06: UAT runs against PRODUCTION backend on both emulator + physical (-Puse_emulator=false) — production parity outweighs emulator friction because deployed callables + Cloud Tasks behavior only match reality with real backend. Documented as task #12 to add -Puse_emulator=false flag note to CLAUDE.md
+- [Phase 17]: Plan 17-01: Stores capability fully decommissioned — 32 files deleted (Android source/tests, drawables, Functions seed). AddItemMode collapsed to { PasteUrl, Manual }. nav_stores_tab string deliberately retained until Plan 17-05 lock-step rename (build-safety departure from D-42).
+- [Phase 17]: Two-phase nav slot rotation pattern: Plan 17-01 empties slot 2 (deletes Stores keys, leaves onStores callback as empty no-op stub); Plan 17-05 wires Discover + deletes the surviving nav_stores_tab string in the same commit as the GiftMaisonBottomNav rename. Avoids broken-build window.
 
 ### Pending Todos
 
@@ -480,7 +483,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-27T12:55:15.658Z
-Stopped at: Phase 17 context gathered
-Resume file: .planning/phases/17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini/17-CONTEXT.md
+Last session: 2026-05-27T14:31:30.337Z
+Stopped at: Completed 17-01-stores-decommission-PLAN.md
+Resume file: None
 Next action: v1.1 milestone is functionally complete (15/16 phases done; Phase 15 deliberately parked). Recommended next steps: (a) /gsd:audit-milestone to formally close v1.1, OR (b) /gsd:execute-phase 15 to unpark Phase 15 (requires Identity Platform upgrade), OR (c) /gsd:check-todos to review the 5 pending follow-ups (incl. Task #10 Huawei sign-in todo, Task #12 -Puse_emulator=false doc, Task #15 foreground push polish, Task #16 sheet visual polish, retrofitting App Check on inviteToRegistry).

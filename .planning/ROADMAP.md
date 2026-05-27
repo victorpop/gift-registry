@@ -347,10 +347,10 @@ Plans:
 **Goal:** Ship the Discover bottom-nav surface (Android Compose) with two product-discovery sections (community-popular + Gemini-powered web search), backed by Cloud Functions Callables + Firestore triggers + a 30-day query cache, and fully decommission the Phase 7 Stores capability in the same phase.
 **Requirements**: D-01..D-51 (CONTEXT.md decisions — Phase 17 has no formal REQ-IDs in REQUIREMENTS.md; the 51 decisions constitute the requirement set)
 **Depends on:** Phase 16
-**Plans:** 6 plans
+**Plans:** 1/6 plans executed
 
 Plans:
-- [ ] 17-01-stores-decommission-PLAN.md — Wave 1: delete Stores Android code/drawables/strings + AddItemScreen 3-tab→2-tab collapse + firestore.rules config/{configId} removal + deleteConfigStores.ts (retain nav_stores_tab for 17-05 swap)
+- [x] 17-01-stores-decommission-PLAN.md — Wave 1: delete Stores Android code/drawables/strings + AddItemScreen 3-tab→2-tab collapse + firestore.rules config/{configId} removal + deleteConfigStores.ts (retain nav_stores_tab for 17-05 swap)
 - [ ] 17-02-backend-foundations-PLAN.md — Wave 2: pure backend modules (urlNormalization + retailers + promptTemplate + parseGeminiResponse + cacheKey + geminiClient + secrets) + firestore.rules popularItems/discoverCache/discoverRateLimits + composite index + unit tests for D-48
 - [ ] 17-03-callables-PLAN.md — Wave 3: discoverPopular Callable (L1 cache) + discoverSearch Callable (rate-limit + Firestore cache + Gemini) + rateLimit.ts + tests + index.ts exports
 - [ ] 17-04-triggers-and-backfill-PLAN.md — Wave 3: onItemCreatePopular / onItemDeletePopular / onItemUpdatePopular Firestore triggers + handleItem* testable handlers + backfillPopularItems.ts one-shot script
