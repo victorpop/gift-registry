@@ -168,6 +168,64 @@ class DiscoverRepositoryImplTest {
         assertFalse("expected generated id, got empty", products[0].id.isEmpty())
         assertEquals("Bialetti Moka", products[0].title)
         assertEquals(149.99, products[0].price, 0.0001)
+        assertEquals("eMAG", products[0].retailerName)
+    }
+
+    @Test
+    fun `getPopular maps retailer_name when present`() = runTest {
+        val functions = mockk<FirebaseFunctions>()
+        val callable = mockk<HttpsCallableReference>()
+        val result = mockk<HttpsCallableResult>()
+        val payload = mapOf(
+            "products" to listOf(
+                mapOf(
+                    "id" to "doc-1",
+                    "title" to "Espresso machine",
+                    "description" to "",
+                    "image_url" to "https://img/1.jpg",
+                    "price" to 1299.0,
+                    "currency" to "RON",
+                    "retailer_url" to "https://emag.ro/1",
+                    "retailer_name" to "emag.ro",
+                ),
+            ),
+        )
+        every { functions.getHttpsCallable("discoverPopular") } returns callable
+        every { callable.call() } returns Tasks.forResult(result)
+        every { result.getData() } returns payload
+
+        val repo = DiscoverRepositoryImpl(functions)
+        val actual = repo.getPopular()
+
+        assertTrue(actual.isSuccess)
+        assertEquals("emag.ro", actual.getOrThrow()[0].retailerName)
+    }
+
+    @Test
+    fun `missing retailer_name defaults to empty string`() = runTest {
+        val functions = mockk<FirebaseFunctions>()
+        val callable = mockk<HttpsCallableReference>()
+        val result = mockk<HttpsCallableResult>()
+        every { functions.getHttpsCallable("discoverPopular") } returns callable
+        every { callable.call() } returns Tasks.forResult(result)
+        every { result.getData() } returns mapOf(
+            "products" to listOf(
+                mapOf(
+                    "id" to "doc-1",
+                    "title" to "x",
+                    "image_url" to "",
+                    "price" to 0,
+                    "currency" to "RON",
+                    "retailer_url" to "https://x/",
+                ),
+            ),
+        )
+
+        val repo = DiscoverRepositoryImpl(functions)
+        val actual = repo.getPopular()
+
+        assertTrue(actual.isSuccess)
+        assertEquals("", actual.getOrThrow()[0].retailerName)
     }
 
     @Test

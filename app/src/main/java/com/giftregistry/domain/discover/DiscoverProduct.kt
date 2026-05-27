@@ -23,4 +23,5 @@ data class DiscoverProduct(
     val price: Double,
     val currency: String,
     val retailerUrl: String,
+    val retailerName: String = "",
 )

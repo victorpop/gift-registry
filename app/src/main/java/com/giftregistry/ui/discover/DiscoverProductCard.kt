@@ -118,6 +118,15 @@ fun DiscoverProductCard(
                         color = colors.ink,
                     )
                 }
+                if (product.retailerName.isNotBlank()) {
+                    Text(
+                        text = product.retailerName,
+                        style = typography.bodyM,
+                        color = colors.inkFaint,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }

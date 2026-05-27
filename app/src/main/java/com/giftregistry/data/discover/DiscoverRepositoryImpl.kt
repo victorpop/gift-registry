@@ -65,6 +65,7 @@ class DiscoverRepositoryImpl @Inject constructor(
                 },
                 currency = (item["currency"] as? String) ?: "RON",
                 retailerUrl = (item["retailer_url"] as? String).orEmpty(),
+                retailerName = (item["retailer_name"] as? String).orEmpty(),
             )
         }
     }
