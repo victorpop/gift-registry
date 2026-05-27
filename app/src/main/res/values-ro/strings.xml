@@ -223,7 +223,6 @@
 
     <!-- Phase 9 bottom nav (CHROME-01) — Romanian -->
     <string name="nav_home_tab">ACAS&#0196;</string>
-    <string name="nav_stores_tab">MAGAZINE</string>
     <string name="nav_fab_add">ADAUG&#0258;</string>
     <string name="nav_lists_tab">LISTE</string>
     <string name="nav_you_tab">TU</string>

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,6 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,8 +49,12 @@ import com.giftregistry.domain.model.Item
 import com.giftregistry.domain.model.ItemStatus
 import com.giftregistry.domain.model.NotificationType
 import com.giftregistry.domain.model.Registry
+import androidx.compose.material3.SnackbarHostState
+import com.giftregistry.domain.discover.DiscoverProduct
 import com.giftregistry.ui.auth.AuthHeadline
 import com.giftregistry.ui.auth.GoogleBanner
+import com.giftregistry.ui.discover.DiscoverProductCard
+import com.giftregistry.ui.discover.DiscoverShimmerCard
 import com.giftregistry.ui.item.add.ItemPreviewCard
 import com.giftregistry.ui.registry.cover.CoverPhotoPickerInline
 import com.giftregistry.ui.registry.cover.CoverPhotoSelection
@@ -221,7 +227,7 @@ private fun BottomNavHomeSelectedPreview() {
     GiftRegistryTheme {
         com.giftregistry.ui.common.chrome.GiftMaisonBottomNav(
             currentKey = com.giftregistry.ui.navigation.HomeKey,
-            onHome = {}, onStores = {}, onFab = {}, onLists = {}, onYou = {},
+            onHome = {}, onDiscover = {}, onFab = {}, onLists = {}, onYou = {},
         )
     }
 }
@@ -232,7 +238,7 @@ private fun BottomNavListsSelectedPreview() {
     GiftRegistryTheme {
         com.giftregistry.ui.common.chrome.GiftMaisonBottomNav(
             currentKey = com.giftregistry.ui.navigation.RegistryDetailKey(registryId = "preview"),
-            onHome = {}, onStores = {}, onFab = {}, onLists = {}, onYou = {},
+            onHome = {}, onDiscover = {}, onFab = {}, onLists = {}, onYou = {},
         )
     }
 }
@@ -871,5 +877,150 @@ private fun PreviewNotificationRow(
             }
         }
         HorizontalDivider(color = colors.line, thickness = 1.dp)
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Phase 17 — Discover screen preview sections (D-01, D-02, D-32..D-42)
+// Renders all 5 interaction states inline so a Compose preview pane can
+// validate the visual contract without a device.
+// ─────────────────────────────────────────────────────────────────────────
+
+private val discoverPreviewProducts = listOf(
+    DiscoverProduct(
+        id = "f1",
+        title = "Aparat de cafea espresso DeLonghi",
+        description = "15 bar, lapte spumat automat",
+        imageUrl = "",
+        price = 1299.0,
+        currency = "RON",
+        retailerUrl = "https://emag.ro/x",
+    ),
+    DiscoverProduct(
+        id = "f2",
+        title = "Cană termică YETI Rambler 20oz",
+        description = "Stainless steel, vacuum insulated",
+        imageUrl = "",
+        price = 199.99,
+        currency = "RON",
+        retailerUrl = "https://yeti.com/y",
+    ),
+)
+
+@Preview(
+    name = "Phase 17 — Discover (5 states)",
+    showBackground = true,
+    backgroundColor = 0xFFF7F2E9,
+    widthDp = 390,
+    heightDp = 1600,
+)
+@Composable
+private fun DiscoverPreview() {
+    GiftRegistryTheme {
+        val colors = GiftMaisonTheme.colors
+        val typography = GiftMaisonTheme.typography
+        val snackbar = remember { SnackbarHostState() }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.paper),
+        ) {
+            LazyColumn(
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
+            ) {
+                item {
+                    Text(
+                        "1. IDLE — community populated",
+                        style = typography.monoCaps,
+                        color = colors.inkFaint,
+                    )
+                }
+                item {
+                    Text(
+                        "FROM THE COMMUNITY",
+                        style = typography.monoCaps,
+                        color = colors.inkFaint,
+                    )
+                }
+                items(discoverPreviewProducts) { product ->
+                    DiscoverProductCard(product = product, snackbarHostState = snackbar)
+                }
+
+                item {
+                    Text(
+                        "2. LOADING — 3 shimmer skeletons",
+                        style = typography.monoCaps,
+                        color = colors.inkFaint,
+                    )
+                }
+                items(3) { DiscoverShimmerCard() }
+
+                item {
+                    Text(
+                        "3. LOADED — both sections",
+                        style = typography.monoCaps,
+                        color = colors.inkFaint,
+                    )
+                }
+                item {
+                    Text(
+                        "FROM THE WEB",
+                        style = typography.monoCaps,
+                        color = colors.inkFaint,
+                    )
+                }
+                item {
+                    DiscoverProductCard(
+                        product = discoverPreviewProducts[0],
+                        snackbarHostState = snackbar,
+                    )
+                }
+                item { HorizontalDivider(color = colors.line, thickness = 1.dp) }
+                item {
+                    Text(
+                        "FROM THE COMMUNITY",
+                        style = typography.monoCaps,
+                        color = colors.inkFaint,
+                    )
+                }
+                item {
+                    DiscoverProductCard(
+                        product = discoverPreviewProducts[1],
+                        snackbarHostState = snackbar,
+                    )
+                }
+
+                item {
+                    Text(
+                        "4. EMPTY — no matches",
+                        style = typography.monoCaps,
+                        color = colors.inkFaint,
+                    )
+                }
+                item {
+                    Text(
+                        "No matches found. Try a different search.",
+                        style = typography.bodyM,
+                        color = colors.inkFaint,
+                    )
+                }
+
+                item {
+                    Text(
+                        "5. ERROR — load failed + Retry",
+                        style = typography.monoCaps,
+                        color = colors.inkFaint,
+                    )
+                }
+                item {
+                    Text(
+                        "Could not load. Try again.",
+                        style = typography.bodyM,
+                        color = colors.inkFaint,
+                    )
+                }
+            }
+        }
     }
 }

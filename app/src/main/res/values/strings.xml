@@ -222,7 +222,6 @@
 
     <!-- Phase 9 bottom nav (CHROME-01) -->
     <string name="nav_home_tab">HOME</string>
-    <string name="nav_stores_tab">STORES</string>
     <string name="nav_fab_add">ADD</string>
     <string name="nav_lists_tab">LISTS</string>
     <string name="nav_you_tab">YOU</string>

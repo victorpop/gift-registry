@@ -18,7 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Storefront
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,28 +31,37 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.giftregistry.R
+import com.giftregistry.ui.navigation.DiscoverKey
 import com.giftregistry.ui.navigation.HomeKey
 import com.giftregistry.ui.navigation.RegistryDetailKey
 import com.giftregistry.ui.theme.GiftMaisonTheme
 
-private enum class NavSlotId { HOME, STORES, FAB, LISTS, YOU }
+private enum class NavSlotId { HOME, DISCOVER, FAB, LISTS, YOU }
 
 /**
- * CHROME-01: 5-slot bottom nav — Home · Stores · [FAB] · Lists · You.
+ * CHROME-01: 5-slot bottom nav — Home · Discover · [FAB] · Lists · You.
  *
  * Visibility predicate `Any?.showsBottomNav()` lives in NavVisibility.kt
  * (same package). Plan 02 shipped it as a stub; this plan adds the full
  * bottom nav composable alongside it.
  *
+ * History:
+ *  - Plan 09-02 / quick-260428-v0q: introduced 5-slot bottom nav (slot 2 = Phase 7 capability).
+ *  - Plan 17-01: Phase 7 capability decommissioned; slot 2 callback emptied (inert).
+ *  - Plan 17-05: slot 2 rewired to Discover — enum entry, icon, label string, and
+ *    callback all renamed to the Discover variant; legacy label string deleted
+ *    from values + values-ro in lock-step with this rename.
+ *
  * @param currentKey Current back-stack head — drives selected-slot highlighting
- *   per UI-SPEC mapping: HomeKey → Home, RegistryDetailKey → Lists, else → none.
+ *   per UI-SPEC mapping: HomeKey → Home, DiscoverKey → Discover,
+ *   RegistryDetailKey → Lists, else → none.
  * @param onFab Tap on the centre FAB — Plan 04 wires this to open AddActionSheet.
  */
 @Composable
 fun GiftMaisonBottomNav(
     currentKey: Any?,
     onHome: () -> Unit,
-    onStores: () -> Unit,
+    onDiscover: () -> Unit,
     onFab: () -> Unit,
     onLists: () -> Unit,
     onYou: () -> Unit,
@@ -61,6 +70,7 @@ fun GiftMaisonBottomNav(
     val colors = GiftMaisonTheme.colors
     val selected: NavSlotId? = when (currentKey) {
         is HomeKey -> NavSlotId.HOME
+        is DiscoverKey -> NavSlotId.DISCOVER
         is RegistryDetailKey -> NavSlotId.LISTS
         else -> null
     }
@@ -83,10 +93,10 @@ fun GiftMaisonBottomNav(
             modifier = Modifier.weight(1f),
         )
         NavItemSlot(
-            icon = Icons.Outlined.Storefront,
-            labelRes = R.string.nav_stores_tab,
-            isSelected = selected == NavSlotId.STORES,
-            onClick = onStores,
+            icon = Icons.Outlined.Search,
+            labelRes = R.string.nav_discover_tab,
+            isSelected = selected == NavSlotId.DISCOVER,
+            onClick = onDiscover,
             modifier = Modifier.weight(1f),
         )
         FabSlot(

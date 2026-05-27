@@ -37,6 +37,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.giftregistry.ui.auth.AuthScreen
 import com.giftregistry.ui.auth.AuthUiState
 import com.giftregistry.ui.auth.AuthViewModel
+import com.giftregistry.ui.discover.DiscoverScreen
 import com.giftregistry.ui.item.add.AddItemScreen
 import com.giftregistry.ui.item.edit.EditItemScreen
 import com.giftregistry.ui.onboarding.OnboardingScreen
@@ -155,9 +156,12 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                             backStack.add(HomeKey)
                         }
                     },
-                    onStores = {
-                        // Plan 17-05 will rewire this to onDiscover -> push DiscoverKey.
-                        // Temporary no-op so slot 2 is inert during Wave 1.
+                    onDiscover = {
+                        // Slot 2 → Discover. Nav root — push only if not already on Discover
+                        // (avoids duplicate stack entries on repeated tab taps).
+                        if (currentKey !is DiscoverKey) {
+                            backStack.add(DiscoverKey)
+                        }
                     },
                     onFab = { showAddSheet = true },
                     onLists = {
@@ -205,6 +209,8 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                             onNavigateToSettings = { backStack.add(SettingsKey) },
                         )
                     }
+
+                    entry<DiscoverKey> { DiscoverScreen() }
 
                     entry<CreateRegistryKey> {
                         CreateRegistryScreen(

@@ -15,9 +15,9 @@ import com.giftregistry.ui.navigation.ReReserveDeepLink
  *  - OnboardingKey     — pre-auth onboarding carousel
  *  - ReReserveDeepLink — transitional resolver that auto-routes to a real destination
  *
- * Visible on: every other nav key (HomeKey, RegistryDetailKey, SettingsKey,
- * NotificationsKey, CreateRegistryKey, EditRegistryKey, AddItemKey, EditItemKey,
- * and any future post-auth key by default).
+ * Visible on: every other nav key (HomeKey, DiscoverKey, RegistryDetailKey,
+ * SettingsKey, NotificationsKey, CreateRegistryKey, EditRegistryKey, AddItemKey,
+ * EditItemKey, and any future post-auth key by default).
  *
  * History:
  *  - Plan 09-02: introduced predicate as visible-whitelist HomeKey+RegistryDetailKey only.
@@ -26,6 +26,8 @@ import com.giftregistry.ui.navigation.ReReserveDeepLink
  *  - Plan 17-01: Stores capability decommissioned — two Stores nav keys
  *    deleted from AppNavKeys.kt; nav bar visibility unchanged (predicate is
  *    a hidden-whitelist, so removing post-auth keys is a doc-only change).
+ *  - Plan 17-05: DiscoverKey added — visible by default (hidden-whitelist
+ *    predicate; this is a doc-only update to keep the visible-on list current).
  */
 fun Any?.showsBottomNav(): Boolean = when (this) {
     null                 -> false
