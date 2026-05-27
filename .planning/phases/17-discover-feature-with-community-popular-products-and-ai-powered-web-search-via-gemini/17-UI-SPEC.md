@@ -1,10 +1,11 @@
 ---
 phase: 17
 slug: discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-05-27
+reviewed_at: 2026-05-27
 ---
 
 # Phase 17 — UI Design Contract
@@ -42,7 +43,28 @@ GiftMaison uses ad-hoc named tokens rather than a strict step-scale. All values 
 | gap20 | 20 dp | Top padding inside `Scaffold` body before the search `OutlinedTextField` |
 | edge | 16 dp | `LazyColumn` horizontal content padding — matches screen edge on both sides |
 
-Exceptions:
+### Design System Spacing Exception
+
+**This phase reuses existing production tokens. No new spacing values are introduced.**
+
+GiftMaison's design handoff (`design_handoff/design_handoff_android_owner_flow/README.md`, "Spacing / radii / shadows" section) uses ad-hoc values rather than a single 8-point step-scale. Phase 8 research (08-RESEARCH.md, Open Question 3) resolved this by enumerating every distinct handoff value as a named field in `GiftMaisonSpacing`. This decision was locked in 08-CONTEXT.md and carried forward as the project's spacing system.
+
+The tokens `gap6 = 6 dp`, `gap10 = 10 dp`, and `gap14 = 14 dp` are intentional non-multiples-of-4. They are defined verbatim in `app/src/main/java/com/giftregistry/ui/theme/GiftMaisonSpacing.kt`:
+
+```kotlin
+/** 6 dp gap — inter-tile column gap (Create registry tile grid). */
+val gap6: Dp,
+/** 10 dp gap — inter-row gap (registry cards, action sheet rows). */
+val gap10: Dp,
+/** 14 dp gap — form field vertical gap (Create registry). */
+val gap14: Dp,
+```
+
+`gap10` is the correct token for inter-card vertical gaps in `LazyColumn` per its own KDoc ("inter-row gap (registry cards, action sheet rows)"). Changing to `gap8` or `gap12` would break visual consistency with existing registry card lists and action sheet rows used throughout the app.
+
+The checker's 4-multiple rule does not apply to values that are part of a documented project-level token system predating this phase. The applicable pathway is: **documented exception — project design system uses multiples of 2, locked in Phase 8.**
+
+Exceptions (layout-specific):
 - `AsyncImage` 16:9 aspect ratio container: full-width (no horizontal padding), clips to card width. Top corners of the image follow the card's `radius16` shape.
 - `OutlinedTextField`: full-width, `modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)`. Height driven by Material3 default (`56 dp` tall per M3 spec).
 - Section header row: `padding(horizontal = 16.dp, vertical = 12.dp)`.
@@ -356,6 +378,7 @@ No third-party component registries. All UI is implemented from scratch using Gi
 | Phase 12 placeholder pattern (gradient + glyph) | HeroImageOrPlaceholder.kt |
 | discover_card_placeholder visual spec | Claude's discretion — accentSoft→accent gradient + paper gift-box glyph |
 | Empty state layout (centered text, no icon) | Claude's discretion — consistent with GiftMaison secondary empty states |
+| Spacing exception (gap10, gap6, gap14 as non-multiples-of-4) | GiftMaisonSpacing.kt + design_handoff README + 08-RESEARCH.md OQ3 |
 
 ---
 
