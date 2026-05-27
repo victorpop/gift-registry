@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
-status: executing
-stopped_at: Phase 16 VERIFIED — 28/28 must-haves PASS, 20/20 UAT PASS
-last_updated: "2026-05-26T23:00:00.000Z"
-last_activity: 2026-05-26
+status: verifying
+stopped_at: Phase 17 context gathered
+last_updated: "2026-05-27T12:55:15.670Z"
+last_activity: 2026-05-26 - gsd-verifier signed off Phase 16; ROADMAP marked complete
 progress:
-  total_phases: 16
+  total_phases: 17
   completed_phases: 15
   total_plans: 84
   completed_plans: 79
@@ -182,6 +182,7 @@ NOT mark Phase 14 complete in ROADMAP until verifier passes — only Plan
 - Phase 15 added: Web Invite-Landing + Magic-Link Guest Flow (2026-05-22)
 - Phase 15 parked 2026-05-24 — user pivoting to mobile work; resume with /gsd:execute-phase 15 (Identity Platform upgrade needed first)
 - Phase 16 added: Android Notifications Inbox + Invite Accept/Decline (2026-05-24) — strict accept-gate model introduces new `pendingInvitedUsers` field; coupling note: when Phase 15 resumes, `linkInviteOnSignup` must target `pendingInvitedUsers` instead of `invitedUsers`
+- Phase 17 added: Discover feature — "From the community" (popular products from existing registries) + "From the web" (Gemini 2.5 Flash with Google Search grounding, Romanian retailers, 30-day cache) (2026-05-26); replaces "Stores" bottom-nav entry; introduces backend endpoints `GET /discover/popular` + `POST /discover/search` (rate-limited 20/hr/user); GEMINI_API_KEY backend-only, never exposed to Android client
 
 ### Decisions
 
@@ -479,7 +480,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-26T23:00:00.000Z
-Stopped at: Phase 16 VERIFIED + closed. gsd-verifier signed off 28/28 must-haves; ROADMAP master checklist updated with Phase 15 (parked) + Phase 16 (completed 2026-05-26); Phase 16 section header carries verification PASS marker.
-Resume file: None
+Last session: 2026-05-27T12:55:15.658Z
+Stopped at: Phase 17 context gathered
+Resume file: .planning/phases/17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini/17-CONTEXT.md
 Next action: v1.1 milestone is functionally complete (15/16 phases done; Phase 15 deliberately parked). Recommended next steps: (a) /gsd:audit-milestone to formally close v1.1, OR (b) /gsd:execute-phase 15 to unpark Phase 15 (requires Identity Platform upgrade), OR (c) /gsd:check-todos to review the 5 pending follow-ups (incl. Task #10 Huawei sign-in todo, Task #12 -Puse_emulator=false doc, Task #15 foreground push polish, Task #16 sheet visual polish, retrofitting App Check on inviteToRegistry).
