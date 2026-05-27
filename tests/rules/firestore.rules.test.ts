@@ -406,37 +406,9 @@ describe("Phase 6: users/{uid}/fcmTokens (D-22)", () => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// describe("config/stores rules")
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe("config/stores rules", () => {
-  it("allows unauthenticated read of config/stores", async () => {
-    await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), "config", "stores"), { stores: [] });
-    });
-    const unauthDb = testEnv.unauthenticatedContext().firestore();
-    await assertSucceeds(getDoc(doc(unauthDb, "config", "stores")));
-  });
-
-  it("allows authenticated read of config/stores", async () => {
-    await testEnv.withSecurityRulesDisabled(async (ctx) => {
-      await setDoc(doc(ctx.firestore(), "config", "stores"), { stores: [] });
-    });
-    const authDb = testEnv.authenticatedContext("user1").firestore();
-    await assertSucceeds(getDoc(doc(authDb, "config", "stores")));
-  });
-
-  it("denies unauthenticated write to config/stores", async () => {
-    const unauthDb = testEnv.unauthenticatedContext().firestore();
-    await assertFails(setDoc(doc(unauthDb, "config", "stores"), { stores: [] }));
-  });
-
-  it("denies authenticated write to config/stores", async () => {
-    const authDb = testEnv.authenticatedContext("user1").firestore();
-    await assertFails(setDoc(doc(authDb, "config", "stores"), { stores: [] }));
-  });
-});
+// Plan 17-01 (D-44): removed the "config/{configId} rules" describe block
+// alongside the firestore.rules `match /config/{configId}` block deletion.
+// The Stores capability was decommissioned and config/stores no longer exists.
 
 // ─────────────────────────────────────────────────────────────────────────────
 // describe("Legacy registry docs (missing fields)")

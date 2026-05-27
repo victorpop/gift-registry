@@ -114,13 +114,9 @@ service cloud.firestore {
       allow delete: if false;  // v1: no user-initiated deletion
     }
 
-    // Phase 7 (STORE-01 / D-21): config collection — world-readable so the
-    // Store Browser can load the store list even for unauthenticated
-    // onboarding states. No client writes — admin only via seed script
-    // (Admin SDK bypasses rules).
-    match /config/{configId} {
-      allow read: if true;
-      allow write: if false;
-    }
+    // Phase 7 config/{configId} rule deleted in Plan 17-01 (D-07 / D-44) —
+    // the Stores capability was decommissioned and the only document under
+    // that path (config/stores) is removed during the Plan 17-06 deploy via
+    // functions/scripts/deleteConfigStores.ts.
   }
 }
