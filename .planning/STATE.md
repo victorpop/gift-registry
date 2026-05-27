@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 17-04-triggers-and-backfill-PLAN.md
-last_updated: "2026-05-27T14:50:06.137Z"
+stopped_at: Completed 17-05-android-discover-PLAN.md
+last_updated: "2026-05-27T15:06:40.264Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 17
   completed_phases: 15
   total_plans: 90
-  completed_plans: 83
+  completed_plans: 84
   percent: 100
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 17 (discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-05-27
 
@@ -175,6 +175,7 @@ NOT mark Phase 14 complete in ROADMAP until verifier passes — only Plan
 | Phase 17 P02 | 4min | 2 tasks | 15 files |
 | Phase 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini P03 | 3min | 2 tasks | 4 files |
 | Phase 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini P04 | 4min | 2 tasks | 5 files |
+| Phase 17 P05 | 11min | 4 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -412,6 +413,9 @@ Recent decisions affecting current work:
 - [Phase 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini]: popularItems triggers use runTransaction (not batch) so the registryIds-membership idempotency guard and the delete-on-zero check are atomic with the FieldValue.increment write
 - [Phase 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini]: Backfill aggregates in-memory via Map<productId, Aggregate> with first-observed denorm fields and registryIds: Set<string>; gracefully skips malformed URLs without aborting the scan
 - [Phase 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini]: Deploy ordering for plan 17-06: run backfill BEFORE deploying triggers (D-22) — otherwise live triggers race with batched writes and produce double-counts
+- [Phase 17]: Reuse AppModule.provideFirebaseFunctions (europe-west3) for Discover repository — no per-feature region override.
+- [Phase 17]: Coil 3 (coil3.compose.AsyncImage) namespace used app-wide; placeholder drawable uses aapt:attr gradient inside vector (minSdk 23 ok).
+- [Phase 17]: Lock-step nav slot rotation completed: GiftMaisonBottomNav slot 2 renamed (Stores→Discover) and nav_stores_tab deleted in same commit.
 
 ### Pending Todos
 
@@ -494,7 +498,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-27T14:49:59.069Z
-Stopped at: Completed 17-04-triggers-and-backfill-PLAN.md
+Last session: 2026-05-27T15:06:29.605Z
+Stopped at: Completed 17-05-android-discover-PLAN.md
 Resume file: None
 Next action: v1.1 milestone is functionally complete (15/16 phases done; Phase 15 deliberately parked). Recommended next steps: (a) /gsd:audit-milestone to formally close v1.1, OR (b) /gsd:execute-phase 15 to unpark Phase 15 (requires Identity Platform upgrade), OR (c) /gsd:check-todos to review the 5 pending follow-ups (incl. Task #10 Huawei sign-in todo, Task #12 -Puse_emulator=false doc, Task #15 foreground push polish, Task #16 sheet visual polish, retrofitting App Check on inviteToRegistry).
