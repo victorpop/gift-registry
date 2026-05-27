@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Phase 17 Plan 05 — Discover card placeholder.
+  Visual contract per 17-UI-SPEC.md "discover_card_placeholder Drawable":
+  - 16:9 viewport (160 x 90)
+  - Vertical gradient accentSoft (#F3DED0, top) -> accent (#C8623A, bottom) @ 40% alpha
+  - Centred neutral gift-box glyph in paper (#F7F2E9) @ 70% alpha
+  Used by Coil AsyncImage as both `placeholder` and `error` slot in DiscoverProductCard.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="160dp"
+    android:height="90dp"
+    android:viewportWidth="160"
+    android:viewportHeight="90">
+
+    <!-- Gradient background: accentSoft -> accent vertical @ 40% alpha -->
+    <path
+        android:pathData="M0,0 L160,0 L160,90 L0,90 Z"
+        android:fillAlpha="0.4">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="80"
+                android:startY="0"
+                android:endX="80"
+                android:endY="90"
+                android:startColor="#F3DED0"
+                android:endColor="#C8623A" />
+        </aapt:attr>
+    </path>
+
+    <!-- Centred gift-box glyph in paper (#F7F2E9) @ 70% alpha -->
+    <!-- Box body -->
+    <path
+        android:fillColor="#F7F2E9"
+        android:fillAlpha="0.7"
+        android:pathData="M64,50 L96,50 L96,68 L64,68 Z" />
+    <!-- Lid -->
+    <path
+        android:fillColor="#F7F2E9"
+        android:fillAlpha="0.7"
+        android:pathData="M62,46 L98,46 L98,52 L62,52 Z" />
+    <!-- Ribbon vertical stripe -->
+    <path
+        android:fillColor="#F7F2E9"
+        android:fillAlpha="0.7"
+        android:pathData="M78,46 L82,46 L82,68 L78,68 Z" />
+    <!-- Bow loop left -->
+    <path
+        android:fillColor="#F7F2E9"
+        android:fillAlpha="0.7"
+        android:pathData="M80,42 L72,38 L72,44 Z" />
+    <!-- Bow loop right -->
+    <path
+        android:fillColor="#F7F2E9"
+        android:fillAlpha="0.7"
+        android:pathData="M80,42 L88,38 L88,44 Z" />
+</vector>
