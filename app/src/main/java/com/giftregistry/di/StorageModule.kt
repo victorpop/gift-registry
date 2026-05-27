@@ -19,8 +19,9 @@ import javax.inject.Singleton
 /**
  * Phase 12 — Hilt module for cover-photo upload (D-04 / D-05 / D-07).
  *
- * Mirrors the [StoresModule] pattern — separate module so Phase 12's bindings
- * are discoverable and DataModule stays untouched.
+ * Separate module so Phase 12's bindings are discoverable and DataModule
+ * stays untouched. (Originally mirrored the Phase 7 StoresModule pattern;
+ * StoresModule was deleted in Plan 17-01 with the Stores decommissioning.)
  *
  * Provides:
  *   - [FirebaseStorage] singleton (with emulator wiring gated on

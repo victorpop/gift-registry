@@ -11,8 +11,6 @@ import com.giftregistry.ui.navigation.OnboardingKey
 import com.giftregistry.ui.navigation.ReReserveDeepLink
 import com.giftregistry.ui.navigation.RegistryDetailKey
 import com.giftregistry.ui.navigation.SettingsKey
-import com.giftregistry.ui.navigation.StoreBrowserKey
-import com.giftregistry.ui.navigation.StoreListKey
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -23,8 +21,13 @@ import org.junit.Test
  * AppNavKeys.kt is post-auth and shows the nav bar.
  *
  * This test pins the new contract; flipping any of the assertTrue cases
- * regresses the user's reported bug (Settings/Notifications/Stores/forms hide
+ * regresses the user's reported bug (Settings/Notifications/forms hide
  * the nav).
+ *
+ * History:
+ *  - quick-260428-v0q: initial 4-hidden / 10-visible split.
+ *  - Plan 17-01: two Stores nav-key assertions removed alongside the
+ *    deletion of those nav keys (Stores capability decommissioned).
  */
 class BottomNavVisibilityTest {
 
@@ -36,7 +39,7 @@ class BottomNavVisibilityTest {
     @Test fun reReserveDeepLink_hidesNav() =
         assertFalse(ReReserveDeepLink("rs1").showsBottomNav())
 
-    // ---- VISIBLE cases (9) — every post-auth key in AppNavKeys.kt ----
+    // ---- VISIBLE cases — every post-auth key in AppNavKeys.kt ----
 
     @Test fun homeKey_showsNav() = assertTrue(HomeKey.showsBottomNav())
     @Test fun registryDetailKey_showsNav() =
@@ -49,8 +52,4 @@ class BottomNavVisibilityTest {
     @Test fun addItemKey_showsNav() = assertTrue(AddItemKey("r1").showsBottomNav())
     @Test fun editItemKey_showsNav() =
         assertTrue(EditItemKey("r1", "i1").showsBottomNav())
-    @Test fun storeListKey_showsNav() =
-        assertTrue(StoreListKey(preSelectedRegistryId = null).showsBottomNav())
-    @Test fun storeBrowserKey_showsNav() =
-        assertTrue(StoreBrowserKey(storeId = "s1", registryId = null).showsBottomNav())
 }

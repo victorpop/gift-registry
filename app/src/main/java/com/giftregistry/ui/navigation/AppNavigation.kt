@@ -48,8 +48,6 @@ import com.giftregistry.ui.registry.invite.InviteBottomSheet
 import com.giftregistry.ui.notifications.NotificationsScreen
 import com.giftregistry.ui.registry.list.RegistryListScreen
 import com.giftregistry.ui.settings.SettingsScreen
-import com.giftregistry.ui.store.browser.StoreBrowserScreen
-import com.giftregistry.ui.store.list.StoreListScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -158,10 +156,8 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                         }
                     },
                     onStores = {
-                        // Push StoreListKey with current registry context if on
-                        // RegistryDetailKey, else null (Home-FAB pathway).
-                        val preSelected = (currentKey as? RegistryDetailKey)?.registryId
-                        backStack.add(StoreListKey(preSelectedRegistryId = preSelected))
+                        // Plan 17-05 will rewire this to onDiscover -> push DiscoverKey.
+                        // Temporary no-op so slot 2 is inert during Wave 1.
                     },
                     onFab = { showAddSheet = true },
                     onLists = {
@@ -262,37 +258,6 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                         }
                     }
 
-                    entry<StoreListKey> { key ->
-                        StoreListScreen(
-                            onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
-                            onStoreSelected = { storeId ->
-                                backStack.add(StoreBrowserKey(storeId = storeId, registryId = key.preSelectedRegistryId))
-                            },
-                        )
-                    }
-
-                    entry<StoreBrowserKey> { key ->
-                        StoreBrowserScreen(
-                            onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
-                            onAddToList = { url, registryId ->
-                                val target = registryId ?: return@StoreBrowserScreen
-                                // registryId is nullable at the nav-key level; when null (entered from
-                                // Home FAB) we cannot dispatch to AddItemKey which requires a concrete
-                                // registryId. The Add-to-list button is already disabled when registryId
-                                // is null (guarded in StoreBrowserScreen with viewModel.registryId != null),
-                                // so this branch is defensive only. Follow-up: D-10 picker + auto-pick
-                                // last-used registry for Home-FAB entry path.
-                                backStack.add(
-                                    AddItemKey(
-                                        registryId = target,
-                                        initialUrl = url,
-                                        initialRegistryId = target,
-                                    )
-                                )
-                            },
-                        )
-                    }
-
                     entry<AddItemKey> { key ->
                         AddItemScreen(
                             registryId = key.registryId,
@@ -300,11 +265,6 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                             initialUrl = key.initialUrl,
                             initialRegistryId = key.initialRegistryId,
                             onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
-                            onNavigateToBrowseStores = { regId ->
-                                // Pre-select the current registry so Store Browser's Add-to-list
-                                // round-trips back to AddItemKey with the chosen URL pre-filled.
-                                backStack.add(StoreListKey(preSelectedRegistryId = regId))
-                            },
                             onNavigateToCreateRegistry = {
                                 // quick-260428-iny: zero-registry empty-state link in
                                 // the picker routes the user to CreateRegistryKey.

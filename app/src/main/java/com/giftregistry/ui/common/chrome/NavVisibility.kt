@@ -17,12 +17,15 @@ import com.giftregistry.ui.navigation.ReReserveDeepLink
  *
  * Visible on: every other nav key (HomeKey, RegistryDetailKey, SettingsKey,
  * NotificationsKey, CreateRegistryKey, EditRegistryKey, AddItemKey, EditItemKey,
- * StoreListKey, StoreBrowserKey, and any future post-auth key by default).
+ * and any future post-auth key by default).
  *
  * History:
  *  - Plan 09-02: introduced predicate as visible-whitelist HomeKey+RegistryDetailKey only.
  *  - quick-260428-v0q: inverted to hidden-whitelist per user request — Settings,
- *    Notifications, Stores, and all forms keep the nav bar.
+ *    Notifications, and all forms keep the nav bar.
+ *  - Plan 17-01: Stores capability decommissioned — two Stores nav keys
+ *    deleted from AppNavKeys.kt; nav bar visibility unchanged (predicate is
+ *    a hidden-whitelist, so removing post-auth keys is a doc-only change).
  */
 fun Any?.showsBottomNav(): Boolean = when (this) {
     null                 -> false

@@ -60,7 +60,6 @@ fun AddItemScreen(
     initialUrl: String? = null,
     initialRegistryId: String? = null,
     onBack: () -> Unit,
-    onNavigateToBrowseStores: (String) -> Unit = {},   // NEW — Phase 11
     onNavigateToCreateRegistry: () -> Unit = {},       // quick-260428-iny — picker empty-state
     viewModel: AddItemViewModel = hiltViewModelWithNavArgs(
         // Stable ViewModelStore key. When entered via the FAB sheet there is no
@@ -113,20 +112,6 @@ fun AddItemScreen(
                 // _savedItemId, so clearSavedItemId() is not needed separately here.
                 viewModel.onResetForm()
                 onBack()
-            }
-        }
-    }
-
-    // --- Browse stores tab triggers navigation + resets tab to PasteUrl before leaving ---
-    // quick-260428-iny: when fromAddSheet=true and the user hasn't picked yet,
-    // selectedRegistryId is null — the Browse stores side-trip needs a real id
-    // so we skip navigation in that case (the user must pick the registry first).
-    LaunchedEffect(selectedTab) {
-        if (selectedTab == AddItemMode.BrowseStores) {
-            selectedTabIndex = ADD_ITEM_MODE_DEFAULT_ORDINAL   // reset before navigating so re-entry shows URL tab
-            val target = selectedRegistryId
-            if (target != null) {
-                onNavigateToBrowseStores(target)
             }
         }
     }
@@ -222,7 +207,9 @@ fun AddItemScreen(
                 }
             }
 
-            // 3-tab segmented control (reuses Phase 10 SegmentedTabs)
+            // 2-tab segmented control (reuses Phase 10 SegmentedTabs).
+            // Plan 17-01: collapsed from 3 → 2 tabs (middle "Browse stores" tab
+            // removed with the Stores capability).
             Box(
                 modifier = Modifier.padding(
                     horizontal = spacing.edge,
@@ -232,7 +219,6 @@ fun AddItemScreen(
                 SegmentedTabs(
                     tabs = listOf(
                         stringResource(R.string.add_item_tab_url),
-                        stringResource(R.string.add_item_tab_browse),
                         stringResource(R.string.add_item_tab_manual),
                     ),
                     selectedIndex = selectedTabIndex,
@@ -255,9 +241,6 @@ fun AddItemScreen(
                     showAffiliateRow = showAffiliateRow,
                     domain = domain,
                 )
-                AddItemMode.BrowseStores -> {
-                    // No content — navigation fires via LaunchedEffect(selectedTab) above
-                }
                 AddItemMode.Manual -> ManualModeContent(
                     viewModel = viewModel,
                     title = title,
