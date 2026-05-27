@@ -229,6 +229,18 @@
     <string name="nav_you_tab">TU</string>
     <string name="nav_fab_add_content_description">Adaug&#0259;</string>
 
+    <!-- Phase 17: Discover screen and bottom-nav slot 2 (D-41) — Romanian -->
+    <string name="nav_discover_tab">DESCOPER&#0258;</string>
+    <string name="discover_search_placeholder">Caut&#0259; orice produs...</string>
+    <string name="discover_section_web">DE PE WEB</string>
+    <string name="discover_section_community">DIN COMUNITATE</string>
+    <string name="discover_empty_search">Niciun rezultat. &#0206;ncearc&#0259; o alt&#0259; c&#0259;utare.</string>
+    <string name="discover_empty_popular">Articolele populare vor ap&#0259;rea aici pe m&#0259;sur&#0259; ce oamenii adaug&#0259; cadouri.</string>
+    <string name="discover_error_load">Nu s-a putut &#0238;nc&#0259;rca. &#0206;ncearc&#0259; din nou.</string>
+    <string name="discover_error_search">C&#0259;utarea a e&#0537;uat. &#0206;ncearc&#0259; din nou.</string>
+    <string name="discover_retry">Re&#0238;ncearc&#0259;</string>
+    <string name="discover_no_browser_toast">Nu s-a putut deschide browserul</string>
+
     <!-- Phase 9 Add-action sheet (CHROME-03) — Romanian -->
     <!-- quick-260428-iny: trimmed from 4 rows to 2 rows. -->
     <string name="add_sheet_title">Ce adaugi?</string>

@@ -228,6 +228,18 @@
     <string name="nav_you_tab">YOU</string>
     <string name="nav_fab_add_content_description">Add new</string>
 
+    <!-- Phase 17: Discover screen and bottom-nav slot 2 (D-41) -->
+    <string name="nav_discover_tab">DISCOVER</string>
+    <string name="discover_search_placeholder">Search for any product...</string>
+    <string name="discover_section_web">FROM THE WEB</string>
+    <string name="discover_section_community">FROM THE COMMUNITY</string>
+    <string name="discover_empty_search">No matches found. Try a different search.</string>
+    <string name="discover_empty_popular">Popular items will appear here once people add gifts.</string>
+    <string name="discover_error_load">Could not load. Try again.</string>
+    <string name="discover_error_search">Search failed. Try again.</string>
+    <string name="discover_retry">Retry</string>
+    <string name="discover_no_browser_toast">Could not open browser</string>
+
     <!-- Phase 9 Add-action sheet (CHROME-03) -->
     <!-- quick-260428-iny: trimmed from 4 rows to 2 rows. The deprecated keys
          add_sheet_item_url(_sub) and add_sheet_add_manually(_sub) were removed
