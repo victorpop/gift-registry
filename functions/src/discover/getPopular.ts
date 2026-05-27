@@ -29,6 +29,21 @@ interface PopularProduct {
   price: number;
   currency: string;
   retailer_url: string;
+  retailer_name: string;
+}
+
+/**
+ * Derive a human-readable retailer label from a canonical URL.
+ * Strips a leading "www." so the user sees "emag.ro" instead of "www.emag.ro".
+ * Returns "" for malformed URLs — the client treats empty as "do not render".
+ */
+function deriveRetailerName(canonicalUrl: string): string {
+  try {
+    const host = new URL(canonicalUrl).host.toLowerCase();
+    return host.startsWith("www.") ? host.slice(4) : host;
+  } catch {
+    return "";
+  }
 }
 
 interface PopularResponse {
@@ -64,6 +79,7 @@ async function loadFromFirestore(): Promise<PopularResponse> {
       const n = parseFloat(priceRaw);
       if (!isNaN(n)) price = n;
     }
+    const canonicalUrl = typeof data.canonicalUrl === "string" ? data.canonicalUrl : "";
     return {
       id: d.id,
       title: typeof data.title === "string" ? data.title : "",
@@ -71,7 +87,8 @@ async function loadFromFirestore(): Promise<PopularResponse> {
       image_url: typeof data.imageUrl === "string" ? data.imageUrl : "",
       price,
       currency: "RON",
-      retailer_url: typeof data.canonicalUrl === "string" ? data.canonicalUrl : "",
+      retailer_url: canonicalUrl,
+      retailer_name: deriveRetailerName(canonicalUrl),
     };
   });
   return { products };
