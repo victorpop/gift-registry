@@ -2,7 +2,7 @@
 phase: 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini
 plan: 04
 type: execute
-wave: 2
+wave: 3
 depends_on:
   - "17-02"
 files_modified:

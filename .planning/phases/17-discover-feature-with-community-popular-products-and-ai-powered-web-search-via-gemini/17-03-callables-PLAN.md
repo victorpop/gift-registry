@@ -2,7 +2,7 @@
 phase: 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini
 plan: 03
 type: execute
-wave: 2
+wave: 3
 depends_on:
   - "17-02"
 files_modified:
@@ -25,6 +25,7 @@ requirements:
   - D-26
   - D-31
   - D-47
+  - D-48
 
 must_haves:
   truths:
@@ -34,6 +35,7 @@ must_haves:
     - "discoverSearch enforces 20-calls/hour per uid via a Firestore transaction on discoverRateLimits/{uid}"
     - "discoverSearch checks discoverCache before calling Gemini; cache miss writes back results before returning"
     - "discoverSearch returns { products, cached_at } per D-31"
+    - "TTL fields (discoverCache.cachedAt and discoverRateLimits.lastWriteAt) are written as Timestamp.fromDate(new Date(Date.now() + TTL_MS)) — the DEADLINE, not creation time — so Firestore TTL semantics (delete when field_value < now) preserve docs for the full window"
   artifacts:
     - path: "functions/src/discover/getPopular.ts"
       provides: "discoverPopular onCall Callable + module-scope L1 cache"
@@ -67,6 +69,14 @@ must_haves:
       to: "checkAndIncrementRateLimit"
       via: "Firestore transaction on discoverRateLimits/{uid}"
       pattern: "discoverRateLimits"
+    - from: "functions/src/discover/search.ts"
+      to: "discoverCache TTL deadline"
+      via: "Timestamp.fromDate(new Date(Date.now() + CACHE_TTL_MS)) where CACHE_TTL_MS = 30 days"
+      pattern: "Timestamp.fromDate\\(new Date\\(Date.now\\(\\) \\+ CACHE_TTL_MS"
+    - from: "functions/src/discover/rateLimit.ts"
+      to: "discoverRateLimits TTL deadline"
+      via: "Timestamp.fromDate(new Date(Date.now() + RATE_LIMIT_TTL_MS)) where RATE_LIMIT_TTL_MS = 7 days"
+      pattern: "Timestamp.fromDate\\(new Date\\(Date.now\\(\\) \\+ RATE_LIMIT_TTL_MS"
 ---
 
 <objective>
@@ -150,15 +160,17 @@ export const fetchOgMetadata = onCall(
   <name>Task 1: rateLimit.ts + unit tests (transactional 20/hr per uid)</name>
 
   <behavior>
-    - First call for a new uid: writes timestamps=[now], lastWriteAt=now, succeeds
-    - Under-limit call (e.g. 5 prior timestamps within last hour): appends now, succeeds
+    - First call for a new uid: writes timestamps=[now], lastWriteAt = Timestamp.fromDate(new Date(now + 7 days)) (TTL deadline, NOT creation time), succeeds
+    - Under-limit call (e.g. 5 prior timestamps within last hour): appends now, refreshes lastWriteAt deadline, succeeds
     - At-limit call (20 prior timestamps within last hour): throws HttpsError("resource-exhausted", "Rate limit exceeded"); does NOT append
     - Expired timestamps (> 3600000 ms old): filtered out before counting; new call after cleanup succeeds even if pre-filter count was at 20
     - Atomicity: read + filter + check + write happen in a single Firestore transaction to prevent races between concurrent calls
+    - D-45 TTL semantics: `lastWriteAt` is written as the DEADLINE (now + 7 days), not as serverTimestamp() — Firestore TTL deletes docs when field_value < now, so writing now would mark the doc eligible immediately
   </behavior>
 
   <read_first>
-    - .planning/phases/17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini/17-CONTEXT.md (decision D-13 verbatim — 20/1 hr, timestamps array, atomic transaction)
+    - .planning/phases/17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini/17-CONTEXT.md (decisions D-13 verbatim — 20/1 hr, timestamps array, atomic transaction; D-14 + D-45 — 7-day TTL on lastWriteAt)
+    - Firestore TTL semantics reference: https://firebase.google.com/docs/firestore/ttl — "Documents whose [TTL field] value is in the past are considered expired and eligible for deletion." THIS MEANS the writer must store `now + TTL_DURATION`, NOT serverTimestamp().
     - functions/src/reservation/createReservation.ts (existing Firestore transaction pattern — db.runTransaction((tx) => …))
     - functions/src/__tests__/discover/urlNormalization.test.ts (existing test file pattern for the new functions/__tests__/discover folder)
     - functions/src/__tests__/createReservation.test.ts (existing transaction test pattern — uses firebase-functions-test + jest.mock for Firestore)
@@ -176,10 +188,11 @@ export const fetchOgMetadata = onCall(
     ```typescript
     import { HttpsError } from "firebase-functions/v2/https";
     import type { Firestore } from "firebase-admin/firestore";
-    import { FieldValue } from "firebase-admin/firestore";
+    import { Timestamp } from "firebase-admin/firestore";
 
-    const WINDOW_MS = 60 * 60 * 1000;       // 1 hour rolling window
-    const MAX_CALLS = 20;                   // D-13 verbatim limit
+    const WINDOW_MS = 60 * 60 * 1000;                   // 1 hour rolling window
+    const MAX_CALLS = 20;                               // D-13 verbatim limit
+    const RATE_LIMIT_TTL_MS = 7 * 24 * 60 * 60 * 1000;  // D-14: 7-day TTL on abandoned counters
 
     /**
      * Phase 17 D-13: per-uid rolling-window rate limit for discoverSearch.
@@ -188,8 +201,11 @@ export const fetchOgMetadata = onCall(
      *   { timestamps: number[], lastWriteAt: Timestamp }
      *
      * `timestamps` holds epoch-ms call markers from within the last hour.
-     * `lastWriteAt` is a Firestore Timestamp used by the 7-day TTL policy
-     * (D-14) to garbage-collect abandoned counters.
+     * `lastWriteAt` is the Firestore TTL DEADLINE — stored as `now + 7 days`
+     * because Firestore TTL semantics delete a doc when the field's value is
+     * less than current time. Writing `serverTimestamp()` would make the doc
+     * eligible for deletion immediately (next TTL sweep, ~24h). We must store
+     * the deadline so the doc survives until 7 days after the last write.
      *
      * Implementation note: read + filter + check + write happen inside
      * `db.runTransaction` to prevent two concurrent calls from both passing
@@ -212,9 +228,12 @@ export const fetchOgMetadata = onCall(
         }
 
         const nextList = [...priorList, now];
+        // D-14 + D-45 TTL semantics: lastWriteAt must be the DEADLINE, not now.
+        // Firestore TTL deletes when field_value < current_time, so we store
+        // `now + 7 days` to ensure the counter survives the full 7-day window.
         tx.set(ref, {
           timestamps: nextList,
-          lastWriteAt: FieldValue.serverTimestamp(),
+          lastWriteAt: Timestamp.fromDate(new Date(Date.now() + RATE_LIMIT_TTL_MS)),
         });
       });
     }
@@ -309,6 +328,10 @@ export const fetchOgMetadata = onCall(
       grep -q "resource-exhausted" functions/src/discover/rateLimit.ts
       grep -q "runTransaction" functions/src/discover/rateLimit.ts
       grep -q "60 \\* 60 \\* 1000\\|3600000" functions/src/discover/rateLimit.ts
+      # D-45 TTL semantics: lastWriteAt must be the deadline (now + 7d), not serverTimestamp()
+      grep -q "Timestamp.fromDate(new Date(Date.now()" functions/src/discover/rateLimit.ts
+      grep -q "RATE_LIMIT_TTL_MS\\|7 \\* 24 \\* 60 \\* 60 \\* 1000" functions/src/discover/rateLimit.ts
+      ! grep -q "lastWriteAt: FieldValue.serverTimestamp" functions/src/discover/rateLimit.ts
       cd functions && npm test -- --testPathPattern=discover/rateLimit --silent 2>&1 | tail -20
       npm run build 2>&1 | tail -5
       echo OK
@@ -317,7 +340,7 @@ export const fetchOgMetadata = onCall(
   </verify>
 
   <done>
-    `rateLimit.ts` exports `checkAndIncrementRateLimit(db, uid)` using `db.runTransaction`. Window is 60 * 60 * 1000 ms; limit is 20. All 5 unit test cases pass. `npm run build` succeeds.
+    `rateLimit.ts` exports `checkAndIncrementRateLimit(db, uid)` using `db.runTransaction`. Window is 60 * 60 * 1000 ms; limit is 20. `lastWriteAt` is written as `Timestamp.fromDate(new Date(Date.now() + RATE_LIMIT_TTL_MS))` (the 7-day TTL deadline per D-45 semantics) — NOT `FieldValue.serverTimestamp()`. All 5 unit test cases pass. `npm run build` succeeds.
   </done>
 </task>
 
@@ -325,8 +348,9 @@ export const fetchOgMetadata = onCall(
   <name>Task 2: discoverPopular Callable (with L1 in-memory cache) + discoverSearch Callable (rate-limit + cache + Gemini orchestration) + index.ts exports</name>
 
   <read_first>
-    - .planning/phases/17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini/17-CONTEXT.md (decisions D-10, D-11, D-12, D-15, D-20, D-21, D-23, D-25, D-26, D-31, D-47 verbatim)
-    - functions/src/discover/rateLimit.ts (Task 1 — consumed by search.ts)
+    - .planning/phases/17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini/17-CONTEXT.md (decisions D-10, D-11, D-12, D-15, D-20, D-21, D-23, D-25, D-26, D-31, D-47 verbatim; D-45 — 30-day TTL on discoverCache.cachedAt)
+    - Firestore TTL semantics reference: https://firebase.google.com/docs/firestore/ttl — TTL deletes when field_value < now, so cachedAt must be the DEADLINE (now + 30 days), not creation time.
+    - functions/src/discover/rateLimit.ts (Task 1 — consumed by search.ts; pattern: Timestamp.fromDate(new Date(Date.now() + RATE_LIMIT_TTL_MS)) for lastWriteAt deadline)
     - functions/src/discover/secrets.ts (plan 17-02 — GEMINI_API_KEY)
     - functions/src/discover/cacheKey.ts (plan 17-02)
     - functions/src/discover/parseGeminiResponse.ts (plan 17-02)
@@ -439,7 +463,7 @@ export const fetchOgMetadata = onCall(
     ```typescript
     import { onCall, HttpsError, CallableRequest } from "firebase-functions/v2/https";
     import * as admin from "firebase-admin";
-    import { FieldValue, Timestamp } from "firebase-admin/firestore";
+    import { Timestamp } from "firebase-admin/firestore";
     import { GEMINI_API_KEY } from "./secrets";
     import { normalizeCacheKey } from "./cacheKey";
     import { selectSitesForQuery } from "./retailers";
@@ -447,6 +471,11 @@ export const fetchOgMetadata = onCall(
     import { callGemini } from "./geminiClient";
     import { parseGeminiResponse, DiscoverProduct } from "./parseGeminiResponse";
     import { checkAndIncrementRateLimit } from "./rateLimit";
+
+    // D-45 TTL semantics: cachedAt is stored as the DEADLINE (now + 30 days), NOT creation time.
+    // Firestore TTL deletes a doc when field_value < current_time; storing `now`
+    // would mark the doc eligible for deletion immediately on the next TTL sweep.
+    const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;  // 30 days
 
     interface SearchRequest { query?: unknown }
     interface SearchResponse {
@@ -486,10 +515,16 @@ export const fetchOgMetadata = onCall(
       const cacheSnap = await cacheRef.get();
       if (cacheSnap.exists) {
         const data = cacheSnap.data()!;
-        const cachedAt = data.cachedAt as Timestamp | undefined;
+        // D-31 client-facing cached_at = creation time. Since cachedAt is stored
+        // as the DEADLINE (now + 30 d) per D-45 TTL semantics, recover the
+        // creation time by subtracting CACHE_TTL_MS from the deadline.
+        const cachedAtDeadline = data.cachedAt as Timestamp | undefined;
+        const cachedAtCreation = cachedAtDeadline
+          ? new Date(cachedAtDeadline.toDate().getTime() - CACHE_TTL_MS)
+          : new Date();
         return {
           products: (data.results as DiscoverProduct[]) ?? [],
-          cached_at: cachedAt ? cachedAt.toDate().toISOString() : new Date().toISOString(),
+          cached_at: cachedAtCreation.toISOString(),
         };
       }
 
@@ -511,11 +546,14 @@ export const fetchOgMetadata = onCall(
       // Per Claude's Discretion ("only cache successful non-empty results") — skip empty results write
       const now = new Date();
       if (products.length > 0) {
+        // D-45 TTL semantics: cachedAt must be the DEADLINE (now + 30 days), not creation time.
+        // Firestore TTL deletes when field_value < current_time — writing
+        // serverTimestamp() would make every cache doc eligible immediately.
         await cacheRef.set({
           query,
           normalizedQuery: cacheKey,
           results: products,
-          cachedAt: FieldValue.serverTimestamp(),
+          cachedAt: Timestamp.fromDate(new Date(Date.now() + CACHE_TTL_MS)),
         });
       }
 
@@ -556,6 +594,10 @@ export const fetchOgMetadata = onCall(
       grep -q "checkAndIncrementRateLimit" functions/src/discover/search.ts
       grep -q "secrets:.*GEMINI_API_KEY" functions/src/discover/search.ts
       grep -q "discoverCache" functions/src/discover/search.ts
+      # D-45 TTL semantics: cachedAt must be the deadline (now + 30d), not serverTimestamp()
+      grep -q "Timestamp.fromDate(new Date(Date.now()" functions/src/discover/search.ts
+      grep -q "CACHE_TTL_MS\\|30 \\* 24 \\* 60 \\* 60 \\* 1000" functions/src/discover/search.ts
+      ! grep -q "cachedAt: FieldValue.serverTimestamp" functions/src/discover/search.ts
       grep -q "europe-west3" functions/src/discover/getPopular.ts
       grep -q "europe-west3" functions/src/discover/search.ts
       grep -q "export { discoverPopular } from \"./discover/getPopular\"" functions/src/index.ts
@@ -568,7 +610,7 @@ export const fetchOgMetadata = onCall(
   </verify>
 
   <done>
-    `discoverPopular` Callable queries popularItems ordered by (registryCount desc, updatedAt desc) with limit(20), uses module-scope L1 cache with 1-hour TTL, rejects unauthenticated + anonymous. `discoverSearch` Callable validates query (1–200 chars), enforces rate limit via transactional checkAndIncrementRateLimit, reads discoverCache before Gemini, calls Gemini with `[GEMINI_API_KEY]` secret, defensively parses response, writes back to cache on non-empty result. Both exported from `functions/src/index.ts`. `npm run build` clean, all discover tests pass.
+    `discoverPopular` Callable queries popularItems ordered by (registryCount desc, updatedAt desc) with limit(20), uses module-scope L1 cache with 1-hour TTL, rejects unauthenticated + anonymous. `discoverSearch` Callable validates query (1–200 chars), enforces rate limit via transactional checkAndIncrementRateLimit, reads discoverCache before Gemini, calls Gemini with `[GEMINI_API_KEY]` secret, defensively parses response, writes back to cache on non-empty result. `cachedAt` is written as `Timestamp.fromDate(new Date(Date.now() + CACHE_TTL_MS))` (the 30-day TTL deadline per D-45 semantics) — NOT `FieldValue.serverTimestamp()`. Both exported from `functions/src/index.ts`. `npm run build` clean, all discover tests pass.
   </done>
 </task>
 

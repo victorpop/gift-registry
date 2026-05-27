@@ -2,8 +2,9 @@
 phase: 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini
 plan: 02
 type: execute
-wave: 1
-depends_on: []
+wave: 2
+depends_on:
+  - "17-01"
 files_modified:
   - functions/src/discover/urlNormalization.ts
   - functions/src/discover/retailers.ts
@@ -31,6 +32,8 @@ requirements:
   - D-30
   - D-43
   - D-45
+  - D-46
+  - D-48
 
 must_haves:
   truths:
@@ -850,7 +853,7 @@ After both tasks:
 </success_criteria>
 
 <output>
-After completion, create `.planning/phases/17-discover-feature-with-community-popular-products-and-ai-powered-web-search-java-gemini/17-02-SUMMARY.md` documenting:
+After completion, create `.planning/phases/17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini/17-02-SUMMARY.md` documenting:
 - The exact TRACKING_PARAMS list used in urlNormalization (D-16 verbatim).
 - The exact RETAILERS arrays committed (D-28 verbatim — confirm match to spec).
 - The TTL gcloud commands intended for plan 17-06 deploy (D-45):

@@ -2,7 +2,7 @@
 phase: 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini
 plan: 06
 type: execute
-wave: 4
+wave: 5
 depends_on:
   - "17-01"
   - "17-02"
@@ -36,7 +36,7 @@ must_haves:
     - "config/stores Firestore doc deleted via deleteConfigStores.ts (or confirmed absent)"
     - "popularItems collection backfilled BEFORE triggers deployed (D-22 ordering)"
     - "firestore.rules + firestore.indexes.json + all Phase 17 functions deployed to europe-west3"
-    - "TTL policies configured for discoverCache.cachedAt (30 d) and discoverRateLimits.lastWriteAt (7 d) via gcloud"
+    - "TTL policies configured for discoverCache.cachedAt (30 d) and discoverRateLimits.lastWriteAt (7 d) via gcloud; writer code (locked in plan 17-03) stores deadline values (now + TTL_MS) so docs survive the full window"
     - "On-device UAT confirms Discover tab opens, search returns results, popular section loads, card tap launches browser, ActivityNotFoundException fallback shows Snackbar"
   artifacts:
     - path: ".planning/phases/17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini/17-06-UAT-RESULTS.md"
@@ -270,6 +270,8 @@ Output: A populated 17-06-UAT-RESULTS.md file with PASS/FAIL/NOTES per scenario,
   <action>
     Configure Firestore TTL policies for the two new server-only collections. Per D-14 + D-45.
 
+    **TTL semantics confirmation:** Firestore TTL deletes a doc when the TTL field's value < current time. Plan 17-03 already writes both TTL fields as DEADLINES (not creation times) via the `Timestamp.fromDate(new Date(Date.now() + TTL_MS))` pattern — `cachedAt` = now + 30 days, `lastWriteAt` = now + 7 days. So enabling TTL on these fields is now safe and the policies deliver the intended 30-day cache / 7-day rate-limit windows.
+
     **1. discoverCache.cachedAt — 30-day TTL:**
     ```bash
     gcloud firestore fields ttls update cachedAt --collection-group=discoverCache --enable-ttl --project=gift-registry-ro
@@ -289,15 +291,7 @@ Output: A populated 17-06-UAT-RESULTS.md file with PASS/FAIL/NOTES per scenario,
     gcloud firestore fields ttls list --project=gift-registry-ro 2>&1 | grep -A2 "discoverRateLimits"
     ```
 
-    **Note on TTL day count:** Firestore TTL deletes docs ~24 hours AFTER the TTL field's timestamp passes the "deletion eligible" mark. Effective freshness is the TTL field timestamp itself + 24 h grace. For cache: a doc written 30 days ago is eligible; gets deleted within 24 h after. For rate limits: 7-day TTL ensures abandoned counters auto-clean. The TTL field's "duration" is implicit in how the writers set the timestamp — the field value IS the TTL deadline. (Firestore TTL semantics: TTL field value < current time → eligible for deletion. We write `cachedAt` = current time, so the doc becomes eligible 0 seconds later, which is wrong.)
-
-    **Correction needed if Firestore TTL is "delete when field value < now":** We need the writer to set `cachedAt` to `now + 30 days` for that semantics, or use a separate `expiresAt` field set to `now + 30 days`. Re-read Firestore TTL docs and the writer code (search.ts) before enabling — if writer sets `cachedAt = serverTimestamp()` (current time), TTL with that field = immediate eligibility, which would delete every cache doc the moment it's written.
-
-    **Concrete adjustment:** If the test reveals immediate deletion, either:
-    (a) modify `search.ts` to write `cachedAt: Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000))` (the deadline), keeping the field name; OR
-    (b) add a separate `expiresAt` field and enable TTL on that.
-
-    Document the chosen approach in the UAT-RESULTS file. If (a) is needed, this becomes a follow-up fix to plan 17-03's search.ts — surface as a checkpoint to the user before completing this plan.
+    **Note on Firestore TTL operational behavior:** Eligibility is determined by field_value < current_time; actual deletion happens within ~24 hours after eligibility (TTL sweep is asynchronous). For cache: a doc with cachedAt 30 days in the future stays put for the full 30 days, becomes eligible at the deadline, and is deleted within 24 h after. For rate limits: same 7-day pattern. No writer-side fix is needed here — plan 17-03 locks the deadline-writer pattern (Timestamp.fromDate(new Date(Date.now() + TTL_MS))) into both search.ts and rateLimit.ts; verify the deployed functions match by grepping the source files (Task 3 deploy is a no-op if those files don't contain the deadline pattern, since plan 17-03 acceptance gates on it).
   </action>
 
   <verify>

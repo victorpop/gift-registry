@@ -351,8 +351,8 @@ Plans:
 
 Plans:
 - [ ] 17-01-stores-decommission-PLAN.md — Wave 1: delete Stores Android code/drawables/strings + AddItemScreen 3-tab→2-tab collapse + firestore.rules config/{configId} removal + deleteConfigStores.ts (retain nav_stores_tab for 17-05 swap)
-- [ ] 17-02-backend-foundations-PLAN.md — Wave 1: pure backend modules (urlNormalization + retailers + promptTemplate + parseGeminiResponse + cacheKey + geminiClient + secrets) + firestore.rules popularItems/discoverCache/discoverRateLimits + composite index + unit tests for D-48
-- [ ] 17-03-callables-PLAN.md — Wave 2: discoverPopular Callable (L1 cache) + discoverSearch Callable (rate-limit + Firestore cache + Gemini) + rateLimit.ts + tests + index.ts exports
-- [ ] 17-04-triggers-and-backfill-PLAN.md — Wave 2: onItemCreatePopular / onItemDeletePopular / onItemUpdatePopular Firestore triggers + handleItem* testable handlers + backfillPopularItems.ts one-shot script
-- [ ] 17-05-android-discover-PLAN.md — Wave 3: domain/data/di/ui layers (DiscoverRepository + Impl + Module + ViewModel + UiState + Screen + ProductCard + Shimmer + placeholder drawable) + 10 discover_* strings × 2 locales + nav rewire (DiscoverKey, slot-2 swap) + StyleGuidePreview + unit tests
-- [ ] 17-06-deploy-and-uat-PLAN.md — Wave 4: set GEMINI_API_KEY secret + delete config/stores doc + run backfill + deploy rules/indexes/functions + configure TTL policies + 14-scenario on-device UAT (human checkpoint)
+- [ ] 17-02-backend-foundations-PLAN.md — Wave 2: pure backend modules (urlNormalization + retailers + promptTemplate + parseGeminiResponse + cacheKey + geminiClient + secrets) + firestore.rules popularItems/discoverCache/discoverRateLimits + composite index + unit tests for D-48
+- [ ] 17-03-callables-PLAN.md — Wave 3: discoverPopular Callable (L1 cache) + discoverSearch Callable (rate-limit + Firestore cache + Gemini) + rateLimit.ts + tests + index.ts exports
+- [ ] 17-04-triggers-and-backfill-PLAN.md — Wave 3: onItemCreatePopular / onItemDeletePopular / onItemUpdatePopular Firestore triggers + handleItem* testable handlers + backfillPopularItems.ts one-shot script
+- [ ] 17-05-android-discover-PLAN.md — Wave 4: domain/data/di/ui layers (DiscoverRepository + Impl + Module + ViewModel + UiState + Screen + ProductCard + Shimmer + placeholder drawable) + 10 discover_* strings × 2 locales + nav rewire (DiscoverKey, slot-2 swap) + StyleGuidePreview + unit tests
+- [ ] 17-06-deploy-and-uat-PLAN.md — Wave 5: set GEMINI_API_KEY secret + delete config/stores doc + run backfill + deploy rules/indexes/functions + configure TTL policies + 14-scenario on-device UAT (human checkpoint)

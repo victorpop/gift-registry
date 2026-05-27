@@ -49,6 +49,7 @@ requirements:
   - D-07
   - D-08
   - D-09
+  - D-42
   - D-44
 
 must_haves:

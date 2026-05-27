@@ -2,7 +2,7 @@
 phase: 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini
 plan: 05
 type: execute
-wave: 3
+wave: 4
 depends_on:
   - "17-01"
   - "17-03"
@@ -40,6 +40,7 @@ requirements:
   - D-39
   - D-40
   - D-41
+  - D-42
   - D-49
   - D-50
   - D-51
