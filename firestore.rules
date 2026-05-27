@@ -118,5 +118,29 @@ service cloud.firestore {
     // the Stores capability was decommissioned and the only document under
     // that path (config/stores) is removed during the Plan 17-06 deploy via
     // functions/scripts/deleteConfigStores.ts.
+
+    // Phase 17 D-43: popularItems — global community popularity counter docs.
+    // Maintained by Cloud Functions triggers (Admin SDK bypasses rules).
+    // Reads allowed for any authenticated NON-anonymous user.
+    // Anonymous web-fallback guests (Phase 5) are excluded — Discover is
+    // for registered users only per D-12.
+    match /popularItems/{productId} {
+      allow read: if request.auth != null
+                  && request.auth.token.firebase.sign_in_provider != "anonymous";
+      allow write: if false;
+    }
+
+    // Phase 17 D-43: discoverCache — server-only cache for Gemini search
+    // results. No client read or write — Cloud Functions Admin SDK only.
+    match /discoverCache/{normalizedQuery} {
+      allow read, write: if false;
+    }
+
+    // Phase 17 D-43: discoverRateLimits — server-only per-user rate-limit
+    // counters for discoverSearch. No client read or write — prevents
+    // client-side tampering of the call timestamp array.
+    match /discoverRateLimits/{uid} {
+      allow read, write: if false;
+    }
   }
 }

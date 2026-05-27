@@ -44,6 +44,14 @@
         { "fieldPath": "type", "order": "ASCENDING" },
         { "fieldPath": "payload.registryId", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "popularItems",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "registryCount", "order": "DESCENDING" },
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

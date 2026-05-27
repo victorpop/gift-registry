@@ -538,3 +538,107 @@ describe("pendingInvitedUsers read scope (D-18)", () => {
     await assertSucceeds(getDoc(doc(acceptedDb, "registries", "reg-accepted")));
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// describe("popularItems rules — Phase 17 D-43")
+//
+// popularItems is server-maintained (Admin SDK bypasses rules in the
+// onItemCreate/Delete/Update triggers — Plan 17-04). Clients can ONLY read,
+// and only when authenticated via a NON-anonymous provider. Anonymous
+// web-fallback guests (Phase 5) are excluded per D-12 (Discover is for
+// registered users only).
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("popularItems rules (D-43)", () => {
+  beforeEach(async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "popularItems", "p1"), {
+        canonicalUrl: "https://emag.ro/x",
+        title: "Item",
+        registryCount: 3,
+        registryIds: ["r1", "r2", "r3"],
+      });
+    });
+  });
+
+  it("allows authenticated non-anonymous read", async () => {
+    const db = testEnv.authenticatedContext("user1").firestore();
+    await assertSucceeds(getDoc(doc(db, "popularItems", "p1")));
+  });
+
+  it("denies unauthenticated read", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(getDoc(doc(db, "popularItems", "p1")));
+  });
+
+  it("denies anonymous-provider read", async () => {
+    const db = testEnv
+      .authenticatedContext("anon-user", {
+        firebase: { sign_in_provider: "anonymous" },
+      })
+      .firestore();
+    await assertFails(getDoc(doc(db, "popularItems", "p1")));
+  });
+
+  it("denies all client writes (even authenticated)", async () => {
+    const db = testEnv.authenticatedContext("user1").firestore();
+    await assertFails(setDoc(doc(db, "popularItems", "p1"), { registryCount: 999 }));
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// describe("discoverCache rules — Phase 17 D-43")
+//
+// Server-only cache (Cloud Functions Admin SDK). No client read or write.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("discoverCache rules (D-43)", () => {
+  it("denies authenticated read", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "discoverCache", "q1"), { results: [] });
+    });
+    const db = testEnv.authenticatedContext("user1").firestore();
+    await assertFails(getDoc(doc(db, "discoverCache", "q1")));
+  });
+
+  it("denies authenticated write", async () => {
+    const db = testEnv.authenticatedContext("user1").firestore();
+    await assertFails(setDoc(doc(db, "discoverCache", "q1"), { results: [] }));
+  });
+
+  it("denies unauthenticated read + write", async () => {
+    const db = testEnv.unauthenticatedContext().firestore();
+    await assertFails(getDoc(doc(db, "discoverCache", "q1")));
+    await assertFails(setDoc(doc(db, "discoverCache", "q1"), { results: [] }));
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// describe("discoverRateLimits rules — Phase 17 D-43")
+//
+// Server-only counter (Cloud Functions Admin SDK). Even self-reads are denied
+// to prevent any client from enumerating the timestamps array (anti-tamper).
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("discoverRateLimits rules (D-43)", () => {
+  it("denies authenticated self read (prevents tampering enumeration)", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "discoverRateLimits", "u1"), { timestamps: [] });
+    });
+    const db = testEnv.authenticatedContext("u1").firestore();
+    await assertFails(getDoc(doc(db, "discoverRateLimits", "u1")));
+  });
+
+  it("denies authenticated self write", async () => {
+    const db = testEnv.authenticatedContext("u1").firestore();
+    await assertFails(setDoc(doc(db, "discoverRateLimits", "u1"), { timestamps: [] }));
+  });
+
+  it("denies cross-user read attempt", async () => {
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(doc(ctx.firestore(), "discoverRateLimits", "u2"), { timestamps: [] });
+    });
+    const db = testEnv.authenticatedContext("attacker").firestore();
+    await assertFails(getDoc(doc(db, "discoverRateLimits", "u2")));
+  });
+});
