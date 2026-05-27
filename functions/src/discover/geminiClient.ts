@@ -37,8 +37,12 @@ export async function callGemini(prompt: BuiltPrompt, apiKey: string): Promise<s
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
-    // 20s — google_search grounding can be slow on long-tail queries.
-    signal: AbortSignal.timeout(20000),
+    // 60s — google_search grounding with broad retailer fallback can issue
+    // multiple search rounds before composing the response, especially when
+    // the prompt asks the model to expand beyond the prioritized retailer
+    // list. Outer Cloud Function timeout is 90s, leaving headroom for OG
+    // enrichment.
+    signal: AbortSignal.timeout(60000),
   });
 
   if (!response.ok) {
