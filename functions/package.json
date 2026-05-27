@@ -10,7 +10,8 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "test": "jest --passWithNoTests",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "backfill:popular": "ts-node scripts/backfillPopularItems.ts"
   },
   "engines": {
     "node": "22"
