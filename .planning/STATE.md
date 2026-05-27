@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 17-02-backend-foundations-PLAN.md
-last_updated: "2026-05-27T14:41:37.509Z"
+stopped_at: Completed 17-03-callables-PLAN.md
+last_updated: "2026-05-27T14:49:21.059Z"
 last_activity: 2026-05-27
 progress:
   total_phases: 17
   completed_phases: 15
   total_plans: 90
-  completed_plans: 81
+  completed_plans: 82
   percent: 100
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 ## Current Position
 
 Phase: 17 (discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-05-27
 
@@ -173,6 +173,7 @@ NOT mark Phase 14 complete in ROADMAP until verifier passes — only Plan
 | Phase 16-android-notifications-inbox-invite-accept-decline P05 | 7min | 3 tasks | 4 files |
 | Phase 17 P01 | 12min | 3 tasks | 13 files |
 | Phase 17 P02 | 4min | 2 tasks | 15 files |
+| Phase 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini P03 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -404,6 +405,9 @@ Recent decisions affecting current work:
 - [Phase 17]: Two-phase nav slot rotation pattern: Plan 17-01 empties slot 2 (deletes Stores keys, leaves onStores callback as empty no-op stub); Plan 17-05 wires Discover + deletes the surviving nav_stores_tab string in the same commit as the GiftMaisonBottomNav rename. Avoids broken-build window.
 - [Phase 17]: geminiClient.ts intentionally NOT unit-tested per D-50 precedent — pure-function tests cover the parse/normalize contracts; network call verified end-to-end via Plan 17-06 smoke.
 - [Phase 17]: cacheKey extracted to its own file (functions/src/discover/cacheKey.ts) rather than inline in search.ts — keeps the rate-limit/cache key derivation independently testable + reusable from triggers.
+- [Phase 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini]: TTL-deadline write pattern: every TTL-managed Firestore field stores (now + TTL_MS) so the doc survives the full window; never use serverTimestamp() on TTL fields
+- [Phase 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini]: Callable handler split pattern: export both xHandler(request) (testable) and x = onCall(opts, xHandler) (deploy artifact) — enables unit tests without full onCall wiring
+- [Phase 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini]: discoverPopular L1 cache (module-scope, 1h TTL) means new popularItems writes from triggers (plan 17-04) will not surface for up to 1h on warm Function instances — acceptable per D-21
 
 ### Pending Todos
 
@@ -486,7 +490,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-27T14:41:37.502Z
-Stopped at: Completed 17-02-backend-foundations-PLAN.md
+Last session: 2026-05-27T14:49:10.896Z
+Stopped at: Completed 17-03-callables-PLAN.md
 Resume file: None
 Next action: v1.1 milestone is functionally complete (15/16 phases done; Phase 15 deliberately parked). Recommended next steps: (a) /gsd:audit-milestone to formally close v1.1, OR (b) /gsd:execute-phase 15 to unpark Phase 15 (requires Identity Platform upgrade), OR (c) /gsd:check-todos to review the 5 pending follow-ups (incl. Task #10 Huawei sign-in todo, Task #12 -Puse_emulator=false doc, Task #15 foreground push polish, Task #16 sheet visual polish, retrofitting App Check on inviteToRegistry).
