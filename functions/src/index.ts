@@ -22,6 +22,13 @@ export { confirmPurchase } from "./reservation/confirmPurchase";
 export { onPurchaseNotification } from "./notifications/onPurchaseNotification";
 export { acceptInvite } from "./registry/acceptInvite";
 export { declineInvite } from "./registry/declineInvite";
+export { discoverPopular } from "./discover/getPopular";
+export { discoverSearch } from "./discover/search";
+export {
+  onItemCreatePopular,
+  onItemDeletePopular,
+  onItemUpdatePopular,
+} from "./discover/triggers";
 
 // Dev-only listener: logs rendered mail docs to console in emulator (D-08).
 // In production, the Trigger Email extension consumes mail/ docs instead.
