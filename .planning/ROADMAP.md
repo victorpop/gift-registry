@@ -345,9 +345,10 @@ Plans:
 ### Phase 17: Discover feature with community popular products and AI-powered web search via Gemini
 
 **Goal:** Ship the Discover bottom-nav surface (Android Compose) with two product-discovery sections (community-popular + Gemini-powered web search), backed by Cloud Functions Callables + Firestore triggers + a 30-day query cache, and fully decommission the Phase 7 Stores capability in the same phase.
+**Search v2 re-scope (2026-05-28):** UAT-6 proved Gemini google_search grounding hallucinates product titles onto real product IDs. The search path is re-architected (plans 17-07/08) so Gemini does intent + query generation only and Google Custom Search JSON API provides real products. See 17-SEARCH-V2-SPEC.md.
 **Requirements**: D-01..D-51 (CONTEXT.md decisions — Phase 17 has no formal REQ-IDs in REQUIREMENTS.md; the 51 decisions constitute the requirement set)
 **Depends on:** Phase 16
-**Plans:** 5/6 plans executed
+**Plans:** 6/8 plans (17-01..05 executed; 17-06 superseded by the Search v2 re-scope; 17-07 + 17-08 plan the search re-scope)
 
 Plans:
 - [x] 17-01-stores-decommission-PLAN.md — Wave 1: delete Stores Android code/drawables/strings + AddItemScreen 3-tab→2-tab collapse + firestore.rules config/{configId} removal + deleteConfigStores.ts (retain nav_stores_tab for 17-05 swap)
@@ -356,3 +357,5 @@ Plans:
 - [x] 17-04-triggers-and-backfill-PLAN.md — Wave 3: onItemCreatePopular / onItemDeletePopular / onItemUpdatePopular Firestore triggers + handleItem* testable handlers + backfillPopularItems.ts one-shot script
 - [x] 17-05-android-discover-PLAN.md — Wave 4: domain/data/di/ui layers (DiscoverRepository + Impl + Module + ViewModel + UiState + Screen + ProductCard + Shimmer + placeholder drawable) + 10 discover_* strings × 2 locales + nav rewire (DiscoverKey, slot-2 swap) + StyleGuidePreview + unit tests
 - [ ] 17-06-deploy-and-uat-PLAN.md — Wave 5: set GEMINI_API_KEY secret + delete config/stores doc + run backfill + deploy rules/indexes/functions + configure TTL policies + 14-scenario on-device UAT (human checkpoint)
+- [ ] 17-07-backend-search-rescope-PLAN.md — Wave 6 (TDD): SEARCH v2 re-scope. CSE-access GATE (human checkpoint) → Wave-0 tests → Gemini intent extraction (JSON mode, no google_search grounding) + cseClient + cseNormalizer + re-architected discoverSearch (intent → CSE fan-out ≤3 → normalize → de-dupe → cache) + delete enrichImages.ts + new CSE_API_KEY/CSE_ENGINE_ID secrets + deploy. Replaces UAT-6 hallucination path; community-popular path untouched.
+- [ ] 17-08-android-price-guard-reuat-PLAN.md — Wave 7: confirm DiscoverProductCard price>0 guard (zero other Android changes — backend contract unchanged) + build/install + on-device re-UAT (human checkpoint) re-validating the UAT-6 driver + new search-v2 scenarios. Gates Phase 17 verification.
