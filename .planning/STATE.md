@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 17-07-backend-search-rescope-PLAN.md
-last_updated: "2026-05-28T21:22:00.748Z"
-last_activity: 2026-05-28
+stopped_at: "17-08 checkpoint:human-verify — awaiting on-device re-UAT (Task 3)"
+last_updated: "2026-05-29T00:00:00Z"
+last_activity: 2026-05-29
 progress:
   total_phases: 17
   completed_phases: 15
