@@ -3,15 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: Completed 17-05-android-discover-PLAN.md
-last_updated: "2026-05-27T15:06:40.264Z"
-last_activity: 2026-05-27
+stopped_at: Completed 17-07-backend-search-rescope-PLAN.md
+last_updated: "2026-05-28T21:22:00.748Z"
+last_activity: 2026-05-28
 progress:
   total_phases: 17
   completed_phases: 15
-  total_plans: 90
-  completed_plans: 84
-  percent: 100
+  total_plans: 92
+  completed_plans: 85
 ---
 
 # Project State
@@ -25,9 +24,9 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 
 ## Current Position
 
-Phase: 17 (discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini) — SEARCH RE-SCOPE PENDING
-Plan: 6 of 6 executed; 17-06 UAT PAUSED mid-flow
-Status: Re-planning the search path (Discover Search v2)
+Phase: 17 (discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini) — EXECUTING
+Plan: 2 of 8
+Status: Ready to execute
 Last activity: 2026-05-28
 
 Progress: [█████████░] community-popular path shipped + working; search path being re-architected.
@@ -195,6 +194,7 @@ NOT mark Phase 14 complete in ROADMAP until verifier passes — only Plan
 | Phase 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini P03 | 3min | 2 tasks | 4 files |
 | Phase 17-discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini P04 | 4min | 2 tasks | 5 files |
 | Phase 17 P05 | 11min | 4 tasks | 19 files |
+| Phase 17 P07 | 38min | 4 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -435,6 +435,9 @@ Recent decisions affecting current work:
 - [Phase 17]: Reuse AppModule.provideFirebaseFunctions (europe-west3) for Discover repository — no per-feature region override.
 - [Phase 17]: Coil 3 (coil3.compose.AsyncImage) namespace used app-wide; placeholder drawable uses aapt:attr gradient inside vector (minSdk 23 ok).
 - [Phase 17]: Lock-step nav slot rotation completed: GiftMaisonBottomNav slot 2 renamed (Stores→Discover) and nav_stores_tab deleted in same commit.
+- [Phase 17]: 17-07: Serper.dev /shopping chosen as CSE fallback after CSE 403; hostname post-filter in code replaces PSE pre-filter
+- [Phase 17]: 17-07: cseQuery renamed to searchQuery in INTENT_SCHEMA and 3 files for provider-agnosticism
+- [Phase 17]: 17-07: runSearchPipeline exported with injectable PipelineDeps to enable unit-testing without Firestore
 
 ### Pending Todos
 
@@ -517,7 +520,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-27T15:06:29.605Z
-Stopped at: Completed 17-05-android-discover-PLAN.md
+Last session: 2026-05-28T21:22:00.741Z
+Stopped at: Completed 17-07-backend-search-rescope-PLAN.md
 Resume file: None
 Next action: v1.1 milestone is functionally complete (15/16 phases done; Phase 15 deliberately parked). Recommended next steps: (a) /gsd:audit-milestone to formally close v1.1, OR (b) /gsd:execute-phase 15 to unpark Phase 15 (requires Identity Platform upgrade), OR (c) /gsd:check-todos to review the 5 pending follow-ups (incl. Task #10 Huawei sign-in todo, Task #12 -Puse_emulator=false doc, Task #15 foreground push polish, Task #16 sheet visual polish, retrofitting App Check on inviteToRegistry).
