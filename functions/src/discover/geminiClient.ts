@@ -1,21 +1,76 @@
 /**
- * Phase 17 D-27: Gemini 2.5 Flash HTTP wrapper with `google_search` grounding.
+ * Phase 17-07: Gemini 2.5 Flash HTTP wrapper for intent extraction.
  *
- * Returns the raw text the model produced (single text candidate, parts
- * concatenated). The caller (search.ts in Plan 17-03) feeds this directly
- * into parseGeminiResponse.
+ * Replaces the old callGemini (which used google_search grounding) with
+ * callGeminiIntent — JSON-mode structured output, no tools.
  *
- * Uses the Node 22 built-in fetch — no node-fetch dependency added.
+ * Why no tools: using response_mime_type:"application/json" + response_schema
+ * is INCOMPATIBLE with function calling (tools) in Gemini 2.5 Flash.
+ * Since we dropped google_search grounding entirely (UAT-6 hallucination fix),
+ * this is not a problem — we only need structured intent output here.
  *
- * Throws on network errors and non-2xx HTTP responses; the caller wraps
- * those in HttpsError before they reach the client. Not unit-tested
- * directly (per D-50 precedent — pure-function tests suffice, end-to-end
- * verification arrives via Plan 17-06 deploy smoke test).
+ * Uses the Node 22 built-in fetch — no node-fetch dependency.
+ *
+ * // No tools — JSON mode is incompatible with function calling in Gemini 2.5 Flash.
  */
 
 import type { BuiltPrompt } from "./promptTemplate";
+import { parseIntentResponse } from "./parseGeminiResponse";
 
-export async function callGemini(prompt: BuiltPrompt, apiKey: string): Promise<string> {
+export interface IntentResult {
+  recipient?: string;
+  occasion?: string;
+  interests?: string[];
+  budget?: { amount?: number; currency?: string };
+  giftCategories: Array<{
+    name: string;
+    reason: string;
+    /** Provider-agnostic search query (renamed from cseQuery after CSE 403 → Serper pivot) */
+    searchQuery: string;
+  }>;
+}
+
+/**
+ * Gemini responseSchema for intent extraction.
+ *
+ * Uses `searchQuery` (not `cseQuery`) to be provider-agnostic after the
+ * CSE → Serper pivot (2026-05-28).
+ */
+const INTENT_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    recipient: { type: "STRING" },
+    occasion: { type: "STRING" },
+    interests: { type: "ARRAY", items: { type: "STRING" } },
+    budget: {
+      type: "OBJECT",
+      properties: {
+        amount: { type: "NUMBER" },
+        currency: { type: "STRING" },
+      },
+    },
+    giftCategories: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          name: { type: "STRING" },
+          reason: { type: "STRING" },
+          searchQuery: { type: "STRING" },
+        },
+        required: ["name", "reason", "searchQuery"],
+      },
+    },
+  },
+  required: ["giftCategories"],
+};
+
+export const INTENT_SCHEMA_EXPORT = INTENT_SCHEMA;
+
+export async function callGeminiIntent(
+  prompt: BuiltPrompt,
+  apiKey: string,
+): Promise<IntentResult> {
   const url =
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent" +
     `?key=${encodeURIComponent(apiKey)}`;
@@ -24,25 +79,20 @@ export async function callGemini(prompt: BuiltPrompt, apiKey: string): Promise<s
     systemInstruction: {
       parts: [{ text: prompt.systemPrompt }],
     },
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: prompt.userPrompt }],
-      },
-    ],
-    tools: [{ google_search: {} }],
+    contents: [{ role: "user", parts: [{ text: prompt.userPrompt }] }],
+    // NO tools field — JSON mode is incompatible with function calling in Gemini 2.5 Flash.
+    generationConfig: {
+      response_mime_type: "application/json",
+      response_schema: INTENT_SCHEMA,
+    },
   };
 
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
-    // 60s — google_search grounding with broad retailer fallback can issue
-    // multiple search rounds before composing the response, especially when
-    // the prompt asks the model to expand beyond the prioritized retailer
-    // list. Outer Cloud Function timeout is 90s, leaving headroom for OG
-    // enrichment.
-    signal: AbortSignal.timeout(60000),
+    // 30s — intent-only is faster than grounded search; reduces the old 60s timeout.
+    signal: AbortSignal.timeout(30000),
   });
 
   if (!response.ok) {
@@ -55,5 +105,6 @@ export async function callGemini(prompt: BuiltPrompt, apiKey: string): Promise<s
   };
   const text =
     json?.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-  return text;
+
+  return parseIntentResponse(text, prompt.userPrompt);
 }

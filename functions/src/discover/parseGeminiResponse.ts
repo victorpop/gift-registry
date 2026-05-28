@@ -1,28 +1,64 @@
 /**
- * Phase 17 D-30: defensive Gemini response parser.
+ * Phase 17-07: Intent parser + DiscoverProduct type.
+ *
+ * The DiscoverProduct interface is KEPT byte-for-byte — search.ts and
+ * serperNormalizer.ts import it. Android's DiscoverRepositoryImpl maps these
+ * fields; do NOT change the shape.
+ *
+ * parseGeminiResponse is REPLACED by parseIntentResponse — it now parses
+ * an IntentResult from Gemini JSON-mode output instead of a product array.
+ * The `searchQuery` field name is used throughout (renamed from `cseQuery`
+ * after the CSE 403 → Serper pivot on 2026-05-28).
  *
  * Contract:
- *   1. Strip markdown code fences (```json...``` or ```...```).
- *   2. JSON.parse inside try/catch — failure → [] + console.error.
- *   3. Verify root is array — else [].
- *   4. Per item: drop if missing title|price|retailer_url; coerce price to
- *      number (parseFloat allowed); description truncated to 200 chars;
- *      image_url, currency, retailer_name default sensibly.
- *   5. NEVER throw — Gemini parse errors must surface as empty results, not
- *      HttpsError to the client.
+ *   1. Strip markdown code fences (```json...``` or ```...```) — belt-and-suspenders
+ *      even in JSON mode, which may still produce fences in edge cases.
+ *   2. JSON.parse inside try/catch — on failure log console.error + return fallback.
+ *   3. If parsed object lacks a non-empty giftCategories array → return fallback.
+ *   4. Cap giftCategories to first 3 (fan-out cap enforced here).
+ *   5. NEVER throw — intent parse errors must return a graceful fallback, not throw.
+ *
+ * Fallback IntentResult: { giftCategories: [{ name: "", reason: "", searchQuery: fallbackQuery }] }
  */
 
+import type { IntentResult } from "./geminiClient";
+
+/** Backward-compat re-export so callers don't need to update import paths. */
+export type { IntentResult };
+
+/**
+ * The canonical DiscoverProduct type.
+ *
+ * KEEP this interface byte-for-byte — Android's DiscoverRepositoryImpl maps
+ * these exact field names. Any change requires a coordinated Android update.
+ */
 export interface DiscoverProduct {
   title: string;
   description: string;
+  /** Must be https:// — Android blocks cleartext (network security config). */
   image_url: string;
+  /** Parsed from Serper item.price; 0 when Serper has none. Never fabricated. */
   price: number;
   currency: string;
   retailer_url: string;
   retailer_name: string;
 }
 
-export function parseGeminiResponse(raw: string, query?: string): DiscoverProduct[] {
+const MAX_CATEGORIES = 3;
+
+function makeFallbackIntent(fallbackQuery: string): IntentResult {
+  return {
+    giftCategories: [{ name: "", reason: "", searchQuery: fallbackQuery }],
+  };
+}
+
+/**
+ * Parse Gemini JSON-mode text into an IntentResult.
+ *
+ * @param raw - Raw text from Gemini candidates[0].content.parts[].text
+ * @param fallbackQuery - The original user query used as searchQuery on parse failure
+ */
+export function parseIntentResponse(raw: string, fallbackQuery: string): IntentResult {
   // 1. Strip code fences. Permissive on opening + closing whitespace.
   let cleaned = raw.trim();
   cleaned = cleaned.replace(/^\s*```(?:json)?\s*\n?/i, "");
@@ -33,48 +69,52 @@ export function parseGeminiResponse(raw: string, query?: string): DiscoverProduc
   try {
     parsed = JSON.parse(cleaned);
   } catch {
-    console.error("Gemini parse failed", { rawResponse: raw, query });
-    return [];
+    console.error("Intent parse failed", { rawResponse: raw, query: fallbackQuery });
+    return makeFallbackIntent(fallbackQuery);
   }
 
-  // 3. Verify root is array.
-  if (!Array.isArray(parsed)) {
-    console.error("Gemini parse: non-array root", { rawResponse: raw, query });
-    return [];
+  // 3. Verify root is an object with a non-empty giftCategories array.
+  if (
+    parsed == null ||
+    typeof parsed !== "object" ||
+    Array.isArray(parsed)
+  ) {
+    console.error("Intent parse: non-object root", { rawResponse: raw, query: fallbackQuery });
+    return makeFallbackIntent(fallbackQuery);
   }
 
-  // 4. Per-item validation.
-  const out: DiscoverProduct[] = [];
-  for (const item of parsed) {
-    if (item == null || typeof item !== "object") continue;
-    const rec = item as Record<string, unknown>;
+  const rec = parsed as Record<string, unknown>;
+  const categories = rec.giftCategories;
 
-    const title = typeof rec.title === "string" ? rec.title : undefined;
-    const retailerUrl = typeof rec.retailer_url === "string" ? rec.retailer_url : undefined;
-
-    let price: number | undefined;
-    if (typeof rec.price === "number" && Number.isFinite(rec.price)) {
-      price = rec.price;
-    } else if (typeof rec.price === "string") {
-      const n = parseFloat(rec.price);
-      if (!isNaN(n) && Number.isFinite(n)) price = n;
-    }
-
-    if (!title || price === undefined || !retailerUrl) continue;
-
-    const descriptionRaw = typeof rec.description === "string" ? rec.description : "";
-    const description =
-      descriptionRaw.length > 200 ? descriptionRaw.slice(0, 200) : descriptionRaw;
-
-    out.push({
-      title,
-      description,
-      image_url: typeof rec.image_url === "string" ? rec.image_url : "",
-      price,
-      currency: typeof rec.currency === "string" ? rec.currency : "RON",
-      retailer_url: retailerUrl,
-      retailer_name: typeof rec.retailer_name === "string" ? rec.retailer_name : "",
-    });
+  if (!Array.isArray(categories) || categories.length === 0) {
+    return makeFallbackIntent(fallbackQuery);
   }
-  return out;
+
+  // 4. Cap to MAX_CATEGORIES.
+  const capped = categories.slice(0, MAX_CATEGORIES) as Array<Record<string, unknown>>;
+
+  const giftCategories = capped.map((cat) => ({
+    name: typeof cat.name === "string" ? cat.name : "",
+    reason: typeof cat.reason === "string" ? cat.reason : "",
+    searchQuery: typeof cat.searchQuery === "string" ? cat.searchQuery : fallbackQuery,
+  }));
+
+  const result: IntentResult = {
+    giftCategories,
+  };
+
+  if (typeof rec.recipient === "string") result.recipient = rec.recipient;
+  if (typeof rec.occasion === "string") result.occasion = rec.occasion;
+  if (Array.isArray(rec.interests)) {
+    result.interests = rec.interests.filter((i): i is string => typeof i === "string");
+  }
+  if (rec.budget != null && typeof rec.budget === "object" && !Array.isArray(rec.budget)) {
+    const b = rec.budget as Record<string, unknown>;
+    result.budget = {
+      amount: typeof b.amount === "number" ? b.amount : undefined,
+      currency: typeof b.currency === "string" ? b.currency : undefined,
+    };
+  }
+
+  return result;
 }

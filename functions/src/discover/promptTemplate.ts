@@ -1,9 +1,14 @@
 /**
- * Phase 17 D-29: Gemini prompt template — verbatim from CONTEXT.md.
+ * Phase 17-07: Gemini intent-extraction prompt template.
  *
- * No paraphrasing — schema and instructions are part of the contract with
- * `parseGeminiResponse.ts`. Any phrasing change here must be mirrored in the
- * defensive parser and re-verified against the live model.
+ * Replaces the old buildPrompt (product-listing prompt) with buildIntentPrompt
+ * which asks Gemini to extract intent + generate up-to-3 Romanian search queries.
+ *
+ * The intent prompt is provider-agnostic: the `searchQuery` field per category
+ * is what Serper /shopping receives (previously called `cseQuery` — renamed after
+ * the CSE 403 → Serper pivot on 2026-05-28).
+ *
+ * The BuiltPrompt interface is kept for backward compatibility with callers.
  */
 
 export interface BuiltPrompt {
@@ -11,20 +16,24 @@ export interface BuiltPrompt {
   userPrompt: string;
 }
 
-export function buildPrompt(query: string, sites: string[]): BuiltPrompt {
-  const sitesList = sites.join(", ");
+/**
+ * Build the Gemini intent-extraction prompt for a Romanian gift-registry search.
+ *
+ * @param query - The verbatim user query (preserved as userPrompt)
+ * @param contextSites - Retailer site names / domains to bias Gemini's categories
+ */
+export function buildIntentPrompt(query: string, contextSites: string[]): BuiltPrompt {
+  const sitesList = contextSites.slice(0, 10).join(", ");
+
   const systemPrompt =
-    "You are a product-discovery assistant for a Romanian gift-registry app. " +
-    "Search the Romanian web for products matching the user's query. " +
-    `Prioritize results from these Romanian retailers (highest priority first): ${sitesList}. ` +
-    "If a prioritized retailer has insufficient matches, expand the search to other reputable Romanian retailers — do not return a short list just because the top sites are sparse. " +
-    "Return prices in RON (Romanian lei). " +
-    "Return ONLY a strict JSON array — no prose, no markdown code fences, no explanation. " +
-    "Schema per item: {title, description, image_url, price, currency, retailer_url, retailer_name}. " +
-    "Return between 5 and 15 items. The 5-item floor is a hard requirement, not a suggestion — if the prioritized retailers do not have enough exact matches, broaden the search to ANY reputable Romanian retailer (or international retailer shipping to Romania) and include closely-related products in the same category. Returning fewer than 5 items is only acceptable when the query is so specific that fewer than 5 real products exist in Romania. " +
-    "For image_url: leave it as an empty string — the server will fetch og:image from each retailer URL separately. Do not guess image URLs. " +
-    "For retailer_name: use the retailer's public brand name (e.g., 'eMAG', 'Altex', 'Carrefour'), not the domain. " +
-    "Drop items missing title, price, or retailer_url.";
-  const userPrompt = query;
-  return { systemPrompt, userPrompt };
+    "You are a gift-idea assistant for a Romanian gift-registry app. " +
+    "Analyze the user's query and extract their intent (recipient, occasion, interests, budget). " +
+    "Then generate 1-3 gift categories and an optimized Romanian-language product search query for each category. " +
+    `Focus categories on products available at Romanian retailers such as: ${sitesList}. ` +
+    "Return prices and budgets in RON. " +
+    "For each gift category, searchQuery must be a short, specific product search query in Romanian (2-5 words), " +
+    "optimized for finding real products. Example: 'rasnita cafea manuala', 'carte dezvoltare personala'. " +
+    "Generate at most 3 gift categories. If fewer than 3 make sense for the query, return fewer.";
+
+  return { systemPrompt, userPrompt: query };
 }
