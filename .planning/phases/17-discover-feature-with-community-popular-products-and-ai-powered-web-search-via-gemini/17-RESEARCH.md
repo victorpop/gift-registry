@@ -903,3 +903,556 @@ Based on the code audit, this work fits in two plans:
 ### Ready for Planning
 
 Research complete. The planner can now write Plan 17-07 (backend re-scope, TDD) and Plan 17-08 (Android price guard + UAT re-validation).
+
+---
+
+## Serper.dev Pivot (2026-05-28 — CSE 403 fallback)
+
+**Context:** CSE gate failed — `gift-registry-ro` received HTTP 403 (new customer block). This section provides the complete technical detail needed to rewrite Plan 17-07's `serperClient.ts` + `serperNormalizer.ts` tasks. The Gemini intent half, Callable wrapper, cache, rate-limit, de-dupe, and DiscoverProduct contract are UNCHANGED.
+
+**Confidence:** MEDIUM overall. Core request shape and response field names verified via a typed TypeScript SDK gist (transitive-bullshit/serper.ts, the most concrete non-official source available). Pricing verified via multiple 2026 comparison articles. Shopping link format inferred from SDK interface + related SERP API behavior — LOW confidence on whether `link` is always a direct merchant URL; see Pitfall section.
+
+---
+
+### 1. Endpoints and Request Shape
+
+**Base host:** `https://google.serper.dev`
+
+All endpoints use **HTTP POST** with a JSON body. Authentication is via the `X-API-KEY` header — not a query param and not Bearer auth.
+
+| Endpoint | Path | Result array key | Use for this project |
+|----------|------|-----------------|----------------------|
+| Web search | `/search` | `organic[]` | Fallback — no price/image |
+| Shopping | `/shopping` | `shopping[]` | PRIMARY — carries price + imageUrl |
+| Images | `/images` | `images[]` | Not needed |
+
+**Concrete POST request shape (shopping):**
+
+```typescript
+// Source: transitive-bullshit/serper.ts gist (TypeScript SDK)
+// Base URL: https://google.serper.dev
+// Method: POST
+// Headers: { "X-API-KEY": SERPER_API_KEY, "Content-Type": "application/json" }
+
+const body = {
+  q: "rasnita cafea manuala",   // the Gemini-generated search query
+  gl: "ro",                      // country — Romania
+  hl: "ro",                      // language — Romanian
+  location: "Romania",           // city/region (improves localization; gl alone is sometimes insufficient — see Pitfall 6)
+  num: 10,                       // results per request (default 10; up to 100 costs 2 credits)
+  autocorrect: true,             // optional, default true
+};
+
+const response = await fetch("https://google.serper.dev/shopping", {
+  method: "POST",
+  headers: {
+    "X-API-KEY": SERPER_API_KEY,
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(body),
+  signal: AbortSignal.timeout(10000),
+});
+```
+
+**Parameter notes:**
+- `gl` — two-letter ISO country code. Use `"ro"` for Romania.
+- `hl` — two-letter language code. Use `"ro"` for Romanian-language results.
+- `location` — free-text location string. Recommended to combine with `gl` for consistent country-specific results. Multiple sources note that `gl` alone can return the proxy server's country when the location parameter is absent. Use `"Romania"` or `"Bucharest, Romania"`.
+- `num` — `10` is the default. Requesting 11-100 costs 2 credits per call instead of 1. Keep at `10` for cost control (same as CSE plan).
+- `page` — pagination; default 1. Not needed for this use case (10 results per category is sufficient).
+- `autocorrect` — default `true`. Handles Romanian diacritics in queries reasonably well (see Pitfall 5).
+
+**No `siteSearch` or engine config needed.** Serper has no equivalent of a PSE engine. Site restriction is done as a HOSTNAME POST-FILTER after receiving results (see section 4).
+
+---
+
+### 2. /search vs /shopping — Decision
+
+**Use `/shopping` as primary, `/search` as fallback when shopping returns < 3 in-allowlist results.**
+
+| Dimension | `/search` organic[] | `/shopping` shopping[] |
+|-----------|---------------------|------------------------|
+| Price | Never — not in organic results | YES — `price` string (e.g., "179 RON"), `rating`, `delivery` |
+| Image | Never in organic | YES — `imageUrl` (pre-filled, no pagemap extraction needed) |
+| Retailer name | Never — must extract from `link` hostname | YES — `source` field (merchant label, e.g., "eMAG") |
+| Link type | Direct page URL | Usually direct merchant URL; may be Google Shopping redirect on some results (see Pitfall 4) |
+| Romanian coverage | Good — Google indexes Romanian pages | Moderate — Google Shopping coverage of Romanian retailers is uneven; major stores (eMAG, Altex, Flanco) appear, smaller/niche stores may not |
+| Result count | 10 per request | 10 per request (default) |
+| Price format hazard | N/A | Romanian formatting: "1.299,00 lei" or "179 RON" — requires parsing (see section 3) |
+
+**Material UX win vs. CSE plan:** The CSE plan always had `price = 0` because CSE pagemap does not carry price. Serper `/shopping` carries `price` as a string for most results. If the normalizer parses it correctly, many product cards will show a real price. This is a significant UX improvement. The Android `price > 0` guard (planned for Plan 17-08) remains appropriate as the fallback for results where price is absent or zero.
+
+**Recommendation:** Call `/shopping` first. If the in-allowlist result count after post-filter is below a minimum threshold (suggest N=3), supplement with a `/search` call on the same query and append those organic results (without price/image) to pad the list.
+
+---
+
+### 3. Response Field Mapping to DiscoverProduct
+
+**Serper `/shopping` response shape** (from typed SDK gist, confirmed via multiple articles):
+
+```typescript
+// Source: gist.github.com/transitive-bullshit/9ef36acf6dfa4d5b1e1990181a5c3846
+interface SerperShoppingItem {
+  title: string;          // product title
+  source: string;         // merchant label, e.g. "eMAG", "Altex"
+  link: string;           // product URL — see Pitfall 4 re: redirect risk
+  price: string;          // formatted price, e.g. "179 RON" or "1.299,00 lei"
+  imageUrl: string;       // product image URL (always https encrypted-tbn)
+  delivery?: string | Record<string, string>;  // shipping info or object
+  rating?: number;        // 0–5 float
+  ratingCount?: number;   // review count
+  offers?: string;        // "10+" sellers
+  productId?: string;     // Google product ID
+  position: number;       // rank in results
+}
+
+interface SerperShoppingResponse {
+  searchParameters: Record<string, unknown>;
+  shopping: SerperShoppingItem[];
+}
+```
+
+**Field-by-field DiscoverProduct mapping:**
+
+| DiscoverProduct field | Serper field | Notes |
+|-----------------------|-------------|-------|
+| `title` | `item.title` | Direct use. Trim trailing ` - eMAG.ro` suffixes if present (some merchant titles include store name). |
+| `description` | `""` | Shopping results carry no snippet/description. Use empty string. Android card already handles empty description. |
+| `image_url` | `item.imageUrl` | Already HTTPS (Google's encrypted-tbn CDN). No `rewriteToHttps()` needed for this field. Always validate with `startsWith("https://")` as a belt-and-suspenders. |
+| `price` | parsed from `item.price` | String → number. See price parsing below. |
+| `currency` | parsed from `item.price`, default `"RON"` | Usually "RON" or "lei". |
+| `retailer_url` | `item.link` | Validate is not a google.com/shopping redirect (see Pitfall 4). If it is a redirect, use `source` to identify retailer but keep URL as-is — Android will open it in browser which follows the redirect. |
+| `retailer_name` | `item.source` THEN hostname-derived fallback | `source` is the merchant label (e.g., "eMAG"). Use it directly as `retailer_name`. No DOMAIN_TO_RETAILER lookup needed for results that have `source`. For results with empty `source`, fall back to hostname extraction from `link`. |
+
+**Price string parsing — CRITICAL:**
+
+Romanian number formatting is `1.299,00 lei` (period = thousands separator, comma = decimal separator) — the opposite of the English/US convention. This is a parsing hazard.
+
+```typescript
+// serperNormalizer.ts
+function parsePrice(priceStr: string | undefined): { price: number; currency: string } {
+  if (!priceStr) return { price: 0, currency: "RON" };
+
+  // Detect currency — "lei" is Romanian for RON
+  const currency = /lei/i.test(priceStr) ? "RON"
+    : /RON/i.test(priceStr) ? "RON"
+    : /EUR/i.test(priceStr) ? "EUR"
+    : "RON";
+
+  // Remove currency labels and any whitespace
+  const cleaned = priceStr
+    .replace(/lei|RON|EUR/gi, "")
+    .trim();
+
+  // Handle Romanian format: "1.299,00" → strip thousands dots, replace decimal comma
+  // Handle US format: "1,299.00" → strip thousands commas
+  let normalized: string;
+  if (/\d\.\d{3}[,\s]/.test(cleaned) || /,\d{2}$/.test(cleaned)) {
+    // Romanian format: dots are thousands separators, comma is decimal
+    normalized = cleaned.replace(/\./g, "").replace(",", ".");
+  } else {
+    // Assume US/standard format
+    normalized = cleaned.replace(/,/g, "");
+  }
+
+  const price = parseFloat(normalized);
+  return { price: isNaN(price) ? 0 : price, currency };
+}
+```
+
+**Why this matters:** If `"1.299,00 lei"` is naively passed to `parseFloat()`, it produces `1.299` (just over one RON) instead of `1299`. The Android `DiscoverProductCard` would display "1,30 RON" for a 1299 RON product — a serious UX bug.
+
+**Unit test surface:** `parsePrice` has multiple cases and MUST be unit-tested. Add to `serperNormalizer.test.ts`:
+- `"179 RON"` → `{ price: 179, currency: "RON" }`
+- `"1.299,00 lei"` → `{ price: 1299, currency: "RON" }`
+- `"2,499.00 RON"` → `{ price: 2499, currency: "RON" }`
+- `undefined` → `{ price: 0, currency: "RON" }`
+- `"Indisponibil"` → `{ price: 0, currency: "RON" }`
+
+---
+
+### 4. Hostname Post-Filter Design
+
+Since Serper has no engine equivalent to PSE, filtering to the 43-store allowlist happens client-side in `serperNormalizer.ts` after receiving results.
+
+**Step-by-step algorithm:**
+
+```typescript
+// serperNormalizer.ts
+
+// Root domain allowlist — matches after stripping www. and subdomains
+const ALLOWED_DOMAINS = new Set([
+  "emag.ro", "altex.ro", "mediagalaxy.ro", "flanco.ro", "cel.ro",
+  "pcgarage.ro", "vexio.ro", "fashiondays.ro", "aboutyou.ro",
+  "answear.ro", "modivo.ro", "zalando.ro", "epantofi.ro", "otter.ro",
+  "notino.ro", "sephora.ro", "douglas.ro", "sabon.ro",
+  "farmaciatei.ro", "bebetei.ro", "ikea.com", "jysk.ro",
+  "mobexpert.ro", "bonami.ro", "vivre.ro", "carturesti.ro",
+  "libris.ro", "elefant.ro", "noriel.ro", "hobbyshop.ro",
+  "decathlon.ro", "sportguru.ro", "hervis.ro", "intersport.ro",
+  "mothercare.ro", "floria.ro", "magnolia.ro", "complice.ro",
+  "etsy.com", "breslo.ro", "kfea.ro", "delicateseflorescu.ro",
+  "nespresso.com",
+]);
+
+// Extract root domain: "www.emag.ro" → "emag.ro", "shop.altex.ro" → "altex.ro"
+function extractRootDomain(url: string): string {
+  try {
+    const hostname = new URL(url).hostname;
+    // Strip www. prefix
+    const withoutWww = hostname.replace(/^www\./, "");
+    // For domains like "shop.altex.ro" → take last two segments
+    const parts = withoutWww.split(".");
+    if (parts.length > 2) {
+      return parts.slice(-2).join(".");
+    }
+    return withoutWww;
+  } catch {
+    return "";
+  }
+}
+
+function isAllowedDomain(url: string): boolean {
+  return ALLOWED_DOMAINS.has(extractRootDomain(url));
+}
+
+// Graceful fallback: in-allowlist first; pad with out-of-allowlist if < MIN_IN_ALLOWLIST
+const MIN_IN_ALLOWLIST = 3;  // minimum before padding with out-of-allowlist
+
+export function applyAllowlistFilter(items: SerperShoppingItem[]): SerperShoppingItem[] {
+  const inAllowlist = items.filter(item => isAllowedDomain(item.link));
+  if (inAllowlist.length >= MIN_IN_ALLOWLIST) {
+    return inAllowlist;
+  }
+  // Pad: append out-of-allowlist items by original rank until MIN_IN_ALLOWLIST met
+  const outOfAllowlist = items.filter(item => !isAllowedDomain(item.link));
+  return [...inAllowlist, ...outOfAllowlist].slice(0, Math.max(inAllowlist.length + outOfAllowlist.length, MIN_IN_ALLOWLIST));
+}
+```
+
+**On using `source` vs `link` for filtering:**
+
+Use `link` hostname for filtering — `source` is a merchant label string (e.g., "eMAG.ro") and is not reliably parseable as a domain. `link` is always a URL and `new URL(link).hostname` is reliable. Use `source` only as a hint for `retailer_name`:
+
+```typescript
+function deriveRetailerName(item: SerperShoppingItem): string {
+  // source is the merchant label from Google Shopping — use it directly
+  if (item.source && item.source.trim().length > 0) {
+    return item.source.trim();
+  }
+  // Fallback: derive from link hostname
+  const root = extractRootDomain(item.link);
+  return DOMAIN_TO_RETAILER[root] ?? root;
+}
+```
+
+The DOMAIN_TO_RETAILER map (same as in the CSE plan) can be kept as a fallback but is largely redundant when `source` is present.
+
+**Google Shopping redirect caveat (Pitfall 4 detail):** If `item.link` is `https://www.google.com/shopping/product/...` (a Google redirect), `extractRootDomain` will return `google.com` and `isAllowedDomain` will return `false`. This means such items are excluded from the in-allowlist set and only included in the padding set. The user tapping such a card will land on a Google Shopping product page and then click through to the retailer — one extra step. This is acceptable for v2. If this proves common in practice, the planner can add a follow-the-redirect step at normalization time (fetch the redirect URL and extract the final merchant URL) — but that reintroduces latency and is out of scope for now.
+
+---
+
+### 5. Pricing, Quota, and Rate Limits
+
+**Confidence: MEDIUM** — pricing figures verified across multiple 2026 comparison articles; no official Serper pricing page was directly accessible.
+
+| Metric | Value | Source |
+|--------|-------|--------|
+| Free credits on signup | 2,500 queries | Multiple articles; no credit card required |
+| Credit card required | No | Confirmed: "no credit card required" per signup page description |
+| Paid model | Credit packs, not monthly subscription | Credits valid 6 months from purchase |
+| Starter pack | $50 for 50,000 credits (~$1.00/1K) | Multiple 2026 comparison articles |
+| Standard pack | $375 for 500,000 credits (~$0.75/1K) | Multiple 2026 comparison articles |
+| Scale pack | $1,250 for 2.5M credits (~$0.50/1K) | Multiple 2026 comparison articles |
+| Ultimate pack | $3,750 for 12.5M credits (~$0.30/1K) | Multiple 2026 comparison articles |
+| Cost for num=10 (default) | 1 credit | Confirmed: 1 credit per request at 10 results |
+| Cost for num=11-100 | 2 credits | Confirmed: "20 to 100 results = 2 credits" per HN discussion |
+| Rate limit | Not publicly documented | No official source found; anecdotal: 1-2s response time suggests server-side queue |
+| Daily cap | Not publicly documented | No official source found; no free-tier daily cap mentioned (vs. CSE's 100/day) |
+
+**Per-user-search cost at num=10 (1 credit per call):**
+- 3 Serper `/shopping` calls = 3 credits
+- At Starter tier ($1.00/1K): $0.003 per user search
+- 1,000 searches/month = $3 (vs. CSE $15–20 at same volume)
+
+**Comparison to CSE:**
+
+| Metric | Google CSE | Serper.dev |
+|--------|-----------|-----------|
+| Free tier | 100 queries/day | 2,500 total credits (one-time) |
+| Per-query cost | $0.005/query ($5/1K) | $0.001–$0.00075/query ($1–0.75/1K at Starter/Standard) |
+| Credit card to start | No | No |
+| Site restriction | PSE config (pre-filter) | Hostname post-filter (in code) |
+| Price in results | Never | Yes (for shopping endpoint) |
+| Image in results | Via pagemap (unreliable) | Yes — `imageUrl` field (reliable) |
+| New customer access | Blocked (403 confirmed) | Open to new customers |
+
+**Serper is ~5-7x cheaper per query than CSE paid tier** and provides price + image out of the box.
+
+---
+
+### 6. Access Gate (replaces CSE gate)
+
+**What the human does:**
+
+1. Go to `https://serper.dev` and sign up with an email address. No credit card required.
+2. After signup, navigate to the API Keys section of the dashboard. Copy the API key.
+3. Set the secret in Firebase Secret Manager:
+   ```bash
+   firebase functions:secrets:set SERPER_API_KEY
+   # Paste the key when prompted
+   ```
+4. Verify the secret is set:
+   ```bash
+   firebase functions:secrets:get SERPER_API_KEY
+   ```
+5. Run the proof-of-access curl test:
+
+```bash
+curl -s -X POST "https://google.serper.dev/shopping" \
+  -H "X-API-KEY: YOUR_KEY_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{"q":"rasnita cafea manuala","gl":"ro","hl":"ro","location":"Romania","num":5}' \
+  | head -c 2000
+```
+
+**Success response:** JSON with `"shopping": [...]` array containing product objects with `title`, `source`, `link`, `price`, `imageUrl` fields.
+
+**Failure response:** `{"message": "Invalid API key."}` (HTTP 401) or `{"message": "Unauthorized"}` — indicates key is wrong or not activated.
+
+**No engine config, no PSE, no cx/CX value to manage.** The entire access gate is: sign up → get key → set secret → test curl. This is significantly simpler than the CSE gate (which required PSE creation, API key restriction, engine configuration).
+
+**Secrets file update** (mirror existing `secrets.ts` pattern):
+
+```typescript
+// functions/src/discover/secrets.ts — ADD this export
+// Mirror the GEMINI_API_KEY pattern exactly
+
+/**
+ * Serper.dev API key — replaces CSE_API_KEY after CSE 403 pivot.
+ *
+ * Set with: firebase functions:secrets:set SERPER_API_KEY
+ * List versions: firebase functions:secrets:get SERPER_API_KEY
+ *
+ * NEVER log this value. NEVER expose to Android.
+ */
+export const SERPER_API_KEY = defineSecret("SERPER_API_KEY");
+
+// Remove or comment out CSE_API_KEY and CSE_ENGINE_ID if they were added
+```
+
+---
+
+### 7. Pitfalls
+
+#### Pitfall S-1: Romanian number format destroys price parsing
+
+**What goes wrong:** `parseFloat("1.299,00")` returns `1.299` (one RON and change) instead of 1299 RON. Android displays "1,30 RON" for a product costing 1299 RON.
+**Why it happens:** Romanian uses period for thousands and comma for decimal — opposite of the JavaScript convention.
+**How to avoid:** Use the `parsePrice()` function from section 3. Unit-test all Romanian price format variants before shipping.
+**Warning signs:** Prices display as fractions of a RON in product cards; UAT-07 shows "0,20 RON" for obviously expensive products.
+
+#### Pitfall S-2: Google Shopping redirect links pass through google.com
+
+**What goes wrong:** Some `item.link` values are `https://www.google.com/shopping/product/123456?gl=ro` — not direct merchant URLs. The hostname filter sees `google.com` and excludes them from the in-allowlist set. These valid Romanian retailer products are demoted to the padding set.
+**Why it happens:** Google Shopping has historically returned redirect links for some result types (especially when a product has multiple sellers). Serper surfaces the same underlying data Google returns.
+**How to avoid:** Accept this in v2 — redirect links still work in Android's browser via the 302 redirect. Do NOT add follow-redirect logic at normalization time (too slow). Monitor the ratio of redirect links in production logs. If > 20% of results are google.com redirects, consider adding an async redirect-resolution step in a future plan.
+**Warning signs:** More than 20% of `retailer_url` values in the Firestore discoverCache contain `google.com/shopping`.
+
+#### Pitfall S-3: `source` field is not a reliable domain
+
+**What goes wrong:** Code tries to use `item.source` (e.g., "eMAG.ro" or "eMAG") as a domain for `ALLOWED_DOMAINS.has(item.source)` — always returns false because `source` is a display string, not a hostname.
+**Why it happens:** `source` is a merchant label, not a URL. It may be "eMAG.ro", "eMAG", "emag.ro", or even "EMAG" depending on what Google returns.
+**How to avoid:** ALWAYS use `item.link` for the hostname filter. Use `item.source` only for `retailer_name` display. Never pass `source` to `ALLOWED_DOMAINS.has()`.
+**Warning signs:** Post-filter returns 0 in-allowlist results even for queries that should match eMAG or Altex.
+
+#### Pitfall S-4: `gl=ro` alone is insufficient for Romanian results
+
+**What goes wrong:** Queries with only `gl: "ro"` return results from Google's US or EU proxy servers instead of Romania-localized results. The LangChain GitHub issue (#2438) documents this: `gl=au` returned US banks for an Australian bank query.
+**Why it happens:** When `location` is not set, Google may use the proxy server's geolocation. Serper's proxy network may not be in Romania.
+**How to avoid:** Always include both `gl: "ro"` AND `location: "Romania"` (or `"Bucharest, Romania"`) in every Serper request. This is belt-and-suspenders: `gl` signals the country to Google; `location` ensures the proxy geolocation context is also set correctly.
+**Warning signs:** Results include `fashiondays.com` (global) instead of `fashiondays.ro`; products have prices in EUR instead of RON; non-Romanian language results appear.
+
+#### Pitfall S-5: Romanian diacritics in queries
+
+**What goes wrong:** A Gemini-generated query containing diacritics (e.g., "cărți pentru copii") is rejected or URL-mangled.
+**Why it happens:** POST body is JSON — diacritics in JSON strings are valid UTF-8 and should be transmitted correctly. This is NOT a URL-encoding problem (unlike CSE's GET-based queries where `new URLSearchParams()` handles encoding automatically). However, if the query string is not UTF-8 encoded before JSON serialization, or if Serper's normalizer doesn't handle Romanian characters, results may be poor.
+**How to avoid:** `JSON.stringify()` in Node.js handles UTF-8 correctly. Set `autocorrect: true` in the request body — Serper will handle minor diacritic variants. Test with a Romanian-language query in UAT.
+**Warning signs:** Empty results for Romanian queries that should match known products; Serper returns English-language results for Romanian queries.
+
+#### Pitfall S-6: `num > 10` doubles credit cost
+
+**What goes wrong:** Someone sets `num: 20` thinking it gets more results at the same cost. It costs 2 credits per call instead of 1.
+**Why it happens:** Serper's pricing model charges double for 11-100 results (verified via HN discussion).
+**How to avoid:** Keep `num: 10` in `serperClient.ts`. Add a code comment: `// num: 10 — keeps cost at 1 credit/call; >10 costs 2 credits`.
+**Warning signs:** Credit balance depletes faster than expected; billing logs show 2 credits per call.
+
+#### Pitfall S-7: Serper latency vs CSE
+
+Serper averages 1.0–1.83s per request (multiple benchmark articles, 2024-2025). CSE averages 0.5-2s. At 3 parallel calls, expect ~2s total Serper time vs ~3-5s for CSE (CSE has higher variance). The existing `AbortSignal.timeout(10000)` (10s) is generous for Serper. The Function `timeoutSeconds: 90` is unchanged and still adequate.
+
+---
+
+### 8. Updated File-Level Table (Serper pivot)
+
+Replace the CSE-specific files with Serper equivalents. Unchanged files carry over from the original table.
+
+| File | Action | Notes |
+|------|--------|-------|
+| `serperClient.ts` | NEW (replaces `cseClient.ts`) | POST wrapper for `google.serper.dev/shopping` and `/search`; `X-API-KEY` header; returns `SerperShoppingItem[]` |
+| `serperNormalizer.ts` | NEW (replaces `cseNormalizer.ts`) | Maps `SerperShoppingItem[]` → `DiscoverProduct[]`; `applyAllowlistFilter()`; `parsePrice()`; `deriveRetailerName()`; `extractRootDomain()` |
+| `secrets.ts` | EXTEND | Add `SERPER_API_KEY = defineSecret("SERPER_API_KEY")`; remove `CSE_API_KEY` / `CSE_ENGINE_ID` (or comment out if they were added) |
+| `search.ts` | REPLACE internals | Replace `callCse()` fan-out with `callSerper()` fan-out; replace `normalizeCseItems()` with `normalizeSerperItems(applyAllowlistFilter(...))` |
+| `retailers.ts` | KEEP (minor update) | Role unchanged — retailer name hints for Gemini prompt context; no PSE or CSE engine involved |
+| `geminiClient.ts` | REPLACE (same as CSE plan) | Unchanged from CSE plan — JSON-mode intent extraction |
+| `promptTemplate.ts` | REPLACE (same as CSE plan) | Rename query key from `cseQuery` to `searchQuery` in the Gemini schema to reflect provider-agnosticism |
+| `enrichImages.ts` | DELETE (same as CSE plan) | Serper `/shopping` provides `imageUrl` directly |
+| `parseGeminiResponse.ts` | REPLACE (same as CSE plan) | IntentResult parser; rename `cseQuery` field to `searchQuery` |
+| `cseClient.ts` | DELETE (if created) | Replaced by `serperClient.ts` |
+| `cseNormalizer.ts` | DELETE (if created) | Replaced by `serperNormalizer.ts` |
+| `cacheKey.ts` | KEEP UNCHANGED | — |
+| `rateLimit.ts` | KEEP UNCHANGED | — |
+| `urlNormalization.ts` | KEEP UNCHANGED | Reused for de-dupe |
+| All Android files | ZERO CHANGES | Backend contract unchanged |
+
+**Gemini schema field rename:** Change `cseQuery` → `searchQuery` in `INTENT_SCHEMA`, `parseGeminiResponse.ts`, and `promptTemplate.ts`. This is a 3-file rename that makes the schema provider-agnostic and avoids having "cse" in the codebase after the pivot.
+
+---
+
+### 9. Updated Orchestration Flow (Serper version)
+
+```
+discoverSearch Callable (unchanged wrapper: auth gate → rate-limit → cache check)
+    │
+    ├── [cache hit] → return immediately (unchanged)
+    │
+    └── [cache miss]
+         │
+         ├── Step 1: callGeminiIntent(query) → IntentResult (unchanged)
+         │     - Returns giftCategories[{name, reason, searchQuery}]
+         │     - Cap: max 3 searchQuery strings
+         │
+         ├── Step 2: fan-out Serper /shopping calls (Promise.allSettled, max 3)
+         │     POST https://google.serper.dev/shopping
+         │     body: { q: searchQuery, gl:"ro", hl:"ro", location:"Romania", num:10 }
+         │     header: X-API-KEY: SERPER_API_KEY
+         │
+         ├── Step 3: per-batch post-filter + normalize
+         │     - applyAllowlistFilter(shoppingItems) → in-allowlist first, pad if < 3
+         │     - normalizeSerperItems(filtered) → DiscoverProduct[]
+         │     - parsePrice(item.price) → { price, currency }
+         │     - imageUrl is direct from item.imageUrl (no pagemap needed)
+         │
+         ├── Step 4: cross-batch de-dupe by normalized URL (unchanged)
+         │     - normalizeUrl(retailer_url) → productId → Set<string>
+         │
+         └── Step 5: cache + return (unchanged)
+               - { products: [...], cached_at: "..." }
+```
+
+---
+
+### 10. Validation File Delta
+
+**Test files to CREATE (replacing CSE equivalents):**
+
+| Old file (CSE plan) | New file (Serper pivot) | What changes |
+|--------------------|------------------------|-------------|
+| `cseNormalizer.test.ts` | `serperNormalizer.test.ts` | New fixtures from Serper response shape; `parsePrice()` unit tests (Romanian format); `applyAllowlistFilter()` tests; `deriveRetailerName()` with `source` field; `extractRootDomain()` with redirect URL cases |
+| `cseClient.test.ts` (if written) | `serperClient.test.ts` | Mock `fetch` for POST to `google.serper.dev/shopping`; verify `X-API-KEY` header present; verify `gl=ro, hl=ro, location=Romania` in body |
+| `cseOrchestration.test.ts` | `serperOrchestration.test.ts` | Same structure: fan-out cap 3, Promise.allSettled partial failure, empty-intent fallback; mock target is `callSerper` instead of `callCse` |
+
+**Test files UNCHANGED:**
+- `parseIntentResponse.test.ts` — field rename `cseQuery` → `searchQuery` is the only change
+- `promptTemplate.test.ts` — update fixture to use `searchQuery` instead of `cseQuery`
+- `retailers.test.ts` — no change
+- `cacheKeyNormalization.test.ts` — no change
+- `rateLimit.test.ts` — no change
+- `urlNormalization.test.ts` — no change
+
+**New unit-test surface added by Serper (not present in CSE plan):**
+
+`serperNormalizer.test.ts` must cover price parsing explicitly:
+```typescript
+describe("parsePrice", () => {
+  it("parses plain RON", () => expect(parsePrice("179 RON")).toEqual({ price: 179, currency: "RON" }));
+  it("parses Romanian thousands format", () => expect(parsePrice("1.299,00 lei")).toEqual({ price: 1299, currency: "RON" }));
+  it("parses US thousands format", () => expect(parsePrice("2,499.00 RON")).toEqual({ price: 2499, currency: "RON" }));
+  it("returns 0 for undefined", () => expect(parsePrice(undefined)).toEqual({ price: 0, currency: "RON" }));
+  it("returns 0 for non-numeric strings", () => expect(parsePrice("Indisponibil")).toEqual({ price: 0, currency: "RON" }));
+});
+```
+
+**Allowlist filter test surface:**
+```typescript
+describe("applyAllowlistFilter", () => {
+  it("keeps in-allowlist items first", ...);
+  it("pads with out-of-allowlist when < MIN_IN_ALLOWLIST", ...);
+  it("filters google.com/shopping redirect links to padding set", ...);
+  it("handles IKEA with .com TLD correctly", ...);
+  it("strips www. before domain matching", ...);
+  it("handles subdomain like shop.altex.ro → altex.ro", ...);
+});
+```
+
+---
+
+### 11. Cost Modeling (Serper vs CSE comparison)
+
+| Metric | Google CSE | Serper.dev |
+|--------|-----------|-----------|
+| Free quota | 100 queries/day (resets daily) | 2,500 total credits (one-time signup bonus) |
+| Free user searches | ~33/day (100 ÷ 3 queries/search) | ~833 total before first payment |
+| Paid cost per 1K queries | $5.00 | $0.75–$1.00 (Starter/Standard packs) |
+| Cost per user search (3 queries) | ~$0.015 | ~$0.002–$0.003 |
+| 1,000 user searches/month | ~$15–20 | ~$2–3 |
+| Price in results | Never (price=0 always) | Yes — `price` string per item |
+| Image reliability | Variable (pagemap extraction) | High — dedicated `imageUrl` field |
+| New customer access | BLOCKED (403 confirmed) | Open to new signups |
+
+**30-day cache effect:** Same as CSE — repeat searches return cached results at $0 additional cost. The first search for any normalized query string pays for all subsequent hits.
+
+---
+
+### Sources (Serper section)
+
+#### PRIMARY sources (HIGH confidence)
+- [transitive-bullshit/serper.ts gist](https://gist.github.com/transitive-bullshit/9ef36acf6dfa4d5b1e1990181a5c3846) — TypeScript SDK with typed interfaces for `SerperShoppingItem` (Shopping), `SearchParams`, all endpoint paths, and the `X-API-KEY` header pattern. Most concrete source found for Serper's actual API shape.
+- [Serper.dev homepage](https://serper.dev) — Confirmed 2,500 free credits, no credit card required, supported endpoints list (search, images, news, maps, places, shopping, videos, scholar, patents, autocomplete).
+
+#### SECONDARY sources (MEDIUM confidence)
+- [crawleo.dev — Serper.dev vs Crawleo 2026](https://www.crawleo.dev/blog/serperdev-vs-crawleodev-features-pricing-pros-and-cons-2026) — Pricing tiers, 6-month credit expiration, simple REST API, "Limited documentation depth."
+- [scrapingdog.com — Serper alternatives 2026](https://www.scrapingdog.com/blog/serper-alternatives/) — Confirmed credit pack pricing ($50/$375/$1,250/$3,750), 6-month expiry, ~12 supported API endpoints.
+- [Hacker News — Serper pricing discussion](https://news.ycombinator.com/item?id=43921687) — Confirmed 2-credit cost for num=20-100 (vs. 1 credit for num=10).
+- [LangChain GitHub issue #2438](https://github.com/hwchase17/langchain/issues/2438) — Documents `gl=au` alone returning US results; confirms need to combine `gl` with `location` for reliable country targeting.
+- [Google Shopping results field names](https://serpapi.com/shopping-results) — SerpAPI (different provider, same underlying Google Shopping data) documents the field naming convention including `source`, `price`, `thumbnail`, `link` (as Google redirect for Shopping tab). Used to cross-verify Serper's field naming.
+
+#### TERTIARY sources (LOW confidence — cross-check)
+- [Medium — SerpAPI vs Serper benchmark](https://medium.com/@darshankhandelwal12/serpapi-vs-serper-vs-scrapingdog-we-tested-all-three-so-you-dont-have-to-c7d5ff0f3079) — Search API response time 1.83s average; 2,500 free credits confirmed.
+- [SerpAPI public roadmap issue #1846](https://github.com/serpapi/public-roadmap/issues/1846) — Documents that Google Shopping redirect links (`product_link`) are common and direct merchant links require extra work. Used to substantiate Pitfall S-2.
+
+---
+
+## SERPER RESEARCH COMPLETE
+
+**Confidence:** MEDIUM overall (TypeScript SDK interface confirmed; pricing cross-verified; link redirect behavior LOW confidence — may need validation in first UAT run)
+
+### Key Findings
+
+1. **Serper `/shopping` is a material UX improvement over CSE**: price and imageUrl come back in the response directly — no pagemap extraction, no price=0 always. The Android price guard (`if price > 0`) stays useful for items where price is absent, but most results will have a real price.
+
+2. **Romanian number format is a parsing hazard**: `"1.299,00 lei"` must be parsed as 1299, not 1.299. A dedicated `parsePrice()` function with Romanian-specific logic and unit tests is required before shipping.
+
+3. **Access gate is trivially simple**: signup at serper.dev (no credit card) → copy API key → `firebase functions:secrets:set SERPER_API_KEY` → test curl. No PSE, no engine ID, no Google Cloud console.
+
+4. **Hostname post-filter replaces PSE pre-filter**: filtering shifts from a one-time PSE config (CSE) to per-call code logic (Serper). This adds unit-testable code (`applyAllowlistFilter()`, `extractRootDomain()`) and removes a human-maintained external config dependency.
+
+5. **Google Shopping redirect links exist**: some `item.link` values may be `google.com/shopping/product/...` redirects. They still work in Android's browser. Filter them to the padding set (after in-allowlist results) rather than discarding them.
+
+6. **File rename: `cseQuery` → `searchQuery`**: 3-file change in Gemini schema, parser, and prompt template to remove provider coupling from the codebase.
+
+7. **Cost is ~5-7x cheaper than CSE paid tier**: $0.002–0.003 per user search vs. $0.015 for CSE. 2,500 free credits cover ~833 uncached user searches before first payment.
+
+### Ready for Planning
+
+The planner can now rewrite Plan 17-07's search-provider tasks: replace `cseClient.ts` + `cseNormalizer.ts` with `serperClient.ts` + `serperNormalizer.ts`, update `secrets.ts` (add `SERPER_API_KEY`, remove `CSE_API_KEY`/`CSE_ENGINE_ID`), rename `cseQuery` → `searchQuery` in 3 files, and replace CSE test files with Serper equivalents. All other tasks in Plan 17-07 and Plan 17-08 are unchanged.
