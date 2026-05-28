@@ -149,6 +149,27 @@ describe("runSearchPipeline", () => {
     });
   });
 
+  describe("result cap", () => {
+    it("caps the flat product list at 20 even when Serper returns more", async () => {
+      mockCallGeminiIntent.mockResolvedValue(
+        makeIntentResult(["query1", "query2", "query3"]),
+      );
+      // 3 calls × 10 unique allowlisted items = 30 unique products before cap
+      const tenItems = (prefix: string): SerperShoppingItem[] =>
+        Array.from({ length: 10 }, (_, i) =>
+          makeShoppingItem(`${prefix} ${i}`, `https://www.emag.ro/product/${prefix}-${i}`),
+        );
+      mockCallSerper
+        .mockResolvedValueOnce(tenItems("a"))
+        .mockResolvedValueOnce(tenItems("b"))
+        .mockResolvedValueOnce(tenItems("c"));
+
+      const products = await runSearchPipeline("cadou copil", deps);
+
+      expect(products.length).toBe(20);
+    });
+  });
+
   describe("de-duplication", () => {
     it("collapses duplicate URLs across different Serper calls into a single product", async () => {
       mockCallGeminiIntent.mockResolvedValue(

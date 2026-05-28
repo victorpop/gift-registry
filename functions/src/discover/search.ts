@@ -44,6 +44,10 @@ import type { BuiltPrompt } from "./promptTemplate";
 const CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const REGION = "europe-west3";
 const QUERY_MAX_LEN = 200;
+// Cap the flat product list returned (and cached) per search. Serper cost is
+// driven by the ≤3 query fan-out, not this; the cap keeps the cached doc and
+// client payload bounded.
+const MAX_SEARCH_RESULTS = 20;
 
 interface SearchRequest {
   query?: unknown;
@@ -127,8 +131,8 @@ export async function runSearchPipeline(
     allProducts.push(...result.value);
   }
 
-  // Step 5: Cross-batch de-dupe by normalized URL
-  return dedupeByUrl(allProducts);
+  // Step 5: Cross-batch de-dupe by normalized URL, then cap the list size
+  return dedupeByUrl(allProducts).slice(0, MAX_SEARCH_RESULTS);
 }
 
 // ---------------------------------------------------------------------------
