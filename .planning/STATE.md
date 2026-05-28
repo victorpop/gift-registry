@@ -25,12 +25,31 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 
 ## Current Position
 
-Phase: 17 (discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini) — EXECUTING
-Plan: 6 of 6
-Status: Ready to execute
-Last activity: 2026-05-27
+Phase: 17 (discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini) — SEARCH RE-SCOPE PENDING
+Plan: 6 of 6 executed; 17-06 UAT PAUSED mid-flow
+Status: Re-planning the search path (Discover Search v2)
+Last activity: 2026-05-28
 
-Progress: [██████████] 100% of plans complete (6 of 6); phase VERIFIED + closed.
+Progress: [█████████░] community-popular path shipped + working; search path being re-architected.
+
+### Phase 17 search pivot (2026-05-28)
+
+UAT-6 found Gemini `google_search` grounding hallucinates product titles onto real
+product IDs (e.g. Montessori-toy title served as an Esprit T-shirt at eMAG /pd/DKT00YMBM/).
+Decision: re-architect the search path — Gemini does intent extraction + query
+generation + explanations ONLY; real products come from **Google Custom Search JSON API**
+(no scraping, no hallucinated products). Full spec: `17-SEARCH-V2-SPEC.md`.
+
+Locked decisions: formal re-plan · search-path only (community-popular untouched) ·
+flat product list UI · Google CSE setup as a human-action checkpoint.
+
+**Done + staying:** `discoverPopular`, popularItems triggers + backfill (17-02/03/04),
+Stores decommission (17-01), Discover screen scaffolding + retailerName (17-05).
+**Being replaced:** `discoverSearch` internals, `geminiClient` (drop grounding),
+`enrichImages.ts` (CSE returns images), `promptTemplate.ts`, `retailers.ts`.
+**UAT-6 is the open driver** — do NOT mark Phase 17 verified/complete until search v2 ships + re-UATs.
+
+Next: `/gsd:plan-phase 17` (research + plan the search re-scope) after `/clear`.
 
 **Phase 15 (web invite-landing) remains parked** — resume blocked on Identity Platform upgrade. linkInviteOnSignup must target pendingInvitedUsers per Phase 16 D-14 coupling (15-CONTEXT.md stanza appended 2026-05-24).
 
