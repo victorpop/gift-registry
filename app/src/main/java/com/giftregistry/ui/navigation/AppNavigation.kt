@@ -242,6 +242,11 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                             onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
                             onSaved = { registryId ->
                                 if (backStack.size > 1) backStack.removeAt(backStack.lastIndex)
+                                // Push RegistryDetail BEFORE AddItem so the back stack is
+                                // [HomeKey, RegistryDetailKey, AddItemKey]. When AddItemScreen
+                                // calls onBack() after saving the first item it pops AddItemKey
+                                // and lands on RegistryDetailKey — not Home.
+                                backStack.add(RegistryDetailKey(registryId))
                                 backStack.add(AddItemKey(registryId = registryId))   // Phase 11: Step 1 → Step 2
                             },
                             onSkip = {
