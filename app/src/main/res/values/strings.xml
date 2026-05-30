@@ -120,6 +120,9 @@
     <string name="item_status_reserved">Reserved</string>
     <string name="item_status_purchased">Purchased</string>
     <string name="item_og_fetch_failed">Could not auto-fill details. Please enter manually.</string>
+    <string name="product_details_title">Product details</string>
+    <string name="product_url_label">Product URL</string>
+    <string name="product_url_open_in_browser_desc">Open in browser</string>
 
     <!-- Reservation (Phase 4 will expand) -->
     <string name="reservation_timer_label">Reserved for %1$d minutes</string>

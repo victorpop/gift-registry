@@ -120,6 +120,9 @@
     <string name="item_status_reserved">Rezervat</string>
     <string name="item_status_purchased">Cumparat</string>
     <string name="item_og_fetch_failed">Detaliile nu au putut fi completate automat. Te rugam sa le introduci manual.</string>
+    <string name="product_details_title">Detalii produs</string>
+    <string name="product_url_label">URL produs</string>
+    <string name="product_url_open_in_browser_desc">Deschide \u00een browser</string>
 
     <!-- Reservation (Phase 4 will expand) -->
     <string name="reservation_timer_label">Rezervat pentru %1$d minute</string>
