@@ -41,7 +41,7 @@ class CreateRegistryViewModel @Inject constructor(
     val registryId: String? = savedStateHandle["registryId"]
 
     val title = MutableStateFlow("")
-    val occasion = MutableStateFlow("")
+    val occasion = MutableStateFlow("Custom")
     val eventDateMs = MutableStateFlow<Long?>(null)
 
     /**
@@ -272,7 +272,7 @@ class CreateRegistryViewModel @Inject constructor(
      */
     private fun resetForm() {
         title.value = ""
-        occasion.value = ""
+        occasion.value = "Custom"
         eventDateMs.value = null
         eventTimeSet.value = false
         eventLocation.value = ""
