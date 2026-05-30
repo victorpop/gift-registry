@@ -242,6 +242,8 @@
     <!-- 260530-ncw: content descriptions for the layout toggle icon button (action-describes semantics for TalkBack) -->
     <string name="discover_layout_toggle_to_grid">Comut&#0259; la gril&#0259; cu dou&#0259; coloane</string>
     <string name="discover_layout_toggle_to_list">Comut&#0259; la list&#0259; cu o singur&#0259; coloan&#0259;</string>
+    <!-- quick-260530-nx5: small add-to-registry button on every Discover product card -->
+    <string name="discover_card_add_to_registry">Adaug&#0259; la o list&#0259;</string>
 
     <!-- Phase 9 Add-action sheet (CHROME-03) — Romanian -->
     <!-- quick-260428-iny: trimmed from 4 rows to 2 rows. -->

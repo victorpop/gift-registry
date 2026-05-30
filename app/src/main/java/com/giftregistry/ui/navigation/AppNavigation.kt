@@ -210,7 +210,28 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                         )
                     }
 
-                    entry<DiscoverKey> { DiscoverScreen() }
+                    entry<DiscoverKey> {
+                        DiscoverScreen(
+                            onAddToRegistry = { product ->
+                                // quick-260530-nx5: small + button on a Discover card → AddItem
+                                // with the product data pre-filled and the registry picker
+                                // visible (no registry selected). Reuses the fromAddSheet=true
+                                // picker UX introduced by quick-260428-iny.
+                                backStack.add(
+                                    AddItemKey(
+                                        registryId = null,
+                                        fromAddSheet = true,
+                                        prefillTitle = product.title,
+                                        prefillUrl = product.retailerUrl,
+                                        prefillImageUrl = product.imageUrl,
+                                        prefillPrice = if (product.price > 0.0) product.price.toString() else null,
+                                        prefillRetailerName = product.retailerName,
+                                        prefillCurrency = product.currency,
+                                    )
+                                )
+                            },
+                        )
+                    }
 
                     entry<CreateRegistryKey> {
                         CreateRegistryScreen(
@@ -270,6 +291,13 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                             fromAddSheet = key.fromAddSheet,
                             initialUrl = key.initialUrl,
                             initialRegistryId = key.initialRegistryId,
+                            // quick-260530-nx5: forward prefill fields from the nav key
+                            prefillTitle = key.prefillTitle,
+                            prefillUrl = key.prefillUrl,
+                            prefillImageUrl = key.prefillImageUrl,
+                            prefillPrice = key.prefillPrice,
+                            prefillRetailerName = key.prefillRetailerName,
+                            prefillCurrency = key.prefillCurrency,
                             onBack = { if (backStack.size > 1) backStack.removeAt(backStack.lastIndex) },
                             onNavigateToCreateRegistry = {
                                 // quick-260428-iny: zero-registry empty-state link in

@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.giftregistry.R
+import com.giftregistry.domain.discover.DiscoverProduct
 import com.giftregistry.ui.theme.GiftMaisonTheme
 
 /**
@@ -68,6 +69,10 @@ import com.giftregistry.ui.theme.GiftMaisonTheme
 @Composable
 fun DiscoverScreen(
     viewModel: DiscoverViewModel = hiltViewModel(),
+    // quick-260530-nx5: hoisted callback — AppNavigation wires this to push
+    // AddItemKey with prefill. Default no-op so AppNavigation's existing
+    // entry<DiscoverKey> { DiscoverScreen() } call keeps compiling.
+    onAddToRegistry: (DiscoverProduct) -> Unit = {},
 ) {
     val colors = GiftMaisonTheme.colors
     val popular by viewModel.popular.collectAsStateWithLifecycle()
@@ -162,7 +167,11 @@ fun DiscoverScreen(
                             key = { it.id },
                             span = { GridItemSpan(1) },
                         ) { product ->
-                            DiscoverProductCard(product = product, snackbarHostState = snackbarHostState)
+                            DiscoverProductCard(
+                                product = product,
+                                snackbarHostState = snackbarHostState,
+                                onAddToRegistry = onAddToRegistry,
+                            )
                         }
                         SearchState.Empty -> item(span = { GridItemSpan(maxLineSpan) }) {
                             EmptyStateText(stringResource(R.string.discover_empty_search))
@@ -197,7 +206,11 @@ fun DiscoverScreen(
                         key = { it.id },
                         span = { GridItemSpan(1) },
                     ) { product ->
-                        DiscoverProductCard(product = product, snackbarHostState = snackbarHostState)
+                        DiscoverProductCard(
+                            product = product,
+                            snackbarHostState = snackbarHostState,
+                            onAddToRegistry = onAddToRegistry,
+                        )
                     }
                     PopularState.Empty -> item(span = { GridItemSpan(maxLineSpan) }) {
                         EmptyStateText(stringResource(R.string.discover_empty_popular))

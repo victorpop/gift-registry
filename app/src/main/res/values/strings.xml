@@ -241,6 +241,8 @@
     <!-- 260530-ncw: content descriptions for the layout toggle icon button (action-describes semantics for TalkBack) -->
     <string name="discover_layout_toggle_to_grid">Switch to two-column grid</string>
     <string name="discover_layout_toggle_to_list">Switch to single-column list</string>
+    <!-- quick-260530-nx5: small add-to-registry button on every Discover product card -->
+    <string name="discover_card_add_to_registry">Add to a registry</string>
 
     <!-- Phase 9 Add-action sheet (CHROME-03) -->
     <!-- quick-260428-iny: trimmed from 4 rows to 2 rows. The deprecated keys
