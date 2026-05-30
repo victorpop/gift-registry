@@ -30,9 +30,10 @@ decisions:
   - Icons.Outlined.GridView shown in 1-col (action = "go to grid"); Icons.Outlined.ViewAgenda shown in 2-col (action = "go to list")
 metrics:
   completed_date: "2026-05-30"
-  tasks_completed: 3
+  tasks_completed: 4
   tasks_total: 4
   files_modified: 6
+verified_on: emulator-5554
 ---
 
 # Quick 260530-ncw: Discover Layout Toggle Summary
@@ -47,11 +48,9 @@ metrics:
 | 2 | DiscoverScreen LazyVerticalGrid + toggle | a982d40 | DiscoverScreen.kt |
 | 3 | StyleGuidePreview 2-col preview | aece860 | StyleGuidePreview.kt |
 
-## Task 4: Human Verify (OUTSTANDING)
+## Task 4: Human Verify — PASSED
 
-Task 4 is a `checkpoint:human-verify` and has NOT been executed. Visual + device verification is required before this quick task can be marked complete.
-
-See the checkpoint details in `260530-ncw-PLAN.md` Task 4 for the full verification checklist (10 steps).
+Visual + device verification approved on 2026-05-30 against `emulator-5554` (the same emulator used for the Phase 17 re-UAT). Toggle visible top-right, default 1-col, tapping swaps both icon and layout, both popular + search sections respect the column count, shimmer placeholders also tile correctly, no persistence across relaunch (default restored). User reply: `approved`.
 
 ## What Was Built
 
