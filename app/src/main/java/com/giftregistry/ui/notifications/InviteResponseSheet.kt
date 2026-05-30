@@ -82,7 +82,11 @@ fun InviteResponseSheet(
     val isLoading = state is InviteResponseViewModel.State.Submitting
 
     // D-07: block swipe-dismiss + onDismissRequest while a callable is in-flight.
+    // skipPartiallyExpanded=true: sheet goes straight to its content-sized resting
+    // height in one animation rather than landing in the half-expanded state and
+    // requiring the user to drag up to reveal content.
     val sheetState = rememberModalBottomSheetState(
+        skipPartiallyExpanded = true,
         confirmValueChange = { state !is InviteResponseViewModel.State.Submitting },
     )
 
