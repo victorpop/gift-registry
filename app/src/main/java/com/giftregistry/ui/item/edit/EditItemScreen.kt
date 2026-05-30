@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -131,7 +132,14 @@ fun EditItemScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.item_edit_title)) },
+                title = {
+                    Text(
+                        stringResource(
+                            if (isOwner) R.string.item_edit_title
+                            else R.string.product_details_title
+                        )
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -330,15 +338,6 @@ fun EditItemScreen(
                 }
 
                 OutlinedTextField(
-                    value = imageUrl,
-                    onValueChange = {},
-                    label = { Text(stringResource(R.string.item_image_label)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    enabled = false,
-                )
-
-                OutlinedTextField(
                     value = notes,
                     onValueChange = {},
                     label = { Text(stringResource(R.string.item_notes_label)) },
@@ -348,14 +347,38 @@ fun EditItemScreen(
                     enabled = false,
                 )
 
-                OutlinedTextField(
-                    value = url,
-                    onValueChange = {},
-                    label = { Text(stringResource(R.string.item_add_url_label)) },
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    enabled = false,
-                )
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    OutlinedTextField(
+                        value = url,
+                        onValueChange = {},
+                        label = { Text(stringResource(R.string.product_url_label)) },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        enabled = false,
+                    )
+                    if (url.isNotBlank()) {
+                        IconButton(
+                            onClick = {
+                                runCatching {
+                                    context.startActivity(
+                                        Intent(Intent.ACTION_VIEW, url.toUri())
+                                    )
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.OpenInNew,
+                                contentDescription = stringResource(
+                                    R.string.product_url_open_in_browser_desc
+                                ),
+                            )
+                        }
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
