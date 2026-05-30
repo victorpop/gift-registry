@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -1020,6 +1022,66 @@ private fun DiscoverPreview() {
                         color = colors.inkFaint,
                     )
                 }
+            }
+        }
+    }
+}
+
+// 260530-ncw: 2-col layout preview — validates grid tiling, full-width section headers,
+// and shimmer skeleton at GridCells.Fixed(2). Leave the 1-col preview above as regression ref.
+@Preview(
+    name = "Phase 17 — Discover (2-col)",
+    showBackground = true,
+    backgroundColor = 0xFFF7F2E9,
+    widthDp = 390,
+    heightDp = 1200,
+)
+@Composable
+private fun DiscoverTwoColumnPreview() {
+    GiftRegistryTheme {
+        val colors = GiftMaisonTheme.colors
+        val typography = GiftMaisonTheme.typography
+        val snackbar = remember { SnackbarHostState() }
+        val fourProducts = discoverPreviewProducts + discoverPreviewProducts
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(colors.paper),
+        ) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        "FROM THE COMMUNITY",
+                        style = typography.monoCaps,
+                        color = colors.inkFaint,
+                    )
+                }
+                items(items = fourProducts, key = { "${it.id}-${fourProducts.indexOf(it)}" }) { product ->
+                    DiscoverProductCard(product = product, snackbarHostState = snackbar)
+                }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        "FROM THE WEB",
+                        style = typography.monoCaps,
+                        color = colors.inkFaint,
+                    )
+                }
+                items(items = discoverPreviewProducts, key = { it.id }) { product ->
+                    DiscoverProductCard(product = product, snackbarHostState = snackbar)
+                }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        "FROM THE WEB — shimmer",
+                        style = typography.monoCaps,
+                        color = colors.inkFaint,
+                    )
+                }
+                items(2) { DiscoverShimmerCard() }
             }
         }
     }
