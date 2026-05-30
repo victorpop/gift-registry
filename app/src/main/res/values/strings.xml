@@ -223,7 +223,8 @@
     <!-- Phase 9 bottom nav (CHROME-01) -->
     <string name="nav_home_tab">HOME</string>
     <string name="nav_fab_add">ADD</string>
-    <string name="nav_lists_tab">LISTS</string>
+    <!-- quick-260530-p7w: slot 4 renamed LISTS → INBOX (opens notifications inbox). -->
+    <string name="nav_inbox_tab">INBOX</string>
     <string name="nav_you_tab">YOU</string>
     <string name="nav_fab_add_content_description">Add new</string>
 

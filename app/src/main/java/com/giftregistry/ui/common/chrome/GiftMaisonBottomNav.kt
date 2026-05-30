@@ -15,8 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.List
 import androidx.compose.material.icons.outlined.Home
+import androidx.compose.material.icons.outlined.Inbox
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
@@ -33,13 +33,13 @@ import androidx.compose.ui.unit.dp
 import com.giftregistry.R
 import com.giftregistry.ui.navigation.DiscoverKey
 import com.giftregistry.ui.navigation.HomeKey
-import com.giftregistry.ui.navigation.RegistryDetailKey
+import com.giftregistry.ui.navigation.NotificationsKey
 import com.giftregistry.ui.theme.GiftMaisonTheme
 
-private enum class NavSlotId { HOME, DISCOVER, FAB, LISTS, YOU }
+private enum class NavSlotId { HOME, DISCOVER, FAB, INBOX, YOU }
 
 /**
- * CHROME-01: 5-slot bottom nav — Home · Discover · [FAB] · Lists · You.
+ * CHROME-01: 5-slot bottom nav — Home · Discover · [FAB] · Inbox · You.
  *
  * Visibility predicate `Any?.showsBottomNav()` lives in NavVisibility.kt
  * (same package). Plan 02 shipped it as a stub; this plan adds the full
@@ -51,10 +51,15 @@ private enum class NavSlotId { HOME, DISCOVER, FAB, LISTS, YOU }
  *  - Plan 17-05: slot 2 rewired to Discover — enum entry, icon, label string, and
  *    callback all renamed to the Discover variant; legacy label string deleted
  *    from values + values-ro in lock-step with this rename.
+ *  - quick-260530-p7w: slot 4 renamed LISTS → INBOX. Icon swapped to
+ *    Icons.Outlined.Inbox; tap pushes NotificationsKey (additional entry
+ *    point alongside the Home top-bar bell). Selected-state now tracks
+ *    NotificationsKey. The old LISTS slot's RegistryDetail jump is dropped
+ *    — Home already surfaces the registry list.
  *
  * @param currentKey Current back-stack head — drives selected-slot highlighting
  *   per UI-SPEC mapping: HomeKey → Home, DiscoverKey → Discover,
- *   RegistryDetailKey → Lists, else → none.
+ *   NotificationsKey → Inbox, else → none.
  * @param onFab Tap on the centre FAB — Plan 04 wires this to open AddActionSheet.
  */
 @Composable
@@ -63,7 +68,7 @@ fun GiftMaisonBottomNav(
     onHome: () -> Unit,
     onDiscover: () -> Unit,
     onFab: () -> Unit,
-    onLists: () -> Unit,
+    onInbox: () -> Unit,
     onYou: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -71,7 +76,7 @@ fun GiftMaisonBottomNav(
     val selected: NavSlotId? = when (currentKey) {
         is HomeKey -> NavSlotId.HOME
         is DiscoverKey -> NavSlotId.DISCOVER
-        is RegistryDetailKey -> NavSlotId.LISTS
+        is NotificationsKey -> NavSlotId.INBOX
         else -> null
     }
 
@@ -104,10 +109,10 @@ fun GiftMaisonBottomNav(
             modifier = Modifier.weight(1f),
         )
         NavItemSlot(
-            icon = Icons.AutoMirrored.Outlined.List,
-            labelRes = R.string.nav_lists_tab,
-            isSelected = selected == NavSlotId.LISTS,
-            onClick = onLists,
+            icon = Icons.Outlined.Inbox,
+            labelRes = R.string.nav_inbox_tab,
+            isSelected = selected == NavSlotId.INBOX,
+            onClick = onInbox,
             modifier = Modifier.weight(1f),
         )
         NavItemSlot(

@@ -164,15 +164,14 @@ fun AppNavigation(deepLinkRegistryId: String? = null) {
                         }
                     },
                     onFab = { showAddSheet = true },
-                    onLists = {
-                        // UI-SPEC Interaction table: no-op if already on RegistryDetail.
-                        if (currentKey is RegistryDetailKey) {
-                            // no-op — user already on a detail screen
-                        } else if (hasRegistries) {
-                            backStack.add(RegistryDetailKey(registryId = primaryRegistryId))
-                        } else {
-                            // Zero-registry: open the sheet pre-focused on New registry.
-                            showAddSheet = true
+                    onInbox = {
+                        // quick-260530-p7w: slot 4 renamed LISTS → INBOX. Push NotificationsKey
+                        // unless we're already there (avoid duplicate stack entries on repeated
+                        // taps — same pattern as onDiscover above). Same destination as the
+                        // Home top-bar bell (line 208) — bottom-nav INBOX is an ADDITIONAL
+                        // entry point, the bell stays.
+                        if (currentKey !is NotificationsKey) {
+                            backStack.add(NotificationsKey)
                         }
                     },
                     onYou = {

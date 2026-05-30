@@ -229,18 +229,18 @@ private fun BottomNavHomeSelectedPreview() {
     GiftRegistryTheme {
         com.giftregistry.ui.common.chrome.GiftMaisonBottomNav(
             currentKey = com.giftregistry.ui.navigation.HomeKey,
-            onHome = {}, onDiscover = {}, onFab = {}, onLists = {}, onYou = {},
+            onHome = {}, onDiscover = {}, onFab = {}, onInbox = {}, onYou = {},
         )
     }
 }
 
-@Preview(name = "Bottom nav — RegistryDetail selected", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 80)
+@Preview(name = "Bottom nav — Inbox selected", showBackground = true, backgroundColor = 0xFFF7F2E9, widthDp = 360, heightDp = 80)
 @Composable
-private fun BottomNavListsSelectedPreview() {
+private fun BottomNavInboxSelectedPreview() {
     GiftRegistryTheme {
         com.giftregistry.ui.common.chrome.GiftMaisonBottomNav(
-            currentKey = com.giftregistry.ui.navigation.RegistryDetailKey(registryId = "preview"),
-            onHome = {}, onDiscover = {}, onFab = {}, onLists = {}, onYou = {},
+            currentKey = com.giftregistry.ui.navigation.NotificationsKey,
+            onHome = {}, onDiscover = {}, onFab = {}, onInbox = {}, onYou = {},
         )
     }
 }

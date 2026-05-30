@@ -224,7 +224,8 @@
     <!-- Phase 9 bottom nav (CHROME-01) — Romanian -->
     <string name="nav_home_tab">ACAS&#0196;</string>
     <string name="nav_fab_add">ADAUG&#0258;</string>
-    <string name="nav_lists_tab">LISTE</string>
+    <!-- quick-260530-p7w: slot 4 renamed LISTS → INBOX. User locked the LITERAL string "INBOX" in RO — do NOT translate to "Mesaje" / "Căsuța poștală" / "Notificări". -->
+    <string name="nav_inbox_tab">INBOX</string>
     <string name="nav_you_tab">TU</string>
     <string name="nav_fab_add_content_description">Adaug&#0259;</string>
 
