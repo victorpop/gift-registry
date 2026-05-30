@@ -71,10 +71,19 @@ fun AddItemScreen(
     onBack: () -> Unit,
     onNavigateToCreateRegistry: () -> Unit = {},       // quick-260428-iny — picker empty-state
     viewModel: AddItemViewModel = hiltViewModelWithNavArgs(
-        // Stable ViewModelStore key. When entered via the FAB sheet there is no
-        // registryId yet — fall back to a deterministic placeholder so the same
-        // VM instance survives recompositions.
-        key = registryId ?: "add-item-no-registry-yet",
+        // Stable ViewModelStore key. quick-260530-nx5 bugfix: the FAB-sheet path
+        // and the Discover "+" path BOTH arrive with registryId=null, so a plain
+        // `registryId ?: "add-item-no-registry-yet"` collapses both intents to the
+        // same key — the second navigation reuses the cached VM from the first,
+        // with an empty SavedStateHandle (no prefill) and a stale _selectedRegistryId.
+        // Include prefillUrl in the key so each Discover product (and each fresh
+        // navigation intent that carries prefill) gets a distinct ViewModelStore
+        // entry; savedStateHandle["prefillTitle"] etc. are seen on init {} instead
+        // of being shadowed.
+        key = registryId ?: when {
+            !prefillUrl.isNullOrBlank() -> "add-item-prefill-${prefillUrl}"
+            else -> "add-item-no-registry-yet"
+        },
         "registryId" to (registryId ?: ""),
         "fromAddSheet" to fromAddSheet,
         "initialUrl" to (initialUrl ?: ""),
