@@ -67,3 +67,19 @@ Resolved debug sessions. Used by `gsd-debugger` to surface known-pattern hypothe
 - **Fix (pattern):** Each `backStack.add(<LeafKey>)` call site owns the responsibility of ensuring the intended return destination is already on the stack. Do not fix this from inside the leaf screen. Detection heuristic: if a save-and-return flow lands on the wrong screen for only one entry path, grep all `backStack.add(<LeafKey>)` sites and verify the parent entry is present beneath the leaf in every case.
 - **Files changed:** (pattern entry — no single file; applies to AppNavigation.kt call sites generally)
 ---
+
+## create-registry-default-other-blocks-cover-picker — ViewModel "" initial value disagrees with canonical "Custom" form; cover picker gated on raw value
+- **Date:** 2026-05-30
+- **Error patterns:** Other tile highlighted, cover picker disabled, pick an occasion, cover photo picker, OccasionTileGrid, isCoverPickerEnabled, MutableStateFlow, isNullOrBlank, first render, first frame, create registry, occasion empty string
+- **Root cause:** `CreateRegistryViewModel` initialized `occasion = MutableStateFlow("")`. `OccasionTileGrid` canonicalizes `""` to `"Custom"` via `OccasionCatalog.storageKeyFor` and highlights the Other tile, but `isCoverPickerEnabled("")` short-circuits on `isNullOrBlank()` and returns false. The visual default and the gating predicate operated on two different representations of "nothing chosen."
+- **Fix:** Changed `MutableStateFlow("")` to `MutableStateFlow("Custom")` on line 44 and `occasion.value = ""` to `occasion.value = "Custom"` in `resetForm()` on line 275 in `CreateRegistryViewModel.kt`. Both views now agree on the same canonical initial value.
+- **Files changed:** app/src/main/java/com/giftregistry/ui/registry/create/CreateRegistryViewModel.kt
+---
+
+## visual-default-predicate-mismatch — General pattern: UI visual fallback for empty state must agree with downstream gating predicates
+- **Date:** 2026-05-30
+- **Error patterns:** element highlighted but disabled, UI highlights but feature gated, selected but not enabled, visual selection disagrees with state, default state, sentinel value, isNullOrBlank, canonical, fallback rendering, first frame, cover picker, occasion
+- **Root cause:** When a UI component uses a fallback rendering for an empty/null state (e.g. "highlight Other when nothing is selected"), any downstream predicates that gate behavior on that same state operate on the raw StateFlow value — not the canonicalized form. The visual layer translates the sentinel; the predicate does not. Result: the element appears selected/active but the feature it guards is disabled.
+- **Fix (pattern):** Make the canonical value the actual initial state — never let the "default" be a sentinel that only the visual layer translates. Change the StateFlow initializer and any reset paths to use the canonical value directly. Detection heuristic: when a UI element is highlighted but downstream gating disagrees, grep for the StateFlow's initial value and check whether it equals the value the highlight code resolves to. If not, they will always disagree on first render.
+- **Files changed:** (pattern entry — no single file)
+---
