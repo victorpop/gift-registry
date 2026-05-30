@@ -22,11 +22,12 @@ decisions:
   - "Used Icons.AutoMirrored.Outlined.OpenInNew per plan brief (LTR/RTL-aware)"
   - "Romanian î encoded as \\u00ee to match surrounding file style (e.g. common_loading, common_retry)"
 metrics:
-  duration: ~2min
+  duration: ~15min
   completed_date: "2026-05-30"
-  tasks_completed: 2
-  tasks_outstanding: 1
+  tasks_completed: 3
+  tasks_outstanding: 0
   files_modified: 3
+verified_on: "physical phone + AVD, -Puse_emulator=false"
 ---
 
 # Quick Task 260530-uq3: Non-owner Product Details Screen Polish Summary
@@ -39,7 +40,7 @@ metrics:
 |------|------|--------|-------|
 | 1 | Add 3 new localized strings (en + ro) | 850f6e4 | values/strings.xml, values-ro/strings.xml |
 | 2 | Wire non-owner mode in EditItemScreen.kt | 1114588 | EditItemScreen.kt |
-| 3 | Human verification on emulator | outstanding | — |
+| 3 | Visual verification on physical phone + AVD | verified | — |
 
 ## What Was Built
 
@@ -72,18 +73,20 @@ Four targeted edits, all conditioned on the existing `isOwner` StateFlow:
 - [x] `grep -c "item_image_label" EditItemScreen.kt` → 1 (owner branch only)
 - [x] `grep -n "item_add_url_label" EditItemScreen.kt` → exactly 1 hit at owner branch line 192
 - [x] `./gradlew :app:compileDebugKotlin` → BUILD SUCCESSFUL
-- [ ] Manual visual verification on emulator (Task 3 — outstanding)
+- [x] Manual visual verification on physical phone + AVD — PASSED (2026-05-30)
 
-## Task 3: Outstanding (human-verify checkpoint)
+## Task 3: Visual Verification — PASSED
 
-Task 3 is a `checkpoint:human-verify` — the orchestrator will handle install and verification. The verification checklist:
+Build installed with `./gradlew :app:installDebug -Puse_emulator=false` (per the Android emulator-host build flag memory entry) on physical phone + AVD.
 
-- [ ] Non-owner sees "Product details" (en) / "Detalii produs" (ro) as TopAppBar title
-- [ ] Image URL text field is gone in non-owner mode; image preview still shown
-- [ ] URL field labelled "Product URL" / "URL produs" (not "Paste product URL")
-- [ ] OpenInNew icon appears next to URL field when item has a URL; absent when no URL
-- [ ] Tapping the icon opens the URL in the device browser
-- [ ] Owner mode unchanged: "Edit Item" title, "Paste product URL" label, image URL field present
+All verification checklist items confirmed:
+
+- [x] Non-owner sees "Product details" (en) / "Detalii produs" (ro) as TopAppBar title
+- [x] Image URL text field is gone in non-owner mode; image preview still shown
+- [x] URL field labelled "Product URL" / "URL produs" (not "Paste product URL")
+- [x] OpenInNew icon appears next to URL field when item has a URL; absent when no URL
+- [x] Tapping the icon opens the URL in the device browser
+- [x] Owner mode unchanged: "Edit Item" title, "Paste product URL" label, image URL field present
 
 ## Deviations from Plan
 
