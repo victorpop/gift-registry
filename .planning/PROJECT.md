@@ -51,6 +51,7 @@ Gift givers can reliably reserve and purchase gifts without duplicates — the r
 - ✓ Owners can browse popular Romanian retailers in an in-app WebView and add products via persistent "Add to list" CTA — Phase 7 (automated; 8 items pending real-device UAT). Replaces the retired EMAG catalog API scope (no public catalog API available)
 - ✓ Registry cover photos: bundled occasion presets + gallery upload via Firebase Storage; themed gradient + glyph placeholder on cards and hero when imageUrl is null (fixes visible empty-card bug) — Phase 12 (automated; storage rules deploy + real preset curation deferred via todos)
 - ✓ Web fallback restyled to match GiftMaison design language (registry detail, reserve flow, auth two-surface, polish surfaces, shared chrome) — Phase 13 (UAT approved 2026-05-12; live deploy + guest UAT closed in Phase 14, 2026-05-22)
+- ✓ Discover bottom-nav surface (Android Compose) with two product-discovery sections (community-popular + AI-powered web search), backed by Cloud Functions Callables + Firestore triggers + 30-day query cache. Phase 7 Stores capability fully decommissioned in the same phase. Search re-architected mid-phase (UAT-6 found Gemini `google_search` grounding hallucinated product titles onto real product IDs; pivoted twice — CSE was closed to new customers (403), then Serper.dev `/shopping` adopted): Gemini extracts intent only (JSON mode, no grounding), Serper returns real products restricted to a 43-store Romanian allowlist via hostname post-filter, ≤3 fan-out queries per search, ≤20 results returned/cached — Phase 17 (verified on-device 2026-05-30, 8/8 re-UAT scenarios PASS incl. the RE-UAT-6 driver)
 
 ### Active
 
@@ -116,4 +117,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-22 after Phase 14 web fallback live deploy + guest UAT closed (5 silent prod bugs caught + fixed during layered UAT)*
+*Last updated: 2026-05-30 after Phase 17 Discover (community-popular + AI-powered search) shipped — search pivoted CSE→Serper.dev mid-phase to eliminate Gemini-grounding hallucination; 8/8 on-device re-UAT PASS*

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: "Milestone: GiftMaison visual refresh"
 status: executing
-stopped_at: "17-08 checkpoint:human-verify — awaiting on-device re-UAT (Task 3)"
-last_updated: "2026-05-29T00:00:00Z"
-last_activity: 2026-05-29
+stopped_at: Completed 17-07-backend-search-rescope-PLAN.md
+last_updated: "2026-05-30T13:37:20.223Z"
+last_activity: 2026-05-30
 progress:
   total_phases: 17
-  completed_phases: 15
+  completed_phases: 16
   total_plans: 92
-  completed_plans: 85
+  completed_plans: 87
 ---
 
 # Project State
@@ -24,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-04-20)
 
 ## Current Position
 
-Phase: 17 (discover-feature-with-community-popular-products-and-ai-powered-web-search-via-gemini) — EXECUTING
-Plan: 2 of 8
+Phase: 17
+Plan: Not started
 Status: Ready to execute
-Last activity: 2026-05-28
+Last activity: 2026-05-30
 
 Progress: [█████████░] community-popular path shipped + working; search path being re-architected.
 
