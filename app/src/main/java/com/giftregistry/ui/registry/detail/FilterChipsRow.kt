@@ -27,9 +27,9 @@ import com.giftregistry.domain.model.Item
 import com.giftregistry.ui.theme.GiftMaisonTheme
 
 /**
- * SCR-08 — horizontally scrolling LazyRow of 4 filter chips (All / Open /
+ * SCR-08 — horizontally scrolling LazyRow of 3 filter chips (Open /
  * Reserved / Completed). Active = colors.ink bg + colors.paper text. Inactive
- * = colors.line border + colors.inkFaint text. Counts inline (e.g. "All 12").
+ * = colors.line border + colors.inkFaint text. Counts inline (e.g. "Open 12").
  */
 @Composable
 internal fun FilterChipsRow(
@@ -60,7 +60,6 @@ internal fun FilterChipsRow(
 }
 
 private fun labelResId(chip: FilterChipState): Int = when (chip) {
-    FilterChipState.All       -> R.string.registry_filter_all
     FilterChipState.Open      -> R.string.registry_filter_open
     FilterChipState.Reserved  -> R.string.registry_filter_reserved
     FilterChipState.Completed -> R.string.registry_filter_completed

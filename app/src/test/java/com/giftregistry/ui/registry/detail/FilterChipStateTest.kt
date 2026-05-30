@@ -7,37 +7,22 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * SCR-08: Filter chip enum + domain → filter predicate mapping.
+ * Filter chip enum + domain → filter predicate mapping.
  *
- *   All       → matches every status
  *   Open      → ItemStatus.AVAILABLE
  *   Reserved  → ItemStatus.RESERVED
  *   Completed → ItemStatus.PURCHASED
  *
- * Locked by CONTEXT.md § Registry Detail ("Open = AVAILABLE, Reserved = RESERVED,
- * Completed = PURCHASED") and UI-SPEC.md § Filter Chips Row.
- *
- * Note: this domain → UI label mapping is the same mapping used by Phase 9
- * StatusChip dispatcher (STATE.md: "ItemStatus.PURCHASED→GIVEN is highest-risk
- * API pitfall") — the Completed filter aliases the PURCHASED domain value.
- *
- * RED in Wave 0 — flips GREEN when Plan 02 ships FilterChipState.kt in
- * com.giftregistry.ui.registry.detail.
+ * The Completed filter aliases the PURCHASED domain value (matches Phase 9
+ * StatusChip dispatcher: ItemStatus.PURCHASED → "Given/Completed" UI label).
  */
 class FilterChipStateTest {
     @Test fun allMembersExist() {
         val entries = FilterChipState.entries
-        assertEquals(4, entries.size)
-        assertEquals(FilterChipState.All, entries[0])
-        assertEquals(FilterChipState.Open, entries[1])
-        assertEquals(FilterChipState.Reserved, entries[2])
-        assertEquals(FilterChipState.Completed, entries[3])
-    }
-
-    @Test fun all_matchesAnyStatus() {
-        assertTrue(FilterChipState.All.matches(ItemStatus.AVAILABLE))
-        assertTrue(FilterChipState.All.matches(ItemStatus.RESERVED))
-        assertTrue(FilterChipState.All.matches(ItemStatus.PURCHASED))
+        assertEquals(3, entries.size)
+        assertEquals(FilterChipState.Open, entries[0])
+        assertEquals(FilterChipState.Reserved, entries[1])
+        assertEquals(FilterChipState.Completed, entries[2])
     }
 
     @Test fun open_matchesOnlyAvailable() {

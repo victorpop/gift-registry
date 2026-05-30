@@ -208,7 +208,6 @@
     <string name="registry_stat_given">D\u0102RUITE</string>
     <string name="registry_share_link_copied">Link copiat</string>
     <string name="registry_share_helper">Atinge pentru a copia sau distribui</string>
-    <string name="registry_filter_all">Toate</string>
     <string name="registry_filter_open">Disponibile</string>
     <string name="registry_filter_reserved">Rezervate</string>
     <string name="registry_filter_completed">Finalizate</string>

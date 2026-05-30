@@ -107,7 +107,9 @@ fun RegistryDetailScreen(
     // --- Phase 11 filter + lazy list state ---
     val listState = rememberLazyListState()
     var activeFilterIndex by rememberSaveable { mutableIntStateOf(0) }
-    val activeFilter = FilterChipState.entries[activeFilterIndex]
+    // coerceIn guards rememberSaveable values restored from older app versions
+    // that had the 4-chip enum (e.g. saved index 3 when entries.size == 3 now).
+    val activeFilter = FilterChipState.entries[activeFilterIndex.coerceIn(0, FilterChipState.entries.lastIndex)]
     val filteredItems = remember(items, activeFilter) { items.filter { activeFilter.matches(it.status) } }
 
     // --- Share tap closure (reused by top-bar share icon AND overflow Share item) ---

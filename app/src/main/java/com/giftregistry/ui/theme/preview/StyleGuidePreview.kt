@@ -459,7 +459,7 @@ private fun FilterChipRowPreview() {
                 add(Item(id = "r2", registryId = "r", status = ItemStatus.RESERVED))
                 add(Item(id = "p1", registryId = "r", status = ItemStatus.PURCHASED))
             },
-            activeFilter = FilterChipState.All,
+            activeFilter = FilterChipState.Open,
             onFilterSelected = {},
         )
     }
