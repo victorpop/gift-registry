@@ -18,10 +18,9 @@ import com.giftregistry.domain.model.Item
 import com.giftregistry.ui.theme.GiftMaisonTheme
 
 /**
- * SCR-08 — 4-stat strip (items / reserved / given / views) with 1 dp vertical
+ * SCR-08 — 3-stat strip (items / reserved / given) with 1 dp vertical
  * dividers between slots. All stats derived client-side from the items list via
- * `registryStatsOf`. `views` renders as "0" per CONTEXT.md § Stats strip
- * (Registry.viewCount deferred to v1.2).
+ * `registryStatsOf`.
  */
 @Composable
 internal fun StatsStrip(
@@ -54,13 +53,6 @@ internal fun StatsStrip(
         StatSlot(
             value = stats.given.toString(),
             label = stringResource(R.string.registry_stat_given),
-            modifier = Modifier.weight(1f),
-        )
-        VerticalDivider(thickness = 1.dp, color = colors.line, modifier = Modifier.height(40.dp))
-        // TODO v1.2: replace stats.views with Registry.viewCount when the field ships
-        StatSlot(
-            value = stats.views.toString(),
-            label = stringResource(R.string.registry_stat_views),
             modifier = Modifier.weight(1f),
         )
     }

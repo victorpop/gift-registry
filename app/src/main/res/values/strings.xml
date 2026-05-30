@@ -205,7 +205,6 @@
     <string name="registry_stat_items">ITEMS</string>
     <string name="registry_stat_reserved">RESERVED</string>
     <string name="registry_stat_given">GIVEN</string>
-    <string name="registry_stat_views">VIEWS</string>
     <string name="registry_share_link_copied">Link copied</string>
     <string name="registry_share_helper">Tap to copy or share</string>
     <string name="registry_filter_all">All</string>
