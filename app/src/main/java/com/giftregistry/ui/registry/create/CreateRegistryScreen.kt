@@ -329,9 +329,17 @@ fun CreateRegistryScreen(
                 )
             }
 
+            // 2×3 Occasion tile grid (Task 1 composable). Rendered BEFORE the
+            // cover photo picker so the gating (D-12: photo picker disabled
+            // until occasion is set) is visually intuitive — user picks
+            // occasion first, then the photo picker below activates.
+            OccasionTileGrid(
+                selectedOccasion = occasion,
+                onOccasionSelected = { viewModel.occasion.value = it },
+            )
+
             // Phase 12 D-09 — Cover photo picker (inline 16:9 preview block).
-            // Inserted ABOVE the occasion tile grid per the cover-photo decision
-            // doc. Disabled until an occasion is set (D-12). Tap opens the
+            // Disabled until an occasion is set (D-12). Tap opens the
             // ModalBottomSheet picker hosted at the bottom of this Composable.
             Column(modifier = Modifier.padding(horizontal = spacing.edge)) {
                 Text(
@@ -348,12 +356,6 @@ fun CreateRegistryScreen(
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-
-            // 2×3 Occasion tile grid (Task 1 composable)
-            OccasionTileGrid(
-                selectedOccasion = occasion,
-                onOccasionSelected = { viewModel.occasion.value = it },
-            )
 
             // Form fields
             Column(
