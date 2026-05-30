@@ -86,14 +86,20 @@ class RegistryListViewModel @Inject constructor(
                                 // Combine one items Flow per registry into a map of counts.
                                 // combine(vararg flows) emits whenever any child emits — counts
                                 // stay in sync with Firestore real-time updates on items.
+                                // Per-registry .catch — if items for one registry fail (e.g.
+                                // PERMISSION_DENIED on a registry the user is invited to but
+                                // whose items rule denies via get()), that card falls back to
+                                // zero counts instead of erroring the whole list.
                                 val itemFlows = registries.map { registry ->
-                                    observeItems(registry.id).map { items ->
-                                        registry.id to RegistryCounts(
-                                            items = items.size,
-                                            reserved = items.count { it.status == ItemStatus.RESERVED },
-                                            given = items.count { it.status == ItemStatus.PURCHASED },
-                                        )
-                                    }
+                                    observeItems(registry.id)
+                                        .map { items ->
+                                            registry.id to RegistryCounts(
+                                                items = items.size,
+                                                reserved = items.count { it.status == ItemStatus.RESERVED },
+                                                given = items.count { it.status == ItemStatus.PURCHASED },
+                                            )
+                                        }
+                                        .catch { emit(registry.id to RegistryCounts()) }
                                 }
                                 combine(itemFlows) { pairs ->
                                     val countsMap = pairs.toMap()
