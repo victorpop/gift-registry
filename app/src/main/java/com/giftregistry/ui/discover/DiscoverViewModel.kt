@@ -38,7 +38,7 @@ class DiscoverViewModel @Inject constructor(
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     // 260530-ncw: session-local layout toggle; not persisted.
-    private val _layoutMode = MutableStateFlow<DiscoverLayoutMode>(DiscoverLayoutMode.OneColumn)
+    private val _layoutMode = MutableStateFlow<DiscoverLayoutMode>(DiscoverLayoutMode.TwoColumns)
     val layoutMode: StateFlow<DiscoverLayoutMode> = _layoutMode.asStateFlow()
 
     fun toggleLayoutMode() {
