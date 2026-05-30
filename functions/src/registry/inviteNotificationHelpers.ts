@@ -53,6 +53,9 @@ export async function lookupDisplayName(uid: string): Promise<string> {
  * Android client coerces to String when reading from the payload Map. The
  * writeNotification signature accepts string|number|boolean|null payload
  * values, so this round-trips cleanly to Firestore.
+ *
+ * description is included so the InviteResponseSheet can render it below the
+ * registry name without a registry-doc read (denied pre-accept).
  */
 export function buildEnrichedInvitePayload(
   registryData: FirebaseFirestore.DocumentData,
@@ -64,5 +67,6 @@ export function buildEnrichedInvitePayload(
     occasion: (registryData.occasion as string | undefined) ?? null,
     coverUrl: (registryData.imageUrl as string | undefined) ?? null,
     eventDateMs: eventAt ? eventAt.toMillis() : null,
+    description: (registryData.description as string | undefined) ?? null,
   };
 }

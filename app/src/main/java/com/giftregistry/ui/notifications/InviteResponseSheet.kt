@@ -158,6 +158,17 @@ fun InviteResponseSheet(
                     color = colors.accent,
                 )
 
+                // Optional description (only when set on the registry)
+                val description = payload["description"]
+                if (!description.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(spacing.gap8))
+                    Text(
+                        text = description,
+                        style = typography.bodyM,
+                        color = colors.inkSoft,
+                    )
+                }
+
                 // Optional event-date metadata (only if eventDateMs present and parseable)
                 val context = LocalContext.current
                 val eventDateLabel = remember(payload["eventDateMs"]) {
