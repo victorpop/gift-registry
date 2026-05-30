@@ -50,6 +50,8 @@ Stores decommission (17-01), Discover screen scaffolding + retailerName (17-05).
 
 Next: `/gsd:plan-phase 17` (research + plan the search re-scope) after `/clear`.
 
+Discover layout toggle (quick 260530-ncw) shipped — session-local, 2x2 / ViewAgenda icons, en+ro descriptions. Human-verify (Task 4) outstanding.
+
 **Phase 15 (web invite-landing) remains parked** — resume blocked on Identity Platform upgrade. linkInviteOnSignup must target pendingInvitedUsers per Phase 16 D-14 coupling (15-CONTEXT.md stanza appended 2026-05-24).
 
 **v1.1 milestone:** all 14 phases that were planned for execution are now complete + verified. Phase 15 is the only outstanding phase, parked deliberately.
