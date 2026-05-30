@@ -71,6 +71,25 @@ class AddItemViewModel @Inject constructor(
     val initialUrl: String = savedStateHandle["initialUrl"] ?: ""
     val initialRegistryId: String = savedStateHandle["initialRegistryId"] ?: ""
 
+    // quick-260530-nx5: optional pre-fill from a trusted upstream source.
+    // When any of these is non-blank, init { } hydrates form state directly
+    // and SKIPS the OG-metadata Cloud Function — the upstream (Serper) data
+    // is the source of truth; re-fetching could overwrite it with worse OG tags.
+    private val prefillTitle: String = savedStateHandle["prefillTitle"] ?: ""
+    private val prefillUrl: String = savedStateHandle["prefillUrl"] ?: ""
+    private val prefillImageUrl: String = savedStateHandle["prefillImageUrl"] ?: ""
+    private val prefillPrice: String = savedStateHandle["prefillPrice"] ?: ""
+    @Suppress("unused") // accepted for future retailer-chip rendering
+    private val prefillRetailerName: String = savedStateHandle["prefillRetailerName"] ?: ""
+    @Suppress("unused") // accepted for future currency display
+    private val prefillCurrency: String = savedStateHandle["prefillCurrency"] ?: ""
+
+    private fun hasPrefill(): Boolean =
+        prefillTitle.isNotBlank() ||
+            prefillUrl.isNotBlank() ||
+            prefillImageUrl.isNotBlank() ||
+            prefillPrice.isNotBlank()
+
     /**
      * The signed-in user's ACTIVE registries — drives the picker dropdown when
      * `fromAddSheet=true`. Mirrors RegistryListViewModel's flatMapLatest pattern.
@@ -171,7 +190,24 @@ class AddItemViewModel @Inject constructor(
     }
 
     init {
-        if (initialUrl.isNotBlank()) {
+        if (hasPrefill()) {
+            // quick-260530-nx5: pre-fill from Discover (Serper-supplied data).
+            // Hydrate form fields directly — the OG-metadata Cloud Function is
+            // NOT called, both because we already have trustworthy product data
+            // and because re-fetching could clobber it with worse OG tags.
+            if (prefillUrl.isNotBlank()) {
+                url.value = prefillUrl
+                // Prime the auto-fetch dedup gate so the debounced flow below
+                // does NOT fire on first emission of this URL.
+                lastFetchedUrl = prefillUrl.trim()
+            }
+            if (prefillTitle.isNotBlank()) title.value = prefillTitle
+            if (prefillImageUrl.isNotBlank()) imageUrl.value = prefillImageUrl
+            if (prefillPrice.isNotBlank()) price.value = prefillPrice
+            // prefillRetailerName + prefillCurrency are accepted for future use
+            // (e.g. surfacing the retailer chip on the preview card) but the
+            // current Item model has no retailerName field — wire when needed.
+        } else if (initialUrl.isNotBlank()) {
             url.value = initialUrl
             // quick-260512-wt8: mark as "already requested" so the auto-fetch
             // flow below does not double-fire when it observes the same value

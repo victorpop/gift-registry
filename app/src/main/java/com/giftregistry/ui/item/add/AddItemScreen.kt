@@ -59,6 +59,15 @@ fun AddItemScreen(
     fromAddSheet: Boolean = false,
     initialUrl: String? = null,
     initialRegistryId: String? = null,
+    // quick-260530-nx5: optional pre-fill from a trusted upstream source.
+    // When any of these is non-blank, AddItemViewModel hydrates form state
+    // directly and skips the OG-metadata Cloud Function.
+    prefillTitle: String? = null,
+    prefillUrl: String? = null,
+    prefillImageUrl: String? = null,
+    prefillPrice: String? = null,
+    prefillRetailerName: String? = null,
+    prefillCurrency: String? = null,
     onBack: () -> Unit,
     onNavigateToCreateRegistry: () -> Unit = {},       // quick-260428-iny — picker empty-state
     viewModel: AddItemViewModel = hiltViewModelWithNavArgs(
@@ -70,6 +79,12 @@ fun AddItemScreen(
         "fromAddSheet" to fromAddSheet,
         "initialUrl" to (initialUrl ?: ""),
         "initialRegistryId" to (initialRegistryId ?: ""),
+        "prefillTitle" to (prefillTitle ?: ""),
+        "prefillUrl" to (prefillUrl ?: ""),
+        "prefillImageUrl" to (prefillImageUrl ?: ""),
+        "prefillPrice" to (prefillPrice ?: ""),
+        "prefillRetailerName" to (prefillRetailerName ?: ""),
+        "prefillCurrency" to (prefillCurrency ?: ""),
     )
 ) {
     // --- VM state collection (PRESERVED + NEW Phase 11 derived flows) ---
