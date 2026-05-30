@@ -51,3 +51,19 @@ Resolved debug sessions. Used by `gsd-debugger` to surface known-pattern hypothe
 - **Fix:** Add a getIdToken(forceRefresh=true) health-check in FirebaseAuthDataSource on the first non-null AuthStateEvent.Initial event. On any exception, call auth.signOut() before emitting to the flow — this drives AuthViewModel to Unauthenticated and the nav gate back to AuthScreen. Secondary UX fixes retained: realistic browser UA and 10s timeout in fetchOgMetadata.ts; ogFetchEmpty soft-failure state and item_og_no_data_inline string for the distinct case where the function succeeds but returns no metadata.
 - **Files changed:** app/src/main/java/com/giftregistry/data/auth/FirebaseAuthDataSource.kt, functions/src/registry/fetchOgMetadata.ts, app/src/main/java/com/giftregistry/ui/item/add/AddItemViewModel.kt, app/src/main/java/com/giftregistry/ui/item/add/AddItemScreen.kt, app/src/main/res/values/strings.xml, app/src/main/res/values-ro/strings.xml, app/src/test/java/com/giftregistry/ui/item/add/AddItemViewModelAutoFetchTest.kt
 ---
+
+## add-first-item-navigates-to-home-not-registry — Navigation3: AddItem pushed without RegistryDetailKey on stack causes post-create save to land on Home
+- **Date:** 2026-05-30
+- **Error patterns:** navigates to home, wrong screen after save, Home screen, registry detail, first item, post-create, CTA, add items, back stack, AddItemKey, RegistryDetailKey, CreateRegistryKey, onSaved, AppNavigation
+- **Root cause:** `AppNavigation.kt` `entry<CreateRegistryKey>.onSaved` popped `CreateRegistryKey` then pushed `AddItemKey` without first inserting `RegistryDetailKey(registryId)`. Back stack after the post-create CTA was `[HomeKey, AddItemKey]`. `AddItemScreen.onBack()` always pops exactly one entry on save, so it landed on `HomeKey`. The working path (RegistryDetail → Add Item) was unaffected because `RegistryDetailKey` was already beneath `AddItemKey` on that stack.
+- **Fix:** Inserted `backStack.add(RegistryDetailKey(registryId))` between the `removeAt` and the `AddItemKey` push in `entry<CreateRegistryKey>.onSaved`. Stack becomes `[HomeKey, RegistryDetailKey, AddItemKey]`; pop after save lands correctly on `RegistryDetailKey`.
+- **Files changed:** app/src/main/java/com/giftregistry/ui/navigation/AppNavigation.kt
+---
+
+## navigation3-stack-shaping — General pattern: leaf screen pops a fixed count; call site must seed the return destination before pushing the leaf
+- **Date:** 2026-05-30
+- **Error patterns:** wrong destination after save, back navigates to wrong screen, lands on home, save and return, onBack, pop, backStack, Navigation3, AddItemKey, leaf screen, entry path, single path works other does not
+- **Root cause:** In this codebase, leaf screens (e.g. AddItemScreen) call a single `onBack()` / `backStack.removeAt(backStack.lastIndex)` on completion. They are path-agnostic. When a call site that opens a leaf screen does not place the intended return destination on the stack before the leaf key, the pop lands one level higher than expected. The bug manifests only for that specific entry path; other entry paths that naturally have the return destination on the stack appear correct.
+- **Fix (pattern):** Each `backStack.add(<LeafKey>)` call site owns the responsibility of ensuring the intended return destination is already on the stack. Do not fix this from inside the leaf screen. Detection heuristic: if a save-and-return flow lands on the wrong screen for only one entry path, grep all `backStack.add(<LeafKey>)` sites and verify the parent entry is present beneath the leaf in every case.
+- **Files changed:** (pattern entry — no single file; applies to AppNavigation.kt call sites generally)
+---
