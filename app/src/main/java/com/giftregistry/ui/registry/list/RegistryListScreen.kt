@@ -119,6 +119,7 @@ fun RegistryListScreen(
                 }
                 is RegistryListUiState.Success -> {
                     val registries = state.registries
+                    val counts = state.counts
                     val primaryId = remember(registries) { primaryRegistryIdOf(registries) }
                     val todayMs = remember { startOfTodayMs() }
                     val filtered = remember(registries, selectedTabIndex, todayMs) {
@@ -138,7 +139,7 @@ fun RegistryListScreen(
                         )
                         Spacer(modifier = Modifier.height(spacing.gap4))
                         val activeCount = registries.count { it.isActive(todayMs) }
-                        val totalItems = 0  // deferred — see CONTEXT.md
+                        val totalItems = counts.values.sumOf { it.items }
                         Text(
                             text = stringResource(R.string.home_stats_caption, activeCount, totalItems),
                             style = typography.monoCaps,
@@ -190,17 +191,20 @@ fun RegistryListScreen(
                                 var menuExpanded by remember(registry.id) { mutableStateOf(false) }
                                 val isPrimary = registry.id == primaryId
                                 Box {
+                                    val registryCounts = counts[registry.id] ?: RegistryCounts()
                                     if (isPrimary) {
                                         RegistryCardPrimary(
                                             registry = registry,
                                             onClick = { onNavigateToDetail(registry.id) },
                                             onLongClick = { menuExpanded = true },
+                                            counts = registryCounts,
                                         )
                                     } else {
                                         RegistryCardSecondary(
                                             registry = registry,
                                             onClick = { onNavigateToDetail(registry.id) },
                                             onLongClick = { menuExpanded = true },
+                                            counts = registryCounts,
                                         )
                                     }
                                     DropdownMenu(

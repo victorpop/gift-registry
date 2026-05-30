@@ -50,6 +50,7 @@ fun RegistryCardPrimary(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
+    counts: RegistryCounts = RegistryCounts(),
 ) {
     val colors = GiftMaisonTheme.colors
     val shapes = GiftMaisonTheme.shapes
@@ -98,7 +99,7 @@ fun RegistryCardPrimary(
             )
             Spacer(modifier = Modifier.height(spacing.gap4))
             Text(
-                text = statsLine(),
+                text = statsLine(counts),
                 style = typography.monoCaps,
                 color = colors.paper.copy(alpha = 0.6f),
             )
@@ -120,6 +121,7 @@ fun RegistryCardSecondary(
     onClick: () -> Unit,
     onLongClick: () -> Unit,
     modifier: Modifier = Modifier,
+    counts: RegistryCounts = RegistryCounts(),
 ) {
     val colors = GiftMaisonTheme.colors
     val shapes = GiftMaisonTheme.shapes
@@ -166,7 +168,7 @@ fun RegistryCardSecondary(
             )
             Spacer(modifier = Modifier.height(spacing.gap4))
             Text(
-                text = statsLine(),
+                text = statsLine(counts),
                 style = typography.monoCaps,
                 color = colors.inkFaint,
             )
@@ -200,15 +202,15 @@ private fun OccasionPill(
 }
 
 /**
- * Stats line renders as `N items • M reserved • K given`. Per CONTEXT.md,
- * per-registry stat aggregation is deferred — Phase 10 renders zeros.
- * Follow-up: Firestore doc-level counts or per-card Flow observation.
+ * Stats line renders as `N items • M reserved • K given`. Counts are computed
+ * client-side by RegistryListViewModel from the items subcollection and passed
+ * in via [RegistryCounts] — no Firestore aggregate field required.
  */
 @Composable
-private fun statsLine(): String {
-    val items = stringResource(R.string.home_stats_items, 0)
-    val reserved = stringResource(R.string.home_stats_reserved, 0)
-    val given = stringResource(R.string.home_stats_given, 0)
+private fun statsLine(counts: RegistryCounts): String {
+    val items = stringResource(R.string.home_stats_items, counts.items)
+    val reserved = stringResource(R.string.home_stats_reserved, counts.reserved)
+    val given = stringResource(R.string.home_stats_given, counts.given)
     return "$items • $reserved • $given"
 }
 

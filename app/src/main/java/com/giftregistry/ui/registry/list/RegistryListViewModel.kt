@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.giftregistry.domain.auth.AuthRepository
 import com.giftregistry.domain.auth.AuthStateEvent
+import com.giftregistry.domain.model.ItemStatus
 import com.giftregistry.domain.model.Registry
 import com.giftregistry.domain.model.User
 import com.giftregistry.domain.usecase.DeleteRegistryUseCase
+import com.giftregistry.domain.usecase.ObserveItemsUseCase
 import com.giftregistry.domain.usecase.ObserveRegistriesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -22,9 +25,23 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * Per-registry item counts derived from the items subcollection.
+ * Passed to card composables so they can display real values.
+ */
+data class RegistryCounts(
+    val items: Int = 0,
+    val reserved: Int = 0,
+    val given: Int = 0,
+)
+
 sealed interface RegistryListUiState {
     data object Loading : RegistryListUiState
-    data class Success(val registries: List<Registry>) : RegistryListUiState
+    data class Success(
+        val registries: List<Registry>,
+        /** Keyed by registryId; absent entries default to all-zero counts. */
+        val counts: Map<String, RegistryCounts> = emptyMap(),
+    ) : RegistryListUiState
     data class Error(val message: String) : RegistryListUiState
 }
 
@@ -33,6 +50,7 @@ sealed interface RegistryListUiState {
 class RegistryListViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     observeRegistries: ObserveRegistriesUseCase,
+    private val observeItems: ObserveItemsUseCase,
     private val deleteRegistry: DeleteRegistryUseCase
 ) : ViewModel() {
 
@@ -61,7 +79,29 @@ class RegistryListViewModel @Inject constructor(
                     flowOf<RegistryListUiState>(RegistryListUiState.Loading)
                 } else {
                     observeRegistries(user.uid)
-                        .map { RegistryListUiState.Success(it) as RegistryListUiState }
+                        .flatMapLatest { registries ->
+                            if (registries.isEmpty()) {
+                                flowOf(RegistryListUiState.Success(registries, emptyMap()))
+                            } else {
+                                // Combine one items Flow per registry into a map of counts.
+                                // combine(vararg flows) emits whenever any child emits — counts
+                                // stay in sync with Firestore real-time updates on items.
+                                val itemFlows = registries.map { registry ->
+                                    observeItems(registry.id).map { items ->
+                                        registry.id to RegistryCounts(
+                                            items = items.size,
+                                            reserved = items.count { it.status == ItemStatus.RESERVED },
+                                            given = items.count { it.status == ItemStatus.PURCHASED },
+                                        )
+                                    }
+                                }
+                                combine(itemFlows) { pairs ->
+                                    val countsMap = pairs.toMap()
+                                    RegistryListUiState.Success(registries, countsMap)
+                                        as RegistryListUiState
+                                }
+                            }
+                        }
                 }
             }
             .catch { emit(RegistryListUiState.Error(it.message ?: "Unknown error")) }

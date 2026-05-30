@@ -28,6 +28,22 @@ Resolved debug sessions. Used by `gsd-debugger` to surface known-pattern hypothe
 - **Files changed:** app/src/main/java/com/giftregistry/ui/registry/create/CreateRegistryViewModel.kt, app/src/main/java/com/giftregistry/ui/item/add/AddItemScreen.kt, app/src/main/java/com/giftregistry/data/auth/FirebaseAuthDataSource.kt, app/src/main/java/com/giftregistry/ui/auth/AuthViewModel.kt
 ---
 
+## registry-tiles-counts-show-zero — Hardcoded zero literals in RegistryCard; no aggregate count fields exist on registry documents
+- **Date:** 2026-05-30
+- **Error patterns:** counts show zero, items zero, reserved zero, given zero, registry tile, stats, statsLine, home screen, RegistryCard, hardcoded, deferred, Phase 10
+- **Root cause:** `statsLine()` in `RegistryCard.kt` passed literal `0` to all three string resources — an intentional Phase 10 deferral noted in a comment. The `Registry` domain model and Firestore registry documents have no aggregate count fields; items live in a subcollection (`registries/{id}/items`). Nothing in `RegistryListViewModel` loaded items for the list screen so counts were never computed.
+- **Fix:** Added `RegistryCounts` data class. `RegistryListViewModel` combines a per-registry `ObserveItemsUseCase` flow for every registry, computing items/reserved/given from `ItemStatus` client-side using `kotlinx.coroutines.flow.combine`. Threaded `RegistryCounts` through `RegistryListUiState.Success`, `RegistryListScreen`, and `RegistryCard`.
+- **Files changed:** app/src/main/java/com/giftregistry/ui/registry/list/RegistryListViewModel.kt, app/src/main/java/com/giftregistry/ui/registry/list/RegistryCard.kt, app/src/main/java/com/giftregistry/ui/registry/list/RegistryListScreen.kt
+---
+
+## build-flag-env-mismatch — installDebug silently switches Firebase backend when -Puse_emulator flag is not matched to recent task context
+- **Date:** 2026-05-30
+- **Error patterns:** no registries, empty list, registries missing, works for one user not another, installDebug, use_emulator, emulator, production, gradle flag, environment mismatch, seed data, different data
+- **Root cause:** This project's debug builds default to `use_emulator=true` (local Firebase emulator). Prior tasks in the same session had built with `-Puse_emulator=false` (production Firebase). Running plain `./gradlew :app:installDebug` silently reverted to the emulator backend, which has different seed data. The test account (maria.alexa.pop@gmail.com) owns 0 registries on the emulator, so the list appeared empty — a false verification failure that looked like a broken feature.
+- **Fix (process):** Before running `installDebug` to verify a fix, check the most recent `.planning/quick/*/SUMMARY.md` or commit messages for the gradle flag used in prior tasks and match it. Always pass `-Puse_emulator=false` when the intent is to verify against production Firebase. When the environment switches silently, treat an empty list as a suspected backend mismatch, not a code regression.
+- **Files changed:** (process issue — no code changed)
+---
+
 ## 260513-url-fetch-fails-ikea-android — Firebase Auth emits cached user without token validation; stale token blocks all Firebase calls
 - **Date:** 2026-05-13
 - **Error patterns:** INVALID_REFRESH_TOKEN, fetchOgMetadata, ExecutionException, FirebaseException, UNAUTHENTICATED, couldn't reach, ogFetchFailed, callable, stale token, emulator reset, cold-launch, anonymous auth, refresh token, getIdToken
