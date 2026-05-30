@@ -3,6 +3,17 @@ package com.giftregistry.ui.discover
 import com.giftregistry.domain.discover.DiscoverProduct
 
 /**
+ * 260530-ncw — session-local layout mode for the Discover screen.
+ * Default = OneColumn (preserves the Phase 17 visual). TwoColumns is
+ * user-toggled via the icon button in the top-right; not persisted.
+ */
+sealed interface DiscoverLayoutMode {
+    val columnCount: Int
+    data object OneColumn : DiscoverLayoutMode { override val columnCount: Int = 1 }
+    data object TwoColumns : DiscoverLayoutMode { override val columnCount: Int = 2 }
+}
+
+/**
  * Phase 17 D-38 — sealed state machine for the popular (community) section.
  *
  * Lifecycle: Loading (init) → Loaded(products) | Empty | Error(message).

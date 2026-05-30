@@ -238,6 +238,9 @@
     <string name="discover_error_search">Search failed. Try again.</string>
     <string name="discover_retry">Retry</string>
     <string name="discover_no_browser_toast">Could not open browser</string>
+    <!-- 260530-ncw: content descriptions for the layout toggle icon button (action-describes semantics for TalkBack) -->
+    <string name="discover_layout_toggle_to_grid">Switch to two-column grid</string>
+    <string name="discover_layout_toggle_to_list">Switch to single-column list</string>
 
     <!-- Phase 9 Add-action sheet (CHROME-03) -->
     <!-- quick-260428-iny: trimmed from 4 rows to 2 rows. The deprecated keys

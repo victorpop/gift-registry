@@ -239,6 +239,9 @@
     <string name="discover_error_search">C&#0259;utarea a e&#0537;uat. &#0206;ncearc&#0259; din nou.</string>
     <string name="discover_retry">Re&#0238;ncearc&#0259;</string>
     <string name="discover_no_browser_toast">Nu s-a putut deschide browserul</string>
+    <!-- 260530-ncw: content descriptions for the layout toggle icon button (action-describes semantics for TalkBack) -->
+    <string name="discover_layout_toggle_to_grid">Comut&#0259; la gril&#0259; cu dou&#0259; coloane</string>
+    <string name="discover_layout_toggle_to_list">Comut&#0259; la list&#0259; cu o singur&#0259; coloan&#0259;</string>
 
     <!-- Phase 9 Add-action sheet (CHROME-03) — Romanian -->
     <!-- quick-260428-iny: trimmed from 4 rows to 2 rows. -->
