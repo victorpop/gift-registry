@@ -298,7 +298,7 @@
     <string name="home_stats_caption">%1$d active · %2$d items total</string>
     <string name="home_stats_items">%1$d items</string>
     <string name="home_stats_reserved">%1$d reserved</string>
-    <string name="home_stats_given">%1$d given</string>
+    <string name="home_stats_given">%1$d purchased</string>
     <string name="home_tab_active">ACTIVE</string>
     <string name="home_tab_past">PAST</string>
     <string name="home_empty_active">No active registries yet</string>

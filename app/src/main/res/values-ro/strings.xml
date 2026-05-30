@@ -68,11 +68,11 @@
     <string name="onboarding_get_started">&#206;ncepe</string>
 
     <!-- Registry management (Phase 3) -->
-    <string name="registry_list_title">Registrele mele</string>
-    <string name="registry_list_empty">Niciun registru. Creeaza primul tau!</string>
-    <string name="registry_create_title">Creeaza registru</string>
-    <string name="registry_create_button">Creeaza registru</string>
-    <string name="registry_title_label">Numele registrului</string>
+    <string name="registry_list_title">Listele mele</string>
+    <string name="registry_list_empty">Nicio list&#259;. Creeaz&#259; prima ta list&#259;!</string>
+    <string name="registry_create_title">Creeaz&#259; list&#259;</string>
+    <string name="registry_create_button">Creea&#259; list&#259;</string>
+    <string name="registry_title_label">Numele listei</string>
     <string name="registry_title_hint">ex. Lista de cadouri nunta</string>
     <string name="registry_description_label">Descriere</string>
     <string name="registry_description_hint">Detalii optionale pentru invitati</string>
@@ -89,9 +89,9 @@
     <string name="registry_occasion_christmas">Craciun</string>
     <string name="registry_occasion_birthday">Zi de nastere</string>
     <string name="registry_occasion_custom">Altceva</string>
-    <string name="registry_edit_title">Editeaza registrul</string>
-    <string name="registry_delete_confirm_title">Stergi registrul?</string>
-    <string name="registry_delete_confirm_body">Registrul si toate articolele vor fi sterse permanent. Actiunea nu poate fi anulata.</string>
+    <string name="registry_edit_title">Editeaz&#259; lista</string>
+    <string name="registry_delete_confirm_title">Stergi lista?</string>
+    <string name="registry_delete_confirm_body">Lista si toate articolele vor fi sterse permanent. Actiunea nu poate fi anulata.</string>
     <string name="registry_notifications_label">Notificari achizitii</string>
     <string name="registry_notifications_enabled">Anunta-ma cand cadourile sunt cumparate</string>
     <string name="registry_invite_title">Invita persoane</string>
@@ -100,14 +100,14 @@
     <string name="registry_invite_success">Invitatia a fost trimisa</string>
     <string name="registry_detail_items_title">Articole</string>
     <string name="registry_detail_no_items">Niciun articol. Adauga prima idee de cadou!</string>
-    <string name="registry_share_button">Distribuie registrul</string>
+    <string name="registry_share_button">Distribuie lista</string>
 
     <!-- Item management (Phase 3) -->
-    <string name="item_add_title">Adaug\u0103 obiect</string>
+    <string name="item_add_title">Adaug\u0103 produs</string>
     <string name="item_add_url_label">Lipeste URL-ul produsului</string>
     <string name="item_add_url_hint">https://www.emag.ro/...</string>
     <string name="item_add_fetching_metadata">Se preiau detaliile produsului\u2026</string>
-    <string name="item_title_label">Numele articolului</string>
+    <string name="item_title_label">Numele produsului</string>
     <string name="item_price_label">Pret</string>
     <string name="item_notes_label">Note</string>
     <string name="item_notes_hint">Note optionale pentru cei care ofera cadouri</string>
@@ -115,7 +115,7 @@
     <string name="item_image_content_desc">Imagine produs</string>
     <string name="item_edit_title">Editeaza articolul</string>
     <string name="item_delete_confirm_title">Stergi articolul?</string>
-    <string name="item_delete_confirm_body">Articolul va fi sters din registru.</string>
+    <string name="item_delete_confirm_body">Articolul va fi sters din list\u0103.</string>
     <string name="item_status_available">Disponibil</string>
     <string name="item_status_reserved">Rezervat</string>
     <string name="item_status_purchased">Cumparat</string>
@@ -189,18 +189,18 @@
     <string name="registry_create_headline_accent">ocazia?</string>
     <string name="registry_create_subline">Vom seta tonul, categoriile sugerate \u0219i tema emailului.</string>
     <string name="registry_create_cta">Continu\u0103 \u00b7 adaug\u0103 obiecte \u2192</string>
-    <string name="registry_create_untitled_draft">Registru nesalvat</string>
-    <string name="registry_update_cta">Actualizeaz\u0103 registrul</string>
+    <string name="registry_create_untitled_draft">List\u0103 nesalvat\u0103</string>
+    <string name="registry_update_cta">Actualizeaz\u0103 lista</string>
     <string name="registry_occasion_housewarming">Cas\u0103 nou\u0103</string>
     <string name="registry_occasion_baby">Bebe</string>
     <string name="registry_event_time_label">Ora</string>
     <string name="registry_visibility_section_label">VIZIBILITATE</string>
 
     <!-- Phase 11: Registry Detail (SCR-08) — Romanian -->
-    <string name="registry_detail_share_button_desc">Distribuie registrul</string>
-    <string name="registry_detail_overflow_desc">Op\u021biuni registru</string>
-    <string name="registry_detail_item_overflow_desc">Op\u021biuni obiect</string>
-    <string name="registry_stat_items">OBIECTE</string>
+    <string name="registry_detail_share_button_desc">Distribuie lista</string>
+    <string name="registry_detail_overflow_desc">Op\u021biuni list\u0103</string>
+    <string name="registry_detail_item_overflow_desc">Op\u021biuni produs</string>
+    <string name="registry_stat_items">PRODUSE</string>
     <string name="registry_stat_reserved">REZERVATE</string>
     <string name="registry_stat_given">D\u0102RUITE</string>
     <string name="registry_stat_views">VIZUALIZ\u0102RI</string>
@@ -235,7 +235,7 @@
     <string name="discover_section_web">DE PE WEB</string>
     <string name="discover_section_community">DIN COMUNITATE</string>
     <string name="discover_empty_search">Niciun rezultat. &#0206;ncearc&#0259; o alt&#0259; c&#0259;utare.</string>
-    <string name="discover_empty_popular">Articolele populare vor ap&#0259;rea aici pe m&#0259;sur&#0259; ce oamenii adaug&#0259; cadouri.</string>
+    <string name="discover_empty_popular">Produsele populare vor ap&#0259;rea aici pe m&#0259;sur&#0259; ce oamenii adaug&#0259; cadouri.</string>
     <string name="discover_error_load">Nu s-a putut &#0238;nc&#0259;rca. &#0206;ncearc&#0259; din nou.</string>
     <string name="discover_error_search">C&#0259;utarea a e&#0537;uat. &#0206;ncearc&#0259; din nou.</string>
     <string name="discover_retry">Re&#0238;ncearc&#0259;</string>
@@ -265,7 +265,7 @@
 
     <!-- Phase 10 SCR-06 Auth / Onboarding keys -->
     <string name="auth_headline_prefix">&#206;ncepe-&#539;i</string>
-    <string name="auth_headline_accent">primul registru</string>
+    <string name="auth_headline_accent">prima list&#0259;</string>
     <string name="auth_subline">O list&#259; c&#259;lduroas&#259;, de &#238;mp&#259;rt&#259;&#351;it &#8212; configurat&#259; &#238;n mai pu&#539;in de un minut.</string>
     <string name="auth_google_cta">Continu&#259; cu Google</string>
     <string name="auth_or_sign_up_email_divider">sau &#238;nregistreaz&#259;-te cu email</string>
@@ -290,15 +290,15 @@
     <string name="auth_error_google_signin_failed">Nu ne-am putut conecta cu Google. &#206;ncearc&#259; din nou.</string>
 
     <!-- Phase 10 SCR-07 Home screen keys -->
-    <string name="home_headline">Registrele tale</string>
-    <string name="home_stats_caption">%1$d active · %2$d obiecte total</string>
-    <string name="home_stats_items">%1$d obiecte</string>
+    <string name="home_headline">Listele tale</string>
+    <string name="home_stats_caption">%1$d active · %2$d produse total</string>
+    <string name="home_stats_items">%1$d produse</string>
     <string name="home_stats_reserved">%1$d rezervate</string>
-    <string name="home_stats_given">%1$d oferite</string>
+    <string name="home_stats_given">%1$d achizitionate</string>
     <string name="home_tab_active">ACTIVE</string>
     <string name="home_tab_past">TRECUTE</string>
-    <string name="home_empty_active">Nu exist&#259; registre active</string>
-    <string name="home_empty_past">Nu exist&#259; registre trecute</string>
+    <string name="home_empty_active">Nu exist&#259; liste active</string>
+    <string name="home_empty_past">Nu exist&#259; liste trecute</string>
     <string name="home_avatar_content_desc">Deschide set&#259;ri</string>
     <string name="registry_card_menu_edit">Editeaz&#259;</string>
     <string name="registry_card_menu_delete">&#536;terge</string>
@@ -313,7 +313,7 @@
     <string name="add_item_affiliate_clear">\u015eterg</string>
     <string name="add_item_affiliate_info">Am recunoscut %1$s \u015fi vom ad\u0103uga eticheta noastr\u0103 de afiliat. F\u0103r\u0103 impact pentru oaspe\u021bii t\u0103i.</string>
     <string name="add_item_autofilled">completat automat</string>
-    <string name="add_item_cta_save">Salveaz\u0103 \u00een registru &#10003;</string>
+    <string name="add_item_cta_save">Salveaz\u0103 o list\u0103 &#10003;</string>
     <string name="add_item_cta_add_another">Adaug\u0103 altul</string>
     <string name="item_og_fetch_failed_inline">Nu am putut accesa acea pagin\u0103 \u2014 completeaz\u0103 detaliile mai jos.</string>
     <string name="item_og_no_data_inline">Nu am putut completa automat pentru acest site \u2014 introdu detaliile manual mai jos.</string>
