@@ -4,20 +4,26 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.ViewAgenda
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
@@ -44,14 +50,20 @@ import com.giftregistry.ui.theme.GiftMaisonTheme
  *
  * Layout (UI-SPEC "Screen Layout Contract"):
  * - Scaffold with paper background + SnackbarHost
+ * - Row with right-aligned IconButton to toggle 1-col / 2-col layout (260530-ncw)
  * - OutlinedTextField (search bar) — IME action Search fires viewModel.search(query)
- * - LazyColumn with two sections:
+ * - LazyVerticalGrid with two sections (column count = layoutMode.columnCount):
  *   - FROM THE WEB (only when search is not Idle): Loading/Loaded/Empty/Error
  *   - FROM THE COMMUNITY (always): Loading/Loaded/Empty/Error
  *
  * The search bar does NOT auto-fire on text change — only the IME Search
  * action calls the Callable. This matches D-35 (search section hidden until
  * a query is submitted).
+ *
+ * 260530-ncw: LazyVerticalGrid with GridCells.Fixed(layoutMode.columnCount) replaces
+ * the previous LazyColumn. Section headers, dividers, empty/error states span all
+ * columns via GridItemSpan(maxLineSpan). Product and shimmer cards use GridItemSpan(1).
+ * Layout mode is session-local (no DataStore write); default = OneColumn.
  */
 @Composable
 fun DiscoverScreen(
@@ -61,6 +73,7 @@ fun DiscoverScreen(
     val popular by viewModel.popular.collectAsStateWithLifecycle()
     val search by viewModel.search.collectAsStateWithLifecycle()
     val query by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val layoutMode by viewModel.layoutMode.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val focusManager = LocalFocusManager.current
 
@@ -70,6 +83,27 @@ fun DiscoverScreen(
     ) { inner ->
         Column(modifier = Modifier.padding(inner).fillMaxWidth()) {
             Box(modifier = Modifier.height(20.dp))
+
+            // 260530-ncw: layout toggle — icon-only button right-aligned, above search bar.
+            val isOneColumn = layoutMode == DiscoverLayoutMode.OneColumn
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                IconButton(onClick = { viewModel.toggleLayoutMode() }) {
+                    Icon(
+                        imageVector = if (isOneColumn) Icons.Outlined.GridView else Icons.Outlined.ViewAgenda,
+                        contentDescription = stringResource(
+                            if (isOneColumn) R.string.discover_layout_toggle_to_grid
+                            else R.string.discover_layout_toggle_to_list,
+                        ),
+                        tint = colors.ink,
+                    )
+                }
+            }
+
             OutlinedTextField(
                 value = query,
                 onValueChange = { viewModel.onQueryChange(it) },
@@ -104,23 +138,36 @@ fun DiscoverScreen(
             )
             Box(modifier = Modifier.height(16.dp))
 
-            LazyColumn(
+            // 260530-ncw: LazyVerticalGrid replaces LazyColumn so both sections
+            // respect the current columnCount. Section headers + dividers + empty/error
+            // states are full-width via GridItemSpan(maxLineSpan); cards use GridItemSpan(1).
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(layoutMode.columnCount),
                 contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 // FROM THE WEB section — visible only after the user submits a search.
                 if (search !is SearchState.Idle) {
-                    item { SectionHeader(stringResource(R.string.discover_section_web)) }
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        SectionHeader(stringResource(R.string.discover_section_web))
+                    }
                     when (val state = search) {
-                        SearchState.Loading -> items(3) { DiscoverShimmerCard() }
-                        is SearchState.Loaded -> items(state.products, key = { it.id }) {
-                            DiscoverProductCard(product = it, snackbarHostState = snackbarHostState)
+                        SearchState.Loading -> items(3, span = { GridItemSpan(1) }) {
+                            DiscoverShimmerCard()
                         }
-                        SearchState.Empty -> item {
+                        is SearchState.Loaded -> items(
+                            items = state.products,
+                            key = { it.id },
+                            span = { GridItemSpan(1) },
+                        ) { product ->
+                            DiscoverProductCard(product = product, snackbarHostState = snackbarHostState)
+                        }
+                        SearchState.Empty -> item(span = { GridItemSpan(maxLineSpan) }) {
                             EmptyStateText(stringResource(R.string.discover_empty_search))
                         }
-                        is SearchState.Error -> item {
+                        is SearchState.Error -> item(span = { GridItemSpan(maxLineSpan) }) {
                             InlineErrorState(
                                 message = stringResource(R.string.discover_error_search),
                                 onRetry = { viewModel.retrySearch() },
@@ -128,7 +175,7 @@ fun DiscoverScreen(
                         }
                         SearchState.Idle -> Unit
                     }
-                    item {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
                         HorizontalDivider(
                             color = colors.line,
                             thickness = 1.dp,
@@ -138,16 +185,24 @@ fun DiscoverScreen(
                 }
 
                 // FROM THE COMMUNITY section — always visible.
-                item { SectionHeader(stringResource(R.string.discover_section_community)) }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SectionHeader(stringResource(R.string.discover_section_community))
+                }
                 when (val state = popular) {
-                    PopularState.Loading -> items(3) { DiscoverShimmerCard() }
-                    is PopularState.Loaded -> items(state.products, key = { it.id }) {
-                        DiscoverProductCard(product = it, snackbarHostState = snackbarHostState)
+                    PopularState.Loading -> items(3, span = { GridItemSpan(1) }) {
+                        DiscoverShimmerCard()
                     }
-                    PopularState.Empty -> item {
+                    is PopularState.Loaded -> items(
+                        items = state.products,
+                        key = { it.id },
+                        span = { GridItemSpan(1) },
+                    ) { product ->
+                        DiscoverProductCard(product = product, snackbarHostState = snackbarHostState)
+                    }
+                    PopularState.Empty -> item(span = { GridItemSpan(maxLineSpan) }) {
                         EmptyStateText(stringResource(R.string.discover_empty_popular))
                     }
-                    is PopularState.Error -> item {
+                    is PopularState.Error -> item(span = { GridItemSpan(maxLineSpan) }) {
                         InlineErrorState(
                             message = stringResource(R.string.discover_error_load),
                             onRetry = { viewModel.loadPopular() },
