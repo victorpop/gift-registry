@@ -29,11 +29,12 @@ decisions:
   - "hasPrefill() checks title|url|imageUrl|price only (not retailerName/currency): those 4 are the visible form fields"
   - "TDD: RED committed first (a2fa179), GREEN as separate commit (237e2ad)"
 metrics:
-  duration: ~5 min
+  duration: ~5 min impl + 1 UAT-driven bugfix iteration
   completed_date: "2026-05-30"
-  tasks_completed: 2
+  tasks_completed: 3
   tasks_total: 3
   files_changed: 8
+verified_on: emulator-5554
 ---
 
 # Phase quick-260530-nx5 Plan 01: Discover Add-to-Registry Button + AddItem Prefill Summary
@@ -150,14 +151,21 @@ entry<DiscoverKey> {
 | `a2fa179` | test (RED) | Add failing test for AddItemViewModel prefill path |
 | `237e2ad` | feat (GREEN) | Add prefill path to AddItemKey/AddItemViewModel (skips OG fetch) |
 | `4fa4b61` | feat | Small add-to-registry button on Discover cards (+strings, +nav wiring) |
+| `108a0b4` | fix (UAT) | Differentiate ViewModelStore key when prefill is present (see below) |
 
-## Outstanding: Task 3 — On-device Visual + Functional Verification
+## Task 3 — On-device Visual + Functional Verification: PASSED
 
-**Status:** AWAITING HUMAN VERIFY
+Approved on 2026-05-30 against `emulator-5554`. Button visible bottom-right of every Discover card at both 1-col and 2-col widths; tapping the card body still opens the retailer URL; the small `+` opens AddItem with the Serper product data prefilled and no registry selected; FAB-sheet path remains a clean empty form with no prefill leak.
 
-The checkpoint (Task 3) requires on-device verification on emulator-5554. This cannot be automated.
+### Mid-UAT bugfix (commit `108a0b4`)
 
-**APK:** `/Users/victorpop/ai-projects/gift-registry/app/build/outputs/apk/debug/app-debug.apk`
+First UAT pass surfaced a regression on the search ("FROM THE WEB") path: tapping the `+` opened AddItem with **nothing prefilled** and the user's **last-picked registry already selected**.
+
+**Root cause:** `AddItemScreen.kt:77` used `key = registryId ?: "add-item-no-registry-yet"` to pin a stable `ViewModelStore` key. Both the existing FAB-sheet path AND the new Discover `+` path arrive with `registryId = null`, so both intents collapsed onto the same literal key. The Discover navigation reused the cached AddItemViewModel from a prior FAB-sheet open — with its empty `SavedStateHandle` (no prefill) and a stale `_selectedRegistryId` from whatever the user last picked. The new `AddItemKey`'s prefill fields never reached a fresh VM.
+
+**Fix:** When `prefillUrl` is non-blank, derive the key as `"add-item-prefill-${prefillUrl}"`. Each Discover product (and each fresh prefill intent) now scopes to its own `ViewModelStore` entry, so `savedStateHandle["prefillTitle"]` etc. are seen on `init {}` instead of being shadowed by a cached VM. The FAB-sheet path keeps the original `"add-item-no-registry-yet"` key — no regression on existing behavior.
+
+**Note for future work:** The unit test `AddItemViewModelPrefillTest` was insufficient to catch this — it constructs the VM directly with a fully-populated `SavedStateHandle`, which bypasses the key-collision layer. A Compose UI test (or an end-to-end test that goes through `hiltViewModelWithNavArgs`) would have caught it. Worth considering if more navigation-keyed VM logic accumulates.
 
 ## Deviations from Plan
 
