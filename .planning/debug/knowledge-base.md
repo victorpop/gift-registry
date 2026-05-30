@@ -83,3 +83,35 @@ Resolved debug sessions. Used by `gsd-debugger` to surface known-pattern hypothe
 - **Fix (pattern):** Make the canonical value the actual initial state — never let the "default" be a sentinel that only the visual layer translates. Change the StateFlow initializer and any reset paths to use the canonical value directly. Detection heuristic: when a UI element is highlighted but downstream gating disagrees, grep for the StateFlow's initial value and check whether it equals the value the highlight code resolves to. If not, they will always disagree on first render.
 - **Files changed:** (pattern entry — no single file)
 ---
+
+## inbox-invite-modal-missing-fields-and-rough-rise — Description missing from invite sheet; sheet requires manual drag to expand
+- **Date:** 2026-05-30
+- **Error patterns:** description missing, event date missing, invite sheet, ModalBottomSheet, InviteResponseSheet, rough rise, manual drag, half-expanded, buildEnrichedInvitePayload, notification payload, skipPartiallyExpanded, inbox, invite, modal
+- **Root cause:** Two independent bugs. (1) Double-sided omission: `buildEnrichedInvitePayload` in `inviteNotificationHelpers.ts` never wrote `description` into the notification payload, AND `InviteResponseSheet.kt` never read or rendered it. Both sides of the contract were missing simultaneously. (2) `rememberModalBottomSheetState()` called without `skipPartiallyExpanded = true`; Material3 default is `false`, so the sheet landed in half-expanded state on first frame requiring user drag to reveal content.
+- **Fix:** (1) Added `description` field to `buildEnrichedInvitePayload` return value; added render block in `InviteResponseSheet` between registryName and eventDateLabel. (2) Added `skipPartiallyExpanded = true` to `rememberModalBottomSheetState` call, preserving the existing `confirmValueChange` guard.
+- **Files changed:** functions/src/registry/inviteNotificationHelpers.ts, app/src/main/java/com/giftregistry/ui/notifications/InviteResponseSheet.kt
+---
+
+## material3-bottom-sheet-half-expanded-default — General pattern: ModalBottomSheet defaults to half-expanded; requires explicit opt-out
+- **Date:** 2026-05-30
+- **Error patterns:** sheet rises but requires drag, half expanded, scroll to see content, ModalBottomSheet, rememberModalBottomSheetState, skipPartiallyExpanded, animate, expand, bottom sheet, rough rise, content hidden
+- **Root cause:** `rememberModalBottomSheetState()` in Material3 defaults to `skipPartiallyExpanded = false`. When sheet content is taller than the partial-expand threshold, the sheet animates to the half-expanded stop and requires user drag to reveal the rest. This is correct default behavior for sheets where partial content is intentional; it is a bug for sheets meant to open fully in one animation.
+- **Fix (pattern):** Pass `skipPartiallyExpanded = true` explicitly whenever the intent is for the sheet to rise to full content height in one step. Symptom heuristic: "sheet rises but user has to scroll/drag to see content" — check this argument before investigating layout/scroll modifiers, padding, or content height calculations.
+- **Files changed:** (pattern entry — no single file)
+---
+
+## denormalized-notification-payload-double-sided-contract — General pattern: notification payload additions must be written by the Function AND read by the client
+- **Date:** 2026-05-30
+- **Error patterns:** field missing in UI, notification payload, inbox, invite, Cloud Function, composable, buildEnrichedInvitePayload, description, missing field, one side fixed, both sides
+- **Root cause:** Denormalized notification payloads (written at event time, read by inbox UI) are a double-sided contract: the Cloud Function writer owns the payload schema; the client composable owns the rendering. Adding a field only on the client silently succeeds at compile time but the field is always null at runtime. Adding it only on the server writes the data but nothing renders. When investigating "field missing in client UI" for notification/inbox flows, both the writer (Cloud Function helper) and the reader (composable) must be checked for the field name.
+- **Fix (pattern):** When adding any field visible in the inbox/notification UI, grep both the Cloud Function payload builder AND the composable reader for that field name before declaring the fix complete. If either side is missing, the change is incomplete.
+- **Files changed:** (pattern entry — no single file)
+---
+
+## notification-payload-schema-no-backfill — General pattern: schema additions to denormalized notification payloads do not retroactively populate existing documents
+- **Date:** 2026-05-30
+- **Error patterns:** old notification still blank, existing invite missing field, backfill, retroactive, notification payload, inbox, denormalized, schema addition, new field, existing documents
+- **Root cause:** Notification documents are written once at event time and never updated. Adding a field to the Cloud Function payload builder has no effect on documents already written to Firestore. Existing inbox entries will not show the new field until a fresh write event creates a new notification document.
+- **Fix (pattern):** When verifying a notification payload fix, always use a NEW event (new invite, new notification trigger) to confirm the field appears — do not test against pre-existing inbox entries. When handing off to the user for verification, explicitly tell them that existing inbox entries will still be blank and that is expected; only entries created after the deploy will carry the new field.
+- **Files changed:** (pattern entry — no single file)
+---
