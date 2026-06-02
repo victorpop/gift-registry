@@ -191,7 +191,7 @@
     <string name="registry_create_headline_prefix">Care este</string>
     <string name="registry_create_headline_accent">ocazia?</string>
     <string name="registry_create_subline">Vom seta tonul, categoriile sugerate \u0219i tema emailului.</string>
-    <string name="registry_create_cta">Continu\u0103 \u00b7 adaug\u0103 obiecte \u2192</string>
+    <string name="registry_create_cta">Continu\u0103 \u00b7 adaug\u0103 produse \u2192</string>
     <string name="registry_create_untitled_draft">List\u0103 nesalvat\u0103</string>
     <string name="registry_update_cta">Actualizeaz\u0103 lista</string>
     <string name="registry_occasion_housewarming">Cas\u0103 nou\u0103</string>
@@ -267,7 +267,7 @@
     <!-- Phase 10 SCR-06 Auth / Onboarding keys -->
     <string name="auth_headline_prefix">&#206;ncepe-&#539;i</string>
     <string name="auth_headline_accent">prima list&#0259;</string>
-    <string name="auth_subline">O list&#259; c&#259;lduroas&#259;, de &#238;mp&#259;rt&#259;&#351;it &#8212; configurat&#259; &#238;n mai pu&#539;in de un minut.</string>
+    <string name="auth_subline">O list&#259; de cadouri, gata de &#238;mp&#259;rt&#259;&#537;it &#8212; &#238;n mai pu&#539;in de un minut.</string>
     <string name="auth_google_cta">Continu&#259; cu Google</string>
     <string name="auth_or_sign_up_email_divider">sau &#238;nregistreaz&#259;-te cu email</string>
     <string name="auth_or_sign_in_email_divider">sau autentific&#259;-te cu email</string>
