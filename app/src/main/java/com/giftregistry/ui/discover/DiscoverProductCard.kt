@@ -118,6 +118,7 @@ fun DiscoverProductCard(
                     text = product.title,
                     style = typography.bodyL,
                     color = colors.ink,
+                    minLines = 2,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
