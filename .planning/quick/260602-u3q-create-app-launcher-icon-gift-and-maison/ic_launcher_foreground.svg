@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="108" height="108">
+  <!-- Safe zone is the inner 72-unit circle centered at (54,54).
+       Two-line wordmark, italic, Instrument Serif. -->
+  <g font-family="Instrument Serif" font-style="italic" font-weight="400"
+     text-anchor="middle" letter-spacing="-0.02em">
+    <text x="54" y="52" font-size="28" fill="#2A2420">gift</text>
+    <text x="54" y="78" font-size="20" fill="#2A2420">maison<tspan fill="#C8623A">.</tspan></text>
+  </g>
+</svg>
