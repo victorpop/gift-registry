@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Launcher adaptive-icon background. Matches GiftMaison Housewarming
+         `paper` token (#F7F2E9, see GiftMaisonColors.kt:57). Brand color
+         values stay source-of-truth in Kotlin — this resource exists only
+         because the adaptive-icon XML requires an @color reference. -->
+    <color name="ic_launcher_background">#F7F2E9</color>
+</resources>
