@@ -189,7 +189,7 @@
     <string name="registry_create_skip">Skip</string>
     <string name="registry_create_headline_prefix">What\'s the</string>
     <string name="registry_create_headline_accent">occasion?</string>
-    <string name="registry_create_subline">We\'ll set the tone, suggested categories, and email theme to match.</string>
+    <string name="registry_create_subline">Set the details for your gift list.</string>
     <string name="registry_create_cta">Continue · add items →</string>
     <string name="registry_create_untitled_draft">Untitled draft</string>
     <string name="registry_update_cta">Update registry</string>

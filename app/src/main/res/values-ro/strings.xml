@@ -190,7 +190,7 @@
     <string name="registry_create_skip">Omite</string>
     <string name="registry_create_headline_prefix">Care este</string>
     <string name="registry_create_headline_accent">ocazia?</string>
-    <string name="registry_create_subline">Vom seta tonul, categoriile sugerate \u0219i tema emailului.</string>
+    <string name="registry_create_subline">Seteaz\u0103 detaliile listei tale de cadouri.</string>
     <string name="registry_create_cta">Continu\u0103 \u00b7 adaug\u0103 produse \u2192</string>
     <string name="registry_create_untitled_draft">List\u0103 nesalvat\u0103</string>
     <string name="registry_update_cta">Actualizeaz\u0103 lista</string>
