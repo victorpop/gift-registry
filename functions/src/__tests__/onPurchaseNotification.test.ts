@@ -345,6 +345,7 @@ describe("onPurchaseNotification trigger", () => {
     expect(fcmCall.data.type).toBe("purchase");
     expect(fcmCall.data.registryId).toBe("reg1");
     expect(fcmCall.data.itemId).toBe("it1");
+    expect(fcmCall.data.registryName).toBe("Wedding Registry");
 
     // purchaseTemplate called with locale en and giver name from reservation
     expect(purchaseTemplateMock).toHaveBeenCalledTimes(1);

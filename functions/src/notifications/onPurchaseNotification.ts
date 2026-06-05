@@ -191,7 +191,7 @@ export const onPurchaseNotification = onDocumentUpdated(
         const response = await getMessaging().sendEachForMulticast({
           tokens,
           notification: { title, body: bodyText },
-          data: { registryId, itemId, type: "purchase" },
+          data: { registryId, itemId, registryName, type: "purchase" },
           android: { priority: "normal" },
         });
 
