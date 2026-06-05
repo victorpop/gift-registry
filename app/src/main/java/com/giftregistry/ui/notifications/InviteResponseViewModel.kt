@@ -60,8 +60,11 @@ class InviteResponseViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val registry: StateFlow<Registry?> = _registryId
         .filterNotNull()
-        .flatMapLatest { observeRegistryUseCase(it) }
-        .catch { emit(null) }
+        // catch INSIDE flatMapLatest: a PERMISSION_DENIED (or any error) on one
+        // registry read emits null for that read WITHOUT terminating the outer
+        // flow — so the StateFlow keeps serving later observeRegistry() calls
+        // instead of getting permanently stuck at null after a single failure.
+        .flatMapLatest { id -> observeRegistryUseCase(id).catch { emit(null) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     fun observeRegistry(registryId: String) {
