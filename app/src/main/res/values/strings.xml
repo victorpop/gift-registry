@@ -79,6 +79,7 @@
     <string name="registry_event_date_label">Event Date</string>
     <string name="registry_event_location_label">Event Location</string>
     <string name="registry_event_location_hint">e.g. Grand Hotel, Bucharest</string>
+    <string name="registry_details_section_title">Details</string>
     <string name="registry_visibility_label">Visibility</string>
     <string name="registry_visibility_public">Public</string>
     <string name="registry_visibility_private">Private (invite only)</string>

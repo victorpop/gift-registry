@@ -79,6 +79,7 @@
     <string name="registry_event_date_label">Data evenimentului</string>
     <string name="registry_event_location_label">Locatia evenimentului</string>
     <string name="registry_event_location_hint">ex. Grand Hotel, Bucuresti</string>
+    <string name="registry_details_section_title">Detalii</string>
     <string name="registry_visibility_label">Vizibilitate</string>
     <string name="registry_visibility_public">Public</string>
     <string name="registry_visibility_private">Privat (doar cu invitatie)</string>
