@@ -150,7 +150,7 @@
     <string name="reservation_confirm_purchase_error">Nu s-a putut confirma. \u00cencearc\u0103 din nou.</string>
 
     <!-- Faza 6: Notificari (proprietar) -->
-    <string name="notifications_purchase_snackbar">Un cadou din %1$s a fost cump\u0103rat!</string>
+    <string name="notifications_purchase_snackbar">Un cadou din lista "%1$s" a fost cump\u0103rat!</string>
     <string name="notifications_purchase_snackbar_action">Vezi</string>
     <!-- Channel name + description: English only (channel ID is compile-time) -->
     <string name="notifications_channel_purchase_name">Purchase alerts</string>
