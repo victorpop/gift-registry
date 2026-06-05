@@ -1,6 +1,5 @@
 package com.giftregistry.ui.notifications
 
-import android.text.format.DateUtils
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -25,12 +24,10 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,6 +37,7 @@ import com.giftregistry.R
 import com.giftregistry.domain.model.Notification
 import com.giftregistry.domain.model.NotificationType
 import com.giftregistry.ui.registry.cover.HeroImageOrPlaceholder
+import com.giftregistry.ui.registry.detail.RegistryDetailsSection
 import com.giftregistry.ui.theme.GiftMaisonTheme
 
 /**
@@ -79,7 +77,10 @@ fun InviteResponseSheet(
     viewModel: InviteResponseViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val registry by viewModel.registry.collectAsStateWithLifecycle()
     val isLoading = state is InviteResponseViewModel.State.Submitting
+
+    LaunchedEffect(registryId) { viewModel.observeRegistry(registryId) }
 
     // D-07: block swipe-dismiss + onDismissRequest while a callable is in-flight.
     // skipPartiallyExpanded=true: sheet goes straight to its content-sized resting
@@ -158,39 +159,15 @@ fun InviteResponseSheet(
                     color = colors.accent,
                 )
 
-                // Optional description (only when set on the registry)
-                val description = payload["description"]
-                if (!description.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(spacing.gap8))
-                    Text(
-                        text = description,
-                        style = typography.bodyM,
-                        color = colors.inkSoft,
-                    )
-                }
-
-                // Optional event-date metadata (only if eventDateMs present and parseable)
-                val context = LocalContext.current
-                val eventDateLabel = remember(payload["eventDateMs"]) {
-                    val raw = payload["eventDateMs"] ?: return@remember null
-                    val millis = raw.toLongOrNull() ?: return@remember null
-                    DateUtils.formatDateTime(
-                        context,
-                        millis,
-                        DateUtils.FORMAT_SHOW_DATE
-                            or DateUtils.FORMAT_SHOW_TIME
-                            or DateUtils.FORMAT_SHOW_WEEKDAY
-                            or DateUtils.FORMAT_ABBREV_ALL,
-                    ).uppercase()
-                }
-                if (eventDateLabel != null) {
-                    Spacer(modifier = Modifier.height(spacing.gap16))
-                    Text(
-                        text = eventDateLabel,
-                        style = typography.monoCaps,
-                        color = colors.inkSoft,
-                    )
-                }
+                // Registry details (description / location / date) — reuses the
+                // registry-page component, fed by the live registry with payload
+                // fallback for description + date so the block is never emptier
+                // than today. Renders nothing when all three are null/blank.
+                RegistryDetailsSection(
+                    description = registry?.description ?: payload["description"],
+                    eventLocation = registry?.eventLocation,
+                    eventDateMs = registry?.eventDateMs ?: payload["eventDateMs"]?.toLongOrNull(),
+                )
 
                 Spacer(modifier = Modifier.height(spacing.gap20))
 
