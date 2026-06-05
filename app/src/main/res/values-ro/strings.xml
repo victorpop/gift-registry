@@ -196,7 +196,7 @@
     <string name="registry_create_untitled_draft">List\u0103 nesalvat\u0103</string>
     <string name="registry_update_cta">Actualizeaz\u0103 lista</string>
     <string name="registry_occasion_housewarming">Cas\u0103 nou\u0103</string>
-    <string name="registry_occasion_baby">Bebe</string>
+    <string name="registry_occasion_baby">Botez</string>
     <string name="registry_event_time_label">Ora</string>
     <string name="registry_visibility_section_label">VIZIBILITATE</string>
 
@@ -228,7 +228,7 @@
     <string name="nav_fab_add">ADAUG&#0258;</string>
     <!-- quick-260530-p7w: slot 4 renamed LISTS → INBOX. User locked the LITERAL string "INBOX" in RO — do NOT translate to "Mesaje" / "Căsuța poștală" / "Notificări". -->
     <string name="nav_inbox_tab">INBOX</string>
-    <string name="nav_you_tab">TU</string>
+    <string name="nav_you_tab">PROFIL</string>
     <string name="nav_fab_add_content_description">Adaug&#0259;</string>
 
     <!-- Phase 17: Discover screen and bottom-nav slot 2 (D-41) — Romanian -->
@@ -315,7 +315,7 @@
     <string name="add_item_affiliate_clear">\u015eterg</string>
     <string name="add_item_affiliate_info">Am recunoscut %1$s \u015fi vom ad\u0103uga eticheta noastr\u0103 de afiliat. F\u0103r\u0103 impact pentru oaspe\u021bii t\u0103i.</string>
     <string name="add_item_autofilled">completat automat</string>
-    <string name="add_item_cta_save">Salveaz\u0103 o list\u0103 &#10003;</string>
+    <string name="add_item_cta_save">Salveaz\u0103 &#238;n list\u0103 &#10003;</string>
     <string name="add_item_cta_add_another">Adaug\u0103 altul</string>
     <string name="item_og_fetch_failed_inline">Nu am putut accesa acea pagin\u0103 \u2014 completeaz\u0103 detaliile mai jos.</string>
     <string name="item_og_no_data_inline">Nu am putut completa automat pentru acest site \u2014 introdu detaliile manual mai jos.</string>
