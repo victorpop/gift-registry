@@ -2,11 +2,19 @@ package com.giftregistry.ui.notifications
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.giftregistry.domain.model.Registry
 import com.giftregistry.domain.notifications.NotificationRepository
+import com.giftregistry.domain.usecase.ObserveRegistryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -31,6 +39,7 @@ import javax.inject.Inject
 @HiltViewModel
 class InviteResponseViewModel @Inject constructor(
     private val notificationRepository: NotificationRepository,
+    private val observeRegistryUseCase: ObserveRegistryUseCase,
 ) : ViewModel() {
 
     enum class Action { Accept, Decline }
@@ -45,6 +54,19 @@ class InviteResponseViewModel @Inject constructor(
 
     private val _state = MutableStateFlow<State>(State.Idle)
     val state: StateFlow<State> = _state.asStateFlow()
+
+    private val _registryId = MutableStateFlow<String?>(null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val registry: StateFlow<Registry?> = _registryId
+        .filterNotNull()
+        .flatMapLatest { observeRegistryUseCase(it) }
+        .catch { emit(null) }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun observeRegistry(registryId: String) {
+        _registryId.value = registryId
+    }
 
     private var lastRegistryId: String? = null
     private var lastAction: Action? = null
