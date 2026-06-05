@@ -484,28 +484,32 @@ describe("Legacy registry docs (missing fields)", () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // describe("pendingInvitedUsers read scope (D-18)")
 //
-// Plan 16-01 Wave 0 — verifies that the new `pendingInvitedUsers` map added
-// by D-23 does NOT grant read access to a registry. The isInvited rule only
-// reads `invitedUsers`; `pendingInvitedUsers` is invisible to it. These tests
-// pass against the EXISTING rules — no rule edit needed (Pattern 8).
+// Quick 260605-h1d — UPDATED POLICY. A pending invitee (private registry,
+// `pendingInvitedUsers[uid]==true`) CAN now read the registry DOCUMENT so the
+// invite-response sheet can fetch description/location/date. This is granted
+// via the new `isPendingInvited()` helper ORed onto the registry-doc read rule.
+// A pending-only invitee still CANNOT read the items subcollection (the items
+// read rule still uses canReadRegistry() only), and a true outsider (in NEITHER
+// `invitedUsers` nor `pendingInvitedUsers`) is still DENIED the registry doc.
 //
 // D-19 sub-test confirms the rule still grants access AFTER the
 // acceptInvite callable promotes a pending entry into invitedUsers.
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("pendingInvitedUsers read scope (D-18)", () => {
-  it("non-owner cannot read a registry doc with pendingInvitedUsers populated", async () => {
+  it("true outsider (in neither map) cannot read registry doc", async () => {
     await seedRegistry("reg-pending", {
       ownerId: "owner-1",
       visibility: "private",
       invitedUsers: {},
       pendingInvitedUsers: { "stranger-uid": true },
     });
-    const strangerDb = testEnv.authenticatedContext("stranger-uid").firestore();
-    await assertFails(getDoc(doc(strangerDb, "registries", "reg-pending")));
+    // Authenticate as a uid that is in NEITHER invitedUsers nor pendingInvitedUsers.
+    const outsiderDb = testEnv.authenticatedContext("outsider-uid").firestore();
+    await assertFails(getDoc(doc(outsiderDb, "registries", "reg-pending")));
   });
 
-  it("invitee with ONLY pending entry (no invitedUsers entry) cannot read registry", async () => {
+  it("pending-only invitee CAN read the registry doc", async () => {
     await seedRegistry("reg-pending-only", {
       ownerId: "owner-1",
       visibility: "private",
@@ -513,7 +517,7 @@ describe("pendingInvitedUsers read scope (D-18)", () => {
       pendingInvitedUsers: { "invitee-uid": true },
     });
     const inviteeDb = testEnv.authenticatedContext("invitee-uid").firestore();
-    await assertFails(getDoc(doc(inviteeDb, "registries", "reg-pending-only")));
+    await assertSucceeds(getDoc(doc(inviteeDb, "registries", "reg-pending-only")));
   });
 
   it("owner CAN read registry with pendingInvitedUsers populated", async () => {
@@ -536,6 +540,35 @@ describe("pendingInvitedUsers read scope (D-18)", () => {
     });
     const acceptedDb = testEnv.authenticatedContext("accepted-uid").firestore();
     await assertSucceeds(getDoc(doc(acceptedDb, "registries", "reg-accepted")));
+  });
+
+  it("pending-only invitee CANNOT read items (scope guard)", async () => {
+    // Scope guard for quick 260605-h1d: isPendingInvited() is ORed onto the
+    // registry-DOC read ONLY. The items subcollection read still uses
+    // canReadRegistry(), so a pending-only invitee must be denied item reads.
+    await seedRegistry("reg-pending-items", {
+      ownerId: "owner-1",
+      visibility: "private",
+      invitedUsers: {},
+      pendingInvitedUsers: { "pending-uid": true },
+    });
+    await testEnv.withSecurityRulesDisabled(async (ctx) => {
+      await setDoc(
+        doc(ctx.firestore(), "registries", "reg-pending-items", "items", "item-1"),
+        {
+          title: "Gift Item",
+          originalUrl: "https://example.com",
+          affiliateUrl: "https://example.com",
+          status: "available",
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        }
+      );
+    });
+    const pendingDb = testEnv.authenticatedContext("pending-uid").firestore();
+    await assertFails(
+      getDoc(doc(pendingDb, "registries", "reg-pending-items", "items", "item-1"))
+    );
   });
 });
 
