@@ -35,6 +35,18 @@ service cloud.firestore {
              registryData.get('invitedUsers', {})[request.auth.uid] == true;
     }
 
+    function isPendingInvited(registryData) {
+      // Quick 260605-h1d: A pending invite stores the uid in `pendingInvitedUsers`
+      // (separate from `invitedUsers`) until the acceptInvite Cloud Function promotes
+      // it. The invite-response sheet fetches the live registry doc to show
+      // description/location/date, so pending invitees need DOC read access.
+      // Scoped to the registry DOC read ONLY (see line 50) — the items subcollection
+      // read still uses canReadRegistry(), so pending invitees CANNOT read items.
+      return isSignedIn() &&
+             registryData.get('visibility', 'public') == 'private' &&
+             registryData.get('pendingInvitedUsers', {})[request.auth.uid] == true;
+    }
+
     function canReadRegistry(registryData) {
       // isOwner first: belt-and-suspenders defense. For owner-filtered list
       // queries (whereEqualTo('ownerId', uid)) isOwner short-circuits true
@@ -47,7 +59,7 @@ service cloud.firestore {
 
     // Registries collection
     match /registries/{registryId} {
-      allow read: if canReadRegistry(resource.data);
+      allow read: if canReadRegistry(resource.data) || isPendingInvited(resource.data);
       allow create: if isSignedIn() && request.resource.data.ownerId == request.auth.uid;
       allow update, delete: if isOwner(resource.data);
 
