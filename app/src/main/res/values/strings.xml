@@ -150,7 +150,7 @@
     <string name="reservation_confirm_purchase_error">Could not confirm. Please try again.</string>
 
     <!-- Phase 6: Notifications (owner-facing) -->
-    <string name="notifications_purchase_snackbar">A gift was purchased from %1$s!</string>
+    <string name="notifications_purchase_snackbar">A gift was purchased from registry "%1$s"!</string>
     <string name="notifications_purchase_snackbar_action">View</string>
     <string name="notifications_channel_purchase_name">Purchase alerts</string>
     <string name="notifications_channel_purchase_description">Notified when a gift is purchased from your registry</string>
