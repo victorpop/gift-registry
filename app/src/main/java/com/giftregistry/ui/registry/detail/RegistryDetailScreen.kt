@@ -213,6 +213,14 @@ fun RegistryDetailScreen(
                 )
             }
 
+            item(key = "details") {
+                RegistryDetailsSection(
+                    description = registry?.description,
+                    eventLocation = registry?.eventLocation,
+                    eventDateMs = registry?.eventDateMs,
+                )
+            }
+
             item(key = "stats") {
                 StatsStrip(items = items)
             }
