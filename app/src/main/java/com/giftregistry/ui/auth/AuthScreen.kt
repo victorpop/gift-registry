@@ -372,20 +372,6 @@ fun AuthScreen(viewModel: AuthViewModel = hiltViewModel()) {
             }
         }
 
-        // Tertiary guest link — preserves AUTH-05 (CONTEXT.md constraint)
-        TextButton(
-            onClick = { viewModel.continueAsGuest() },
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = 44.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.auth_guest_tertiary_link),
-                style = typography.bodyXS,
-                color = colors.inkFaint,
-            )
-        }
-
         Spacer(modifier = Modifier.height(spacing.gap20))
     }
 }
