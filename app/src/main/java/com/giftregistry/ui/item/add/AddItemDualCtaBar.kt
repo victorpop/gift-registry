@@ -3,6 +3,7 @@ package com.giftregistry.ui.item.add
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,7 +25,7 @@ import com.giftregistry.ui.theme.GiftMaisonTheme
  * SCR-10: Dual CTA bar pinned via Scaffold.bottomBar.
  *
  *   Ghost "Add another" (flex 1f)  — save + reset form, stay on screen.
- *   Primary "Save to registry ✓" (flex 1.5f) — save + pop to RegistryDetail.
+ *   Primary "Save to registry ✓" (flex 1.3f) — save + pop to RegistryDetail.
  *
  * Both disabled while isFetching or isSaving; loading indicator on the primary
  * button during save.
@@ -63,21 +64,25 @@ internal fun AddItemDualCtaBar(
                 shape = shapes.pill,
                 border = BorderStroke(1.dp, colors.line),
                 colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.ink),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
             ) {
                 Text(
                     text = stringResource(R.string.add_item_cta_add_another),
                     style = typography.bodyMEmphasis,
+                    maxLines = 1,
+                    softWrap = false,
                 )
             }
             Button(
                 onClick = onSaveAndExit,
                 enabled = !disabled,
-                modifier = Modifier.weight(1.5f),
+                modifier = Modifier.weight(1.3f),
                 shape = shapes.pill,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colors.ink,
                     contentColor = colors.paper,
                 ),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
             ) {
                 if (isSaving) {
                     CircularProgressIndicator(
@@ -89,6 +94,8 @@ internal fun AddItemDualCtaBar(
                     Text(
                         text = stringResource(R.string.add_item_cta_save),
                         style = typography.bodyMEmphasis,
+                        maxLines = 1,
+                        softWrap = false,
                     )
                 }
             }
