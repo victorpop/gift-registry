@@ -19,11 +19,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import android.text.format.DateFormat as AndroidDateFormat
 import com.giftregistry.R
 import com.giftregistry.ui.theme.GiftMaisonTheme
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -60,6 +63,9 @@ internal fun RegistryDetailsSection(
     val spacing = GiftMaisonTheme.spacing
     val shapes = GiftMaisonTheme.shapes
 
+    val context = LocalContext.current
+    val is24Hour = AndroidDateFormat.is24HourFormat(context)
+
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -89,7 +95,7 @@ internal fun RegistryDetailsSection(
                 )
                 Spacer(Modifier.width(spacing.gap8))
                 Text(
-                    text = formatEventDate(eventDateMs!!),
+                    text = formatEventDate(eventDateMs!!, is24Hour),
                     style = typography.bodyMEmphasis,
                     color = colors.accent,
                 )
@@ -131,5 +137,12 @@ internal fun RegistryDetailsSection(
     }
 }
 
-private fun formatEventDate(eventDateMs: Long): String =
-    SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(eventDateMs))
+private fun formatEventDate(eventDateMs: Long, is24Hour: Boolean): String {
+    val date = SimpleDateFormat("MMM d", Locale.getDefault()).format(Date(eventDateMs))
+    val calendar = Calendar.getInstance().apply { timeInMillis = eventDateMs }
+    val hasTime = calendar.get(Calendar.HOUR_OF_DAY) != 0 || calendar.get(Calendar.MINUTE) != 0
+    if (!hasTime) return date
+    val timePattern = if (is24Hour) "HH:mm" else "h:mm a"
+    val time = SimpleDateFormat(timePattern, Locale.getDefault()).format(Date(eventDateMs))
+    return "$date · $time"
+}
